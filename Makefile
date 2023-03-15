@@ -5,9 +5,12 @@ DOCKER = docker run --rm -e CARGO_HOME=/app/.cargo -v $(PWD):/app -w /app
 shell:
 	@$(DOCKER) -it $(IMAGE) bash
 
+.PHONY: can-release
+can-release: lint test
+
 .PHONY: lint
 lint:
-	@$(DOCKER) -it $(IMAGE) bash -c "\
+	@$(DOCKER) $(IMAGE) bash -c "\
 		rustup component add rustfmt clippy && \
 		cargo fmt -- --check && \
 		cargo clippy -- -D warnings"
