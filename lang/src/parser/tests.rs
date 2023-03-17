@@ -2568,6 +2568,54 @@ fn match_with_list_destructing() {
 }
 
 #[test]
+fn infix_precedence() {
+    fn case(input: &str, expected: &str) {
+        let mut parser = Parser::new(Lexer::new(input.trim()));
+        let program = parser.parse();
+        let actual = format!("{}", program.expect("Ok"));
+        assert_eq!(expected, actual);
+    }
+
+    case("-a * b", "((-a) * b)");
+    case("!-a", "(!(-a))");
+    case("a + b + c", "((a + b) + c)");
+    case("a + b - c", "((a + b) - c)");
+    case("a * b * c", "((a * b) * c)");
+    case("a * b / c", "((a * b) / c)");
+    case("a + b / c", "(a + (b / c))");
+    case("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)");
+    case("3 + 4; -5 * 5", "(3 + 4)\n((-5) * 5)");
+    case("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))");
+    case("5 >= 4 == 3 <= 4", "((5 >= 4) == (3 <= 4))");
+    case("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))");
+    case("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))");
+    case("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)");
+    case("(5 + 5) * 2", "((5 + 5) * 2)");
+    case("2 / (5 + 5)", "(2 / (5 + 5))");
+    case("-(5 + 5)", "(-(5 + 5))");
+    case("!(true == true)", "(!(true == true))");
+    case("a + add(b * c) + d", "((a + add((b * c))) + d)");
+    case(
+        "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+        "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+    );
+    case("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))");
+    case("a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)");
+    case(
+        "add(a * b[2], b[1], 2 * [1, 2][1])",
+        "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+    );
+    case(
+        "1 |> add(3) != [1, 2, 3] |> mul",
+        "((1 |> add(3)) != ([1, 2, 3] |> mul))",
+    );
+    case(
+        "1 |> add(1) |> |a| { a + 1 } |> inc |> _ + 1",
+        "(1 |> add(1) |> |a| (a + 1) |> inc |> (_ + 1))",
+    );
+}
+
+#[test]
 fn invalid_function() {
     assert_error(
         "|ddd { 1 }",
