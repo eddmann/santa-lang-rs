@@ -11,21 +11,28 @@ fn integers() {
         ",
         expect![[r#"
             Program {
-                source: 0..25,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Integer(
+                                    "1",
+                                ),
+                                source: 0..1,
+                            },
+                        ),
                         source: 0..15,
-                        expression: Integer {
-                            source: 0..1,
-                            value: "1",
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Integer(
+                                    "1_000_000",
+                                ),
+                                source: 15..24,
+                            },
+                        ),
                         source: 15..25,
-                        expression: Integer {
-                            source: 15..24,
-                            value: "1_000_000",
-                        },
                     },
                 ],
             }"#]],
@@ -41,21 +48,28 @@ fn decimals() {
         ",
         expect![[r#"
             Program {
-                source: 0..30,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Decimal(
+                                    "1.5",
+                                ),
+                                source: 0..3,
+                            },
+                        ),
                         source: 0..17,
-                        expression: Decimal {
-                            source: 0..3,
-                            value: "1.5",
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Decimal(
+                                    "1_000_000.50",
+                                ),
+                                source: 17..29,
+                            },
+                        ),
                         source: 17..30,
-                        expression: Decimal {
-                            source: 17..29,
-                            value: "1_000_000.50",
-                        },
                     },
                 ],
             }"#]],
@@ -72,28 +86,39 @@ fn strings() {
         "#,
         expect![[r#"
             Program {
-                source: 0..60,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: String(
+                                    "\"Hello, world!\"",
+                                ),
+                                source: 0..15,
+                            },
+                        ),
                         source: 0..28,
-                        expression: String {
-                            source: 0..15,
-                            value: "\"Hello, world!\"",
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: String(
+                                    "\"\\n\\t\\\"\"",
+                                ),
+                                source: 28..36,
+                            },
+                        ),
                         source: 28..49,
-                        expression: String {
-                            source: 28..36,
-                            value: "\"\\n\\t\\\"\"",
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: String(
+                                    "\"µࠒ𒀀\"",
+                                ),
+                                source: 49..60,
+                            },
+                        ),
                         source: 49..60,
-                        expression: String {
-                            source: 49..60,
-                            value: "\"µࠒ𒀀\"",
-                        },
                     },
                 ],
             }"#]],
@@ -109,21 +134,28 @@ fn booleans() {
         ",
         expect![[r#"
             Program {
-                source: 0..24,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Boolean(
+                                    true,
+                                ),
+                                source: 0..4,
+                            },
+                        ),
                         source: 0..18,
-                        expression: Boolean {
-                            source: 0..4,
-                            value: true,
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Boolean(
+                                    false,
+                                ),
+                                source: 18..23,
+                            },
+                        ),
                         source: 18..24,
-                        expression: Boolean {
-                            source: 18..23,
-                            value: false,
-                        },
                     },
                 ],
             }"#]],
@@ -136,13 +168,15 @@ fn nil() {
         "nil;",
         expect![[r#"
             Program {
-                source: 0..4,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Nil,
+                                source: 0..3,
+                            },
+                        ),
                         source: 0..4,
-                        expression: Nil {
-                            source: 0..3,
-                        },
                     },
                 ],
             }"#]],
@@ -158,22 +192,29 @@ fn comments() {
         ",
         expect![[r#"
             Program {
-                source: 0..58,
                 statements: [
-                    Comment {
+                    Statement {
+                        kind: Comment(
+                            "// full line comment",
+                        ),
                         source: 0..20,
-                        value: "// full line comment",
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Integer(
+                                    "1",
+                                ),
+                                source: 33..34,
+                            },
+                        ),
                         source: 33..36,
-                        expression: Integer {
-                            source: 33..34,
-                            value: "1",
-                        },
                     },
-                    Comment {
+                    Statement {
+                        kind: Comment(
+                            "// end of line comment",
+                        ),
                         source: 36..58,
-                        value: "// end of line comment",
                     },
                 ],
             }"#]],
@@ -188,46 +229,65 @@ fn list() {
         "#,
         expect![[r#"
             Program {
-                source: 0..41,
                 statements: [
-                    Expression {
-                        source: 0..41,
-                        expression: List {
-                            source: 0..41,
-                            elements: [
-                                Integer {
-                                    source: 1..2,
-                                    value: "1",
-                                },
-                                Decimal {
-                                    source: 4..7,
-                                    value: "2.5",
-                                },
-                                String {
-                                    source: 9..24,
-                                    value: "\"Hello, world!\"",
-                                },
-                                SpreadElement {
-                                    source: 26..28,
-                                    value: Identifier {
-                                        source: 28..30,
-                                        name: "xs",
-                                    },
-                                },
-                                SpreadElement {
-                                    source: 32..34,
-                                    value: List {
-                                        source: 34..40,
-                                        elements: [
-                                            Boolean {
-                                                source: 35..39,
-                                                value: true,
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: List(
+                                    [
+                                        Expression {
+                                            kind: Integer(
+                                                "1",
+                                            ),
+                                            source: 1..2,
+                                        },
+                                        Expression {
+                                            kind: Decimal(
+                                                "2.5",
+                                            ),
+                                            source: 4..7,
+                                        },
+                                        Expression {
+                                            kind: String(
+                                                "\"Hello, world!\"",
+                                            ),
+                                            source: 9..24,
+                                        },
+                                        Expression {
+                                            kind: SpreadElement {
+                                                value: Expression {
+                                                    kind: Identifier(
+                                                        "xs",
+                                                    ),
+                                                    source: 28..30,
+                                                },
                                             },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
+                                            source: 26..30,
+                                        },
+                                        Expression {
+                                            kind: SpreadElement {
+                                                value: Expression {
+                                                    kind: List(
+                                                        [
+                                                            Expression {
+                                                                kind: Boolean(
+                                                                    true,
+                                                                ),
+                                                                source: 35..39,
+                                                            },
+                                                        ],
+                                                    ),
+                                                    source: 34..40,
+                                                },
+                                            },
+                                            source: 32..40,
+                                        },
+                                    ],
+                                ),
+                                source: 0..41,
+                            },
+                        ),
+                        source: 0..41,
                     },
                 ],
             }"#]],
@@ -242,65 +302,88 @@ fn hash() {
         "#,
         expect![[r#"
             Program {
-                source: 0..45,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Hash(
+                                    [
+                                        (
+                                            Expression {
+                                                kind: String(
+                                                    "\"Hello, world!\"",
+                                                ),
+                                                source: 2..17,
+                                            },
+                                            Expression {
+                                                kind: Hash(
+                                                    [
+                                                        (
+                                                            Expression {
+                                                                kind: String(
+                                                                    "x",
+                                                                ),
+                                                                source: 21..22,
+                                                            },
+                                                            Expression {
+                                                                kind: Identifier(
+                                                                    "x",
+                                                                ),
+                                                                source: 21..22,
+                                                            },
+                                                        ),
+                                                    ],
+                                                ),
+                                                source: 19..23,
+                                            },
+                                        ),
+                                        (
+                                            Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 25..26,
+                                            },
+                                            Expression {
+                                                kind: String(
+                                                    "\"2\"",
+                                                ),
+                                                source: 28..31,
+                                            },
+                                        ),
+                                        (
+                                            Expression {
+                                                kind: List(
+                                                    [
+                                                        Expression {
+                                                            kind: Integer(
+                                                                "1",
+                                                            ),
+                                                            source: 34..35,
+                                                        },
+                                                        Expression {
+                                                            kind: Integer(
+                                                                "2",
+                                                            ),
+                                                            source: 37..38,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 33..39,
+                                            },
+                                            Expression {
+                                                kind: Decimal(
+                                                    "1.4",
+                                                ),
+                                                source: 41..44,
+                                            },
+                                        ),
+                                    ],
+                                ),
+                                source: 0..45,
+                            },
+                        ),
                         source: 0..45,
-                        expression: Hash {
-                            source: 0..45,
-                            elements: [
-                                (
-                                    String {
-                                        source: 2..17,
-                                        value: "\"Hello, world!\"",
-                                    },
-                                    Hash {
-                                        source: 19..23,
-                                        elements: [
-                                            (
-                                                String {
-                                                    source: 21..22,
-                                                    value: "x",
-                                                },
-                                                Identifier {
-                                                    source: 21..22,
-                                                    name: "x",
-                                                },
-                                            ),
-                                        ],
-                                    },
-                                ),
-                                (
-                                    Integer {
-                                        source: 25..26,
-                                        value: "1",
-                                    },
-                                    String {
-                                        source: 28..31,
-                                        value: "\"2\"",
-                                    },
-                                ),
-                                (
-                                    List {
-                                        source: 33..39,
-                                        elements: [
-                                            Integer {
-                                                source: 34..35,
-                                                value: "1",
-                                            },
-                                            Integer {
-                                                source: 37..38,
-                                                value: "2",
-                                            },
-                                        ],
-                                    },
-                                    Decimal {
-                                        source: 41..44,
-                                        value: "1.4",
-                                    },
-                                ),
-                            ],
-                        },
                     },
                 ],
             }"#]],
@@ -315,39 +398,54 @@ fn set() {
         "#,
         expect![[r#"
             Program {
-                source: 0..35,
                 statements: [
-                    Expression {
-                        source: 0..35,
-                        expression: Set {
-                            source: 0..35,
-                            elements: [
-                                Integer {
-                                    source: 1..2,
-                                    value: "1",
-                                },
-                                Decimal {
-                                    source: 4..7,
-                                    value: "2.5",
-                                },
-                                String {
-                                    source: 9..24,
-                                    value: "\"Hello, world!\"",
-                                },
-                                SpreadElement {
-                                    source: 26..28,
-                                    value: List {
-                                        source: 28..34,
-                                        elements: [
-                                            Boolean {
-                                                source: 29..33,
-                                                value: true,
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Set(
+                                    [
+                                        Expression {
+                                            kind: Integer(
+                                                "1",
+                                            ),
+                                            source: 1..2,
+                                        },
+                                        Expression {
+                                            kind: Decimal(
+                                                "2.5",
+                                            ),
+                                            source: 4..7,
+                                        },
+                                        Expression {
+                                            kind: String(
+                                                "\"Hello, world!\"",
+                                            ),
+                                            source: 9..24,
+                                        },
+                                        Expression {
+                                            kind: SpreadElement {
+                                                value: Expression {
+                                                    kind: List(
+                                                        [
+                                                            Expression {
+                                                                kind: Boolean(
+                                                                    true,
+                                                                ),
+                                                                source: 29..33,
+                                                            },
+                                                        ],
+                                                    ),
+                                                    source: 28..34,
+                                                },
                                             },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
+                                            source: 26..34,
+                                        },
+                                    ],
+                                ),
+                                source: 0..35,
+                            },
+                        ),
+                        source: 0..35,
                     },
                 ],
             }"#]],
@@ -364,207 +462,320 @@ fn ranges() {
         "#,
         expect![[r#"
             Program {
-                source: 0..125,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: ExclusiveRange {
+                                    from: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 0..1,
+                                    },
+                                    until: Expression {
+                                        kind: Integer(
+                                            "10",
+                                        ),
+                                        source: 3..5,
+                                    },
+                                },
+                                source: 1..5,
+                            },
+                        ),
                         source: 0..7,
-                        expression: ExclusiveRange {
-                            source: 1..5,
-                            from: Integer {
-                                source: 0..1,
-                                value: "1",
-                            },
-                            until: Integer {
-                                source: 3..5,
-                                value: "10",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: ExclusiveRange {
+                                    from: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 7..8,
+                                    },
+                                    until: Expression {
+                                        kind: Identifier(
+                                            "y",
+                                        ),
+                                        source: 10..11,
+                                    },
+                                },
+                                source: 8..11,
+                            },
+                        ),
                         source: 7..13,
-                        expression: ExclusiveRange {
-                            source: 8..11,
-                            from: Identifier {
-                                source: 7..8,
-                                name: "x",
-                            },
-                            until: Identifier {
-                                source: 10..11,
-                                name: "y",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: ExclusiveRange {
+                                    from: Expression {
+                                        kind: Prefix {
+                                            operator: Minus,
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 14..15,
+                                            },
+                                        },
+                                        source: 13..15,
+                                    },
+                                    until: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 17..18,
+                                    },
+                                },
+                                source: 15..18,
+                            },
+                        ),
                         source: 13..20,
-                        expression: ExclusiveRange {
-                            source: 15..18,
-                            from: Prefix {
-                                source: 13..15,
-                                operator: Minus,
-                                right: Integer {
-                                    source: 14..15,
-                                    value: "1",
-                                },
-                            },
-                            until: Integer {
-                                source: 17..18,
-                                value: "1",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: ExclusiveRange {
+                                    from: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 20..21,
+                                    },
+                                    until: Expression {
+                                        kind: Prefix {
+                                            operator: Minus,
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 24..25,
+                                            },
+                                        },
+                                        source: 23..25,
+                                    },
+                                },
+                                source: 21..25,
+                            },
+                        ),
                         source: 20..27,
-                        expression: ExclusiveRange {
-                            source: 21..25,
-                            from: Integer {
-                                source: 20..21,
-                                value: "1",
-                            },
-                            until: Prefix {
-                                source: 23..25,
-                                operator: Minus,
-                                right: Integer {
-                                    source: 24..25,
-                                    value: "1",
-                                },
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: ExclusiveRange {
+                                    from: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 28..29,
+                                    },
+                                    until: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 33..34,
+                                    },
+                                },
+                                source: 30..35,
+                            },
+                        ),
                         source: 27..49,
-                        expression: ExclusiveRange {
-                            source: 30..35,
-                            from: Integer {
-                                source: 28..29,
-                                value: "1",
-                            },
-                            until: Integer {
-                                source: 33..34,
-                                value: "1",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: InclusiveRange {
+                                    from: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 49..50,
+                                    },
+                                    to: Expression {
+                                        kind: Integer(
+                                            "10",
+                                        ),
+                                        source: 53..55,
+                                    },
+                                },
+                                source: 50..55,
+                            },
+                        ),
                         source: 49..57,
-                        expression: InclusiveRange {
-                            source: 50..55,
-                            from: Integer {
-                                source: 49..50,
-                                value: "1",
-                            },
-                            to: Integer {
-                                source: 53..55,
-                                value: "10",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: InclusiveRange {
+                                    from: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 57..58,
+                                    },
+                                    to: Expression {
+                                        kind: Identifier(
+                                            "y",
+                                        ),
+                                        source: 61..62,
+                                    },
+                                },
+                                source: 58..62,
+                            },
+                        ),
                         source: 57..64,
-                        expression: InclusiveRange {
-                            source: 58..62,
-                            from: Identifier {
-                                source: 57..58,
-                                name: "x",
-                            },
-                            to: Identifier {
-                                source: 61..62,
-                                name: "y",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: InclusiveRange {
+                                    from: Expression {
+                                        kind: Prefix {
+                                            operator: Minus,
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 65..66,
+                                            },
+                                        },
+                                        source: 64..66,
+                                    },
+                                    to: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 69..70,
+                                    },
+                                },
+                                source: 66..70,
+                            },
+                        ),
                         source: 64..72,
-                        expression: InclusiveRange {
-                            source: 66..70,
-                            from: Prefix {
-                                source: 64..66,
-                                operator: Minus,
-                                right: Integer {
-                                    source: 65..66,
-                                    value: "1",
-                                },
-                            },
-                            to: Integer {
-                                source: 69..70,
-                                value: "1",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: InclusiveRange {
+                                    from: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 72..73,
+                                    },
+                                    to: Expression {
+                                        kind: Prefix {
+                                            operator: Minus,
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 77..78,
+                                            },
+                                        },
+                                        source: 76..78,
+                                    },
+                                },
+                                source: 73..78,
+                            },
+                        ),
                         source: 72..80,
-                        expression: InclusiveRange {
-                            source: 73..78,
-                            from: Integer {
-                                source: 72..73,
-                                value: "1",
-                            },
-                            to: Prefix {
-                                source: 76..78,
-                                operator: Minus,
-                                right: Integer {
-                                    source: 77..78,
-                                    value: "1",
-                                },
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: InclusiveRange {
+                                    from: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 81..82,
+                                    },
+                                    to: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 87..88,
+                                    },
+                                },
+                                source: 83..89,
+                            },
+                        ),
                         source: 80..103,
-                        expression: InclusiveRange {
-                            source: 83..89,
-                            from: Integer {
-                                source: 81..82,
-                                value: "1",
-                            },
-                            to: Integer {
-                                source: 87..88,
-                                value: "1",
-                            },
-                        },
                     },
-                    Expression {
-                        source: 103..108,
-                        expression: UnboundedRange {
-                            source: 104..106,
-                            from: Integer {
-                                source: 103..104,
-                                value: "1",
-                            },
-                        },
-                    },
-                    Expression {
-                        source: 108..113,
-                        expression: UnboundedRange {
-                            source: 109..111,
-                            from: Identifier {
-                                source: 108..109,
-                                name: "x",
-                            },
-                        },
-                    },
-                    Expression {
-                        source: 113..119,
-                        expression: UnboundedRange {
-                            source: 115..117,
-                            from: Prefix {
-                                source: 113..115,
-                                operator: Minus,
-                                right: Integer {
-                                    source: 114..115,
-                                    value: "1",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: UnboundedRange {
+                                    from: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 103..104,
+                                    },
                                 },
+                                source: 104..106,
                             },
-                        },
+                        ),
+                        source: 103..108,
                     },
-                    Expression {
-                        source: 119..125,
-                        expression: UnboundedRange {
-                            source: 122..124,
-                            from: Integer {
-                                source: 120..121,
-                                value: "1",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: UnboundedRange {
+                                    from: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 108..109,
+                                    },
+                                },
+                                source: 109..111,
                             },
-                        },
+                        ),
+                        source: 108..113,
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: UnboundedRange {
+                                    from: Expression {
+                                        kind: Prefix {
+                                            operator: Minus,
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 114..115,
+                                            },
+                                        },
+                                        source: 113..115,
+                                    },
+                                },
+                                source: 115..117,
+                            },
+                        ),
+                        source: 113..119,
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: UnboundedRange {
+                                    from: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 120..121,
+                                    },
+                                },
+                                source: 122..124,
+                            },
+                        ),
+                        source: 119..125,
                     },
                 ],
             }"#]],
@@ -582,118 +793,175 @@ fn let_assignments() {
         "#,
         expect![[r#"
             Program {
-                source: 0..113,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Let {
+                                    name: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 4..5,
+                                    },
+                                    value: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 8..9,
+                                    },
+                                },
+                                source: 0..9,
+                            },
+                        ),
                         source: 0..23,
-                        expression: Let {
-                            source: 0..9,
-                            name: Identifier {
-                                source: 4..5,
-                                name: "x",
-                            },
-                            value: Integer {
-                                source: 8..9,
-                                value: "1",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: MutableLet {
+                                    name: Expression {
+                                        kind: Identifier(
+                                            "y",
+                                        ),
+                                        source: 31..32,
+                                    },
+                                    value: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 35..36,
+                                    },
+                                },
+                                source: 23..36,
+                            },
+                        ),
                         source: 23..50,
-                        expression: MutableLet {
-                            source: 23..36,
-                            name: Identifier {
-                                source: 31..32,
-                                name: "y",
-                            },
-                            value: Integer {
-                                source: 35..36,
-                                value: "1",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Assign {
+                                    name: Expression {
+                                        kind: Identifier(
+                                            "y",
+                                        ),
+                                        source: 50..51,
+                                    },
+                                    value: Expression {
+                                        kind: Integer(
+                                            "2",
+                                        ),
+                                        source: 54..55,
+                                    },
+                                },
+                                source: 52..55,
+                            },
+                        ),
                         source: 50..69,
-                        expression: Assign {
-                            source: 52..55,
-                            name: Identifier {
-                                source: 50..51,
-                                name: "y",
-                            },
-                            value: Integer {
-                                source: 54..55,
-                                value: "2",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Let {
+                                    name: Expression {
+                                        kind: IdentifierListPattern(
+                                            [
+                                                Expression {
+                                                    kind: Identifier(
+                                                        "a",
+                                                    ),
+                                                    source: 74..75,
+                                                },
+                                                Expression {
+                                                    kind: Identifier(
+                                                        "b",
+                                                    ),
+                                                    source: 77..78,
+                                                },
+                                                Expression {
+                                                    kind: IdentifierListPattern(
+                                                        [
+                                                            Expression {
+                                                                kind: Identifier(
+                                                                    "c",
+                                                                ),
+                                                                source: 81..82,
+                                                            },
+                                                            Expression {
+                                                                kind: Identifier(
+                                                                    "d",
+                                                                ),
+                                                                source: 84..85,
+                                                            },
+                                                        ],
+                                                    ),
+                                                    source: 80..86,
+                                                },
+                                                Expression {
+                                                    kind: RestElement {
+                                                        name: Expression {
+                                                            kind: Identifier(
+                                                                "e",
+                                                            ),
+                                                            source: 90..91,
+                                                        },
+                                                    },
+                                                    source: 88..91,
+                                                },
+                                            ],
+                                        ),
+                                        source: 69..93,
+                                    },
+                                    value: Expression {
+                                        kind: List(
+                                            [
+                                                Expression {
+                                                    kind: Integer(
+                                                        "1",
+                                                    ),
+                                                    source: 96..97,
+                                                },
+                                                Expression {
+                                                    kind: Integer(
+                                                        "2",
+                                                    ),
+                                                    source: 99..100,
+                                                },
+                                                Expression {
+                                                    kind: List(
+                                                        [
+                                                            Expression {
+                                                                kind: Integer(
+                                                                    "3",
+                                                                ),
+                                                                source: 103..104,
+                                                            },
+                                                            Expression {
+                                                                kind: Integer(
+                                                                    "4",
+                                                                ),
+                                                                source: 106..107,
+                                                            },
+                                                        ],
+                                                    ),
+                                                    source: 102..108,
+                                                },
+                                                Expression {
+                                                    kind: Integer(
+                                                        "5",
+                                                    ),
+                                                    source: 110..111,
+                                                },
+                                            ],
+                                        ),
+                                        source: 95..112,
+                                    },
+                                },
+                                source: 69..112,
+                            },
+                        ),
                         source: 69..113,
-                        expression: Let {
-                            source: 69..112,
-                            name: IdentifierListPattern {
-                                source: 69..93,
-                                pattern: [
-                                    Identifier {
-                                        source: 74..75,
-                                        name: "a",
-                                    },
-                                    Identifier {
-                                        source: 77..78,
-                                        name: "b",
-                                    },
-                                    IdentifierListPattern {
-                                        source: 80..81,
-                                        pattern: [
-                                            Identifier {
-                                                source: 81..82,
-                                                name: "c",
-                                            },
-                                            Identifier {
-                                                source: 84..85,
-                                                name: "d",
-                                            },
-                                        ],
-                                    },
-                                    RestElement {
-                                        source: 88..90,
-                                        name: Identifier {
-                                            source: 90..91,
-                                            name: "e",
-                                        },
-                                    },
-                                ],
-                            },
-                            value: List {
-                                source: 95..112,
-                                elements: [
-                                    Integer {
-                                        source: 96..97,
-                                        value: "1",
-                                    },
-                                    Integer {
-                                        source: 99..100,
-                                        value: "2",
-                                    },
-                                    List {
-                                        source: 102..108,
-                                        elements: [
-                                            Integer {
-                                                source: 103..104,
-                                                value: "3",
-                                            },
-                                            Integer {
-                                                source: 106..107,
-                                                value: "4",
-                                            },
-                                        ],
-                                    },
-                                    Integer {
-                                        source: 110..111,
-                                        value: "5",
-                                    },
-                                ],
-                            },
-                        },
                     },
                 ],
             }"#]],
@@ -710,112 +978,165 @@ fn if_expressions() {
         "#,
         expect![[r#"
             Program {
-                source: 0..83,
                 statements: [
-                    Expression {
-                        source: 0..27,
-                        expression: If {
-                            source: 0..27,
-                            condition: Infix {
-                                source: 5..9,
-                                operator: LessThan,
-                                left: Integer {
-                                    source: 3..4,
-                                    value: "2",
-                                },
-                                right: Integer {
-                                    source: 7..8,
-                                    value: "5",
-                                },
-                            },
-                            consequence: Block {
-                                source: 9..27,
-                                statements: [
-                                    Expression {
-                                        source: 11..13,
-                                        expression: Integer {
-                                            source: 11..12,
-                                            value: "1",
-                                        },
-                                    },
-                                ],
-                            },
-                            alternative: None,
-                        },
-                    },
-                    Expression {
-                        source: 27..65,
-                        expression: If {
-                            source: 27..65,
-                            condition: Infix {
-                                source: 32..36,
-                                operator: GreaterThan,
-                                left: Integer {
-                                    source: 30..31,
-                                    value: "3",
-                                },
-                                right: Integer {
-                                    source: 34..35,
-                                    value: "5",
-                                },
-                            },
-                            consequence: Block {
-                                source: 36..42,
-                                statements: [
-                                    Expression {
-                                        source: 38..40,
-                                        expression: Integer {
-                                            source: 38..39,
-                                            value: "1",
-                                        },
-                                    },
-                                ],
-                            },
-                            alternative: Some(
-                                Block {
-                                    source: 47..65,
-                                    statements: [
-                                        Expression {
-                                            source: 49..51,
-                                            expression: Integer {
-                                                source: 49..50,
-                                                value: "2",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: If {
+                                    condition: Expression {
+                                        kind: Infix {
+                                            operator: LessThan,
+                                            left: Expression {
+                                                kind: Integer(
+                                                    "2",
+                                                ),
+                                                source: 3..4,
+                                            },
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "5",
+                                                ),
+                                                source: 7..8,
                                             },
                                         },
-                                    ],
-                                },
-                            ),
-                        },
-                    },
-                    Expression {
-                        source: 65..83,
-                        expression: If {
-                            source: 65..83,
-                            condition: Let {
-                                source: 68..78,
-                                name: Identifier {
-                                    source: 72..73,
-                                    name: "x",
-                                },
-                                value: Integer {
-                                    source: 76..77,
-                                    value: "1",
-                                },
-                            },
-                            consequence: Block {
-                                source: 78..83,
-                                statements: [
-                                    Expression {
-                                        source: 80..82,
-                                        expression: Identifier {
-                                            source: 80..81,
-                                            name: "x",
-                                        },
+                                        source: 5..9,
                                     },
-                                ],
+                                    consequence: Statement {
+                                        kind: Block(
+                                            [
+                                                Statement {
+                                                    kind: Expression(
+                                                        Expression {
+                                                            kind: Integer(
+                                                                "1",
+                                                            ),
+                                                            source: 11..12,
+                                                        },
+                                                    ),
+                                                    source: 11..13,
+                                                },
+                                            ],
+                                        ),
+                                        source: 9..27,
+                                    },
+                                    alternative: None,
+                                },
+                                source: 0..27,
                             },
-                            alternative: None,
-                        },
+                        ),
+                        source: 0..27,
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: If {
+                                    condition: Expression {
+                                        kind: Infix {
+                                            operator: GreaterThan,
+                                            left: Expression {
+                                                kind: Integer(
+                                                    "3",
+                                                ),
+                                                source: 30..31,
+                                            },
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "5",
+                                                ),
+                                                source: 34..35,
+                                            },
+                                        },
+                                        source: 32..36,
+                                    },
+                                    consequence: Statement {
+                                        kind: Block(
+                                            [
+                                                Statement {
+                                                    kind: Expression(
+                                                        Expression {
+                                                            kind: Integer(
+                                                                "1",
+                                                            ),
+                                                            source: 38..39,
+                                                        },
+                                                    ),
+                                                    source: 38..40,
+                                                },
+                                            ],
+                                        ),
+                                        source: 36..42,
+                                    },
+                                    alternative: Some(
+                                        Statement {
+                                            kind: Block(
+                                                [
+                                                    Statement {
+                                                        kind: Expression(
+                                                            Expression {
+                                                                kind: Integer(
+                                                                    "2",
+                                                                ),
+                                                                source: 49..50,
+                                                            },
+                                                        ),
+                                                        source: 49..51,
+                                                    },
+                                                ],
+                                            ),
+                                            source: 47..65,
+                                        },
+                                    ),
+                                },
+                                source: 27..65,
+                            },
+                        ),
+                        source: 27..65,
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: If {
+                                    condition: Expression {
+                                        kind: Let {
+                                            name: Expression {
+                                                kind: Identifier(
+                                                    "x",
+                                                ),
+                                                source: 72..73,
+                                            },
+                                            value: Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 76..77,
+                                            },
+                                        },
+                                        source: 68..78,
+                                    },
+                                    consequence: Statement {
+                                        kind: Block(
+                                            [
+                                                Statement {
+                                                    kind: Expression(
+                                                        Expression {
+                                                            kind: Identifier(
+                                                                "x",
+                                                            ),
+                                                            source: 80..81,
+                                                        },
+                                                    ),
+                                                    source: 80..82,
+                                                },
+                                            ],
+                                        ),
+                                        source: 78..83,
+                                    },
+                                    alternative: None,
+                                },
+                                source: 65..83,
+                            },
+                        ),
+                        source: 65..83,
                     },
                 ],
             }"#]],
@@ -834,78 +1155,115 @@ fn prefix_operators() {
         "#,
         expect![[r#"
             Program {
-                source: 0..79,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Prefix {
+                                    operator: Minus,
+                                    right: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 1..2,
+                                    },
+                                },
+                                source: 0..2,
+                            },
+                        ),
                         source: 0..16,
-                        expression: Prefix {
-                            source: 0..2,
-                            operator: Minus,
-                            right: Integer {
-                                source: 1..2,
-                                value: "1",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Prefix {
+                                    operator: Minus,
+                                    right: Expression {
+                                        kind: Prefix {
+                                            operator: Minus,
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 18..19,
+                                            },
+                                        },
+                                        source: 17..19,
+                                    },
+                                },
+                                source: 16..19,
+                            },
+                        ),
                         source: 16..33,
-                        expression: Prefix {
-                            source: 16..19,
-                            operator: Minus,
-                            right: Prefix {
-                                source: 17..19,
-                                operator: Minus,
-                                right: Integer {
-                                    source: 18..19,
-                                    value: "1",
-                                },
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Minus,
+                                    left: Expression {
+                                        kind: Integer(
+                                            "4",
+                                        ),
+                                        source: 33..34,
+                                    },
+                                    right: Expression {
+                                        kind: Prefix {
+                                            operator: Minus,
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "4",
+                                                ),
+                                                source: 38..39,
+                                            },
+                                        },
+                                        source: 37..39,
+                                    },
+                                },
+                                source: 35..39,
+                            },
+                        ),
                         source: 33..53,
-                        expression: Infix {
-                            source: 35..39,
-                            operator: Minus,
-                            left: Integer {
-                                source: 33..34,
-                                value: "4",
-                            },
-                            right: Prefix {
-                                source: 37..39,
-                                operator: Minus,
-                                right: Integer {
-                                    source: 38..39,
-                                    value: "4",
-                                },
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Prefix {
+                                    operator: Bang,
+                                    right: Expression {
+                                        kind: Boolean(
+                                            true,
+                                        ),
+                                        source: 54..58,
+                                    },
+                                },
+                                source: 53..58,
+                            },
+                        ),
                         source: 53..72,
-                        expression: Prefix {
-                            source: 53..58,
-                            operator: Bang,
-                            right: Boolean {
-                                source: 54..58,
-                                value: true,
-                            },
-                        },
                     },
-                    Expression {
-                        source: 72..79,
-                        expression: Prefix {
-                            source: 72..78,
-                            operator: Bang,
-                            right: Prefix {
-                                source: 73..78,
-                                operator: Bang,
-                                right: Boolean {
-                                    source: 74..78,
-                                    value: true,
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Prefix {
+                                    operator: Bang,
+                                    right: Expression {
+                                        kind: Prefix {
+                                            operator: Bang,
+                                            right: Expression {
+                                                kind: Boolean(
+                                                    true,
+                                                ),
+                                                source: 74..78,
+                                            },
+                                        },
+                                        source: 73..78,
+                                    },
                                 },
+                                source: 72..78,
                             },
-                        },
+                        ),
+                        source: 72..79,
                     },
                 ],
             }"#]],
@@ -926,160 +1284,239 @@ fn infix_operators() {
         "#,
         expect![[r#"
             Program {
-                source: 0..152,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Plus,
+                                    left: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 0..1,
+                                    },
+                                    right: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 4..5,
+                                    },
+                                },
+                                source: 2..5,
+                            },
+                        ),
                         source: 0..19,
-                        expression: Infix {
-                            source: 2..5,
-                            operator: Plus,
-                            left: Integer {
-                                source: 0..1,
-                                value: "1",
-                            },
-                            right: Integer {
-                                source: 4..5,
-                                value: "1",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Minus,
+                                    left: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 19..20,
+                                    },
+                                    right: Expression {
+                                        kind: Integer(
+                                            "2",
+                                        ),
+                                        source: 23..24,
+                                    },
+                                },
+                                source: 21..24,
+                            },
+                        ),
                         source: 19..38,
-                        expression: Infix {
-                            source: 21..24,
-                            operator: Minus,
-                            left: Integer {
-                                source: 19..20,
-                                value: "1",
-                            },
-                            right: Integer {
-                                source: 23..24,
-                                value: "2",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Slash,
+                                    left: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 38..39,
+                                    },
+                                    right: Expression {
+                                        kind: Integer(
+                                            "2",
+                                        ),
+                                        source: 42..43,
+                                    },
+                                },
+                                source: 40..43,
+                            },
+                        ),
                         source: 38..57,
-                        expression: Infix {
-                            source: 40..43,
-                            operator: Slash,
-                            left: Integer {
-                                source: 38..39,
-                                value: "1",
-                            },
-                            right: Integer {
-                                source: 42..43,
-                                value: "2",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Modulo,
+                                    left: Expression {
+                                        kind: Integer(
+                                            "3",
+                                        ),
+                                        source: 57..58,
+                                    },
+                                    right: Expression {
+                                        kind: Integer(
+                                            "4",
+                                        ),
+                                        source: 61..62,
+                                    },
+                                },
+                                source: 59..62,
+                            },
+                        ),
                         source: 57..76,
-                        expression: Infix {
-                            source: 59..62,
-                            operator: Modulo,
-                            left: Integer {
-                                source: 57..58,
-                                value: "3",
-                            },
-                            right: Integer {
-                                source: 61..62,
-                                value: "4",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Or,
+                                    left: Expression {
+                                        kind: Infix {
+                                            operator: Equal,
+                                            left: Expression {
+                                                kind: Integer(
+                                                    "4",
+                                                ),
+                                                source: 76..77,
+                                            },
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "5",
+                                                ),
+                                                source: 81..82,
+                                            },
+                                        },
+                                        source: 78..83,
+                                    },
+                                    right: Expression {
+                                        kind: Infix {
+                                            operator: NotEqual,
+                                            left: Expression {
+                                                kind: Integer(
+                                                    "4",
+                                                ),
+                                                source: 86..87,
+                                            },
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "7",
+                                                ),
+                                                source: 91..92,
+                                            },
+                                        },
+                                        source: 88..92,
+                                    },
+                                },
+                                source: 83..92,
+                            },
+                        ),
                         source: 76..106,
-                        expression: Infix {
-                            source: 83..92,
-                            operator: Or,
-                            left: Infix {
-                                source: 78..83,
-                                operator: Equal,
-                                left: Integer {
-                                    source: 76..77,
-                                    value: "4",
-                                },
-                                right: Integer {
-                                    source: 81..82,
-                                    value: "5",
-                                },
-                            },
-                            right: Infix {
-                                source: 88..92,
-                                operator: NotEqual,
-                                left: Integer {
-                                    source: 86..87,
-                                    value: "4",
-                                },
-                                right: Integer {
-                                    source: 91..92,
-                                    value: "7",
-                                },
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: And,
+                                    left: Expression {
+                                        kind: Infix {
+                                            operator: GreaterThan,
+                                            left: Expression {
+                                                kind: Integer(
+                                                    "5",
+                                                ),
+                                                source: 106..107,
+                                            },
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "10",
+                                                ),
+                                                source: 110..112,
+                                            },
+                                        },
+                                        source: 108..113,
+                                    },
+                                    right: Expression {
+                                        kind: Infix {
+                                            operator: LessThan,
+                                            left: Expression {
+                                                kind: Integer(
+                                                    "4",
+                                                ),
+                                                source: 116..117,
+                                            },
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "8",
+                                                ),
+                                                source: 120..121,
+                                            },
+                                        },
+                                        source: 118..121,
+                                    },
+                                },
+                                source: 113..121,
+                            },
+                        ),
                         source: 106..135,
-                        expression: Infix {
-                            source: 113..121,
-                            operator: And,
-                            left: Infix {
-                                source: 108..113,
-                                operator: GreaterThan,
-                                left: Integer {
-                                    source: 106..107,
-                                    value: "5",
-                                },
-                                right: Integer {
-                                    source: 110..112,
-                                    value: "10",
-                                },
-                            },
-                            right: Infix {
-                                source: 118..121,
-                                operator: LessThan,
-                                left: Integer {
-                                    source: 116..117,
-                                    value: "4",
-                                },
-                                right: Integer {
-                                    source: 120..121,
-                                    value: "8",
-                                },
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: And,
+                                    left: Expression {
+                                        kind: Infix {
+                                            operator: GreaterThanEqual,
+                                            left: Expression {
+                                                kind: Integer(
+                                                    "5",
+                                                ),
+                                                source: 135..136,
+                                            },
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "3",
+                                                ),
+                                                source: 140..141,
+                                            },
+                                        },
+                                        source: 137..142,
+                                    },
+                                    right: Expression {
+                                        kind: Infix {
+                                            operator: LessThanEqual,
+                                            left: Expression {
+                                                kind: Integer(
+                                                    "4",
+                                                ),
+                                                source: 145..146,
+                                            },
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "2",
+                                                ),
+                                                source: 150..151,
+                                            },
+                                        },
+                                        source: 147..151,
+                                    },
+                                },
+                                source: 142..151,
+                            },
+                        ),
                         source: 135..152,
-                        expression: Infix {
-                            source: 142..151,
-                            operator: And,
-                            left: Infix {
-                                source: 137..142,
-                                operator: GreaterThanEqual,
-                                left: Integer {
-                                    source: 135..136,
-                                    value: "5",
-                                },
-                                right: Integer {
-                                    source: 140..141,
-                                    value: "3",
-                                },
-                            },
-                            right: Infix {
-                                source: 147..151,
-                                operator: LessThanEqual,
-                                left: Integer {
-                                    source: 145..146,
-                                    value: "4",
-                                },
-                                right: Integer {
-                                    source: 150..151,
-                                    value: "2",
-                                },
-                            },
-                        },
                     },
                 ],
             }"#]],
@@ -1096,126 +1533,185 @@ fn function_literals() {
         "#,
         expect![[r#"
             Program {
-                source: 0..78,
                 statements: [
-                    Expression {
-                        source: 0..31,
-                        expression: Function {
-                            source: 0..17,
-                            parameters: [
-                                Identifier {
-                                    source: 1..2,
-                                    name: "x",
-                                },
-                                Identifier {
-                                    source: 4..5,
-                                    name: "y",
-                                },
-                            ],
-                            body: Block {
-                                source: 7..17,
-                                statements: [
-                                    Expression {
-                                        source: 9..16,
-                                        expression: Infix {
-                                            source: 11..14,
-                                            operator: Plus,
-                                            left: Identifier {
-                                                source: 9..10,
-                                                name: "x",
-                                            },
-                                            right: Identifier {
-                                                source: 13..14,
-                                                name: "y",
-                                            },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Function {
+                                    parameters: [
+                                        Expression {
+                                            kind: Identifier(
+                                                "x",
+                                            ),
+                                            source: 1..2,
                                         },
-                                    },
-                                ],
-                            },
-                        },
-                    },
-                    Expression {
-                        source: 31..57,
-                        expression: Function {
-                            source: 31..57,
-                            parameters: [
-                                Identifier {
-                                    source: 32..33,
-                                    name: "x",
-                                },
-                                Identifier {
-                                    source: 35..36,
-                                    name: "y",
-                                },
-                            ],
-                            body: Block {
-                                source: 38..57,
-                                statements: [
-                                    Expression {
-                                        source: 38..57,
-                                        expression: Infix {
-                                            source: 40..43,
-                                            operator: Plus,
-                                            left: Identifier {
-                                                source: 38..39,
-                                                name: "x",
-                                            },
-                                            right: Identifier {
-                                                source: 42..43,
-                                                name: "y",
-                                            },
-                                        },
-                                    },
-                                ],
-                            },
-                        },
-                    },
-                    Expression {
-                        source: 57..78,
-                        expression: Function {
-                            source: 57..78,
-                            parameters: [
-                                Identifier {
-                                    source: 58..59,
-                                    name: "x",
-                                },
-                                IdentifierListPattern {
-                                    source: 61..62,
-                                    pattern: [
-                                        Identifier {
-                                            source: 62..63,
-                                            name: "y",
-                                        },
-                                        RestElement {
-                                            source: 65..67,
-                                            name: Identifier {
-                                                source: 67..69,
-                                                name: "ys",
-                                            },
+                                        Expression {
+                                            kind: Identifier(
+                                                "y",
+                                            ),
+                                            source: 4..5,
                                         },
                                     ],
-                                },
-                                RestElement {
-                                    source: 72..74,
-                                    name: Identifier {
-                                        source: 74..75,
-                                        name: "z",
+                                    body: Statement {
+                                        kind: Block(
+                                            [
+                                                Statement {
+                                                    kind: Expression(
+                                                        Expression {
+                                                            kind: Infix {
+                                                                operator: Plus,
+                                                                left: Expression {
+                                                                    kind: Identifier(
+                                                                        "x",
+                                                                    ),
+                                                                    source: 9..10,
+                                                                },
+                                                                right: Expression {
+                                                                    kind: Identifier(
+                                                                        "y",
+                                                                    ),
+                                                                    source: 13..14,
+                                                                },
+                                                            },
+                                                            source: 11..14,
+                                                        },
+                                                    ),
+                                                    source: 9..16,
+                                                },
+                                            ],
+                                        ),
+                                        source: 7..17,
                                     },
                                 },
-                            ],
-                            body: Block {
-                                source: 77..78,
-                                statements: [
-                                    Expression {
-                                        source: 77..78,
-                                        expression: Identifier {
-                                            source: 77..78,
-                                            name: "x",
-                                        },
-                                    },
-                                ],
+                                source: 0..17,
                             },
-                        },
+                        ),
+                        source: 0..31,
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Function {
+                                    parameters: [
+                                        Expression {
+                                            kind: Identifier(
+                                                "x",
+                                            ),
+                                            source: 32..33,
+                                        },
+                                        Expression {
+                                            kind: Identifier(
+                                                "y",
+                                            ),
+                                            source: 35..36,
+                                        },
+                                    ],
+                                    body: Statement {
+                                        kind: Block(
+                                            [
+                                                Statement {
+                                                    kind: Expression(
+                                                        Expression {
+                                                            kind: Infix {
+                                                                operator: Plus,
+                                                                left: Expression {
+                                                                    kind: Identifier(
+                                                                        "x",
+                                                                    ),
+                                                                    source: 38..39,
+                                                                },
+                                                                right: Expression {
+                                                                    kind: Identifier(
+                                                                        "y",
+                                                                    ),
+                                                                    source: 42..43,
+                                                                },
+                                                            },
+                                                            source: 40..43,
+                                                        },
+                                                    ),
+                                                    source: 38..57,
+                                                },
+                                            ],
+                                        ),
+                                        source: 38..57,
+                                    },
+                                },
+                                source: 31..57,
+                            },
+                        ),
+                        source: 31..57,
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Function {
+                                    parameters: [
+                                        Expression {
+                                            kind: Identifier(
+                                                "x",
+                                            ),
+                                            source: 58..59,
+                                        },
+                                        Expression {
+                                            kind: IdentifierListPattern(
+                                                [
+                                                    Expression {
+                                                        kind: Identifier(
+                                                            "y",
+                                                        ),
+                                                        source: 62..63,
+                                                    },
+                                                    Expression {
+                                                        kind: RestElement {
+                                                            name: Expression {
+                                                                kind: Identifier(
+                                                                    "ys",
+                                                                ),
+                                                                source: 67..69,
+                                                            },
+                                                        },
+                                                        source: 65..69,
+                                                    },
+                                                ],
+                                            ),
+                                            source: 61..70,
+                                        },
+                                        Expression {
+                                            kind: RestElement {
+                                                name: Expression {
+                                                    kind: Identifier(
+                                                        "z",
+                                                    ),
+                                                    source: 74..75,
+                                                },
+                                            },
+                                            source: 72..75,
+                                        },
+                                    ],
+                                    body: Statement {
+                                        kind: Block(
+                                            [
+                                                Statement {
+                                                    kind: Expression(
+                                                        Expression {
+                                                            kind: Identifier(
+                                                                "x",
+                                                            ),
+                                                            source: 77..78,
+                                                        },
+                                                    ),
+                                                    source: 77..78,
+                                                },
+                                            ],
+                                        ),
+                                        source: 77..78,
+                                    },
+                                },
+                                source: 57..78,
+                            },
+                        ),
+                        source: 57..78,
                     },
                 ],
             }"#]],
@@ -1234,114 +1730,167 @@ fn call_expressions() {
         "#,
         expect![[r#"
             Program {
-                source: 0..106,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Call {
+                                    function: Expression {
+                                        kind: Identifier(
+                                            "add",
+                                        ),
+                                        source: 0..3,
+                                    },
+                                    arguments: [
+                                        Expression {
+                                            kind: Integer(
+                                                "1",
+                                            ),
+                                            source: 4..5,
+                                        },
+                                        Expression {
+                                            kind: Integer(
+                                                "2",
+                                            ),
+                                            source: 7..8,
+                                        },
+                                    ],
+                                },
+                                source: 3..9,
+                            },
+                        ),
                         source: 0..23,
-                        expression: Call {
-                            source: 3..9,
-                            function: Identifier {
-                                source: 0..3,
-                                name: "add",
-                            },
-                            arguments: [
-                                Integer {
-                                    source: 4..5,
-                                    value: "1",
-                                },
-                                Integer {
-                                    source: 7..8,
-                                    value: "2",
-                                },
-                            ],
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Call {
+                                    function: Expression {
+                                        kind: Identifier(
+                                            "add",
+                                        ),
+                                        source: 23..26,
+                                    },
+                                    arguments: [
+                                        Expression {
+                                            kind: Infix {
+                                                operator: Plus,
+                                                left: Expression {
+                                                    kind: Identifier(
+                                                        "x",
+                                                    ),
+                                                    source: 27..28,
+                                                },
+                                                right: Expression {
+                                                    kind: Identifier(
+                                                        "y",
+                                                    ),
+                                                    source: 31..32,
+                                                },
+                                            },
+                                            source: 29..32,
+                                        },
+                                        Expression {
+                                            kind: Integer(
+                                                "3",
+                                            ),
+                                            source: 34..35,
+                                        },
+                                    ],
+                                },
+                                source: 26..36,
+                            },
+                        ),
                         source: 23..50,
-                        expression: Call {
-                            source: 26..36,
-                            function: Identifier {
-                                source: 23..26,
-                                name: "add",
-                            },
-                            arguments: [
-                                Infix {
-                                    source: 29..32,
-                                    operator: Plus,
-                                    left: Identifier {
-                                        source: 27..28,
-                                        name: "x",
-                                    },
-                                    right: Identifier {
-                                        source: 31..32,
-                                        name: "y",
-                                    },
-                                },
-                                Integer {
-                                    source: 34..35,
-                                    value: "3",
-                                },
-                            ],
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Call {
+                                    function: Expression {
+                                        kind: Identifier(
+                                            "add",
+                                        ),
+                                        source: 50..53,
+                                    },
+                                    arguments: [
+                                        Expression {
+                                            kind: SpreadElement {
+                                                value: Expression {
+                                                    kind: Identifier(
+                                                        "xs",
+                                                    ),
+                                                    source: 56..58,
+                                                },
+                                            },
+                                            source: 54..58,
+                                        },
+                                    ],
+                                },
+                                source: 53..59,
+                            },
+                        ),
                         source: 50..73,
-                        expression: Call {
-                            source: 53..59,
-                            function: Identifier {
-                                source: 50..53,
-                                name: "add",
-                            },
-                            arguments: [
-                                SpreadElement {
-                                    source: 54..56,
-                                    value: Identifier {
-                                        source: 56..58,
-                                        name: "xs",
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Call(
+                                        Expression {
+                                            kind: Identifier(
+                                                "`add`",
+                                            ),
+                                            source: 75..80,
+                                        },
+                                    ),
+                                    left: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 73..74,
+                                    },
+                                    right: Expression {
+                                        kind: Integer(
+                                            "2",
+                                        ),
+                                        source: 81..82,
                                     },
                                 },
-                            ],
-                        },
-                    },
-                    Expression {
+                                source: 75..82,
+                            },
+                        ),
                         source: 73..96,
-                        expression: Infix {
-                            source: 75..82,
-                            operator: Call(
-                                Identifier {
-                                    source: 75..80,
-                                    name: "`add`",
-                                },
-                            ),
-                            left: Integer {
-                                source: 73..74,
-                                value: "1",
-                            },
-                            right: Integer {
-                                source: 81..82,
-                                value: "2",
-                            },
-                        },
                     },
-                    Expression {
-                        source: 96..106,
-                        expression: Infix {
-                            source: 98..105,
-                            operator: Call(
-                                Identifier {
-                                    source: 98..103,
-                                    name: "`add`",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Call(
+                                        Expression {
+                                            kind: Identifier(
+                                                "`add`",
+                                            ),
+                                            source: 98..103,
+                                        },
+                                    ),
+                                    left: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 96..97,
+                                    },
+                                    right: Expression {
+                                        kind: Identifier(
+                                            "y",
+                                        ),
+                                        source: 104..105,
+                                    },
                                 },
-                            ),
-                            left: Identifier {
-                                source: 96..97,
-                                name: "x",
+                                source: 98..105,
                             },
-                            right: Identifier {
-                                source: 104..105,
-                                name: "y",
-                            },
-                        },
+                        ),
+                        source: 96..106,
                     },
                 ],
             }"#]],
@@ -1361,111 +1910,160 @@ fn partial_application_using_placeholders() {
         "#,
         expect![[r#"
             Program {
-                source: 0..112,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Plus,
+                                    left: Expression {
+                                        kind: Placeholder,
+                                        source: 0..1,
+                                    },
+                                    right: Expression {
+                                        kind: Integer(
+                                            "2",
+                                        ),
+                                        source: 4..5,
+                                    },
+                                },
+                                source: 2..5,
+                            },
+                        ),
                         source: 0..19,
-                        expression: Infix {
-                            source: 2..5,
-                            operator: Plus,
-                            left: Placeholder {
-                                source: 0..1,
-                            },
-                            right: Integer {
-                                source: 4..5,
-                                value: "2",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Plus,
+                                    left: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 19..20,
+                                    },
+                                    right: Expression {
+                                        kind: Placeholder,
+                                        source: 23..24,
+                                    },
+                                },
+                                source: 21..24,
+                            },
+                        ),
                         source: 19..38,
-                        expression: Infix {
-                            source: 21..24,
-                            operator: Plus,
-                            left: Integer {
-                                source: 19..20,
-                                value: "1",
-                            },
-                            right: Placeholder {
-                                source: 23..24,
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Call {
+                                    function: Expression {
+                                        kind: Identifier(
+                                            "+",
+                                        ),
+                                        source: 38..39,
+                                    },
+                                    arguments: [
+                                        Expression {
+                                            kind: Placeholder,
+                                            source: 40..41,
+                                        },
+                                        Expression {
+                                            kind: Integer(
+                                                "2",
+                                            ),
+                                            source: 43..44,
+                                        },
+                                    ],
+                                },
+                                source: 39..45,
+                            },
+                        ),
                         source: 38..59,
-                        expression: Call {
-                            source: 39..45,
-                            function: Identifier {
-                                source: 38..39,
-                                name: "+",
-                            },
-                            arguments: [
-                                Placeholder {
-                                    source: 40..41,
-                                },
-                                Integer {
-                                    source: 43..44,
-                                    value: "2",
-                                },
-                            ],
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Call {
+                                    function: Expression {
+                                        kind: Identifier(
+                                            "+",
+                                        ),
+                                        source: 59..60,
+                                    },
+                                    arguments: [
+                                        Expression {
+                                            kind: Integer(
+                                                "1",
+                                            ),
+                                            source: 61..62,
+                                        },
+                                        Expression {
+                                            kind: Placeholder,
+                                            source: 64..65,
+                                        },
+                                    ],
+                                },
+                                source: 60..79,
+                            },
+                        ),
                         source: 59..79,
-                        expression: Call {
-                            source: 60..79,
-                            function: Identifier {
-                                source: 59..60,
-                                name: "+",
-                            },
-                            arguments: [
-                                Integer {
-                                    source: 61..62,
-                                    value: "1",
-                                },
-                                Placeholder {
-                                    source: 64..65,
-                                },
-                            ],
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Call(
+                                        Expression {
+                                            kind: Identifier(
+                                                "`add`",
+                                            ),
+                                            source: 81..86,
+                                        },
+                                    ),
+                                    left: Expression {
+                                        kind: Placeholder,
+                                        source: 79..80,
+                                    },
+                                    right: Expression {
+                                        kind: Integer(
+                                            "2",
+                                        ),
+                                        source: 87..88,
+                                    },
+                                },
+                                source: 81..88,
+                            },
+                        ),
                         source: 79..102,
-                        expression: Infix {
-                            source: 81..88,
-                            operator: Call(
-                                Identifier {
-                                    source: 81..86,
-                                    name: "`add`",
-                                },
-                            ),
-                            left: Placeholder {
-                                source: 79..80,
-                            },
-                            right: Integer {
-                                source: 87..88,
-                                value: "2",
-                            },
-                        },
                     },
-                    Expression {
-                        source: 102..112,
-                        expression: Infix {
-                            source: 104..111,
-                            operator: Call(
-                                Identifier {
-                                    source: 104..109,
-                                    name: "`add`",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Infix {
+                                    operator: Call(
+                                        Expression {
+                                            kind: Identifier(
+                                                "`add`",
+                                            ),
+                                            source: 104..109,
+                                        },
+                                    ),
+                                    left: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 102..103,
+                                    },
+                                    right: Expression {
+                                        kind: Placeholder,
+                                        source: 110..111,
+                                    },
                                 },
-                            ),
-                            left: Integer {
-                                source: 102..103,
-                                value: "1",
+                                source: 104..111,
                             },
-                            right: Placeholder {
-                                source: 110..111,
-                            },
-                        },
+                        ),
+                        source: 102..112,
                     },
                 ],
             }"#]],
@@ -1480,51 +2078,72 @@ fn infix_operators_as_identifiers() {
         "#,
         expect![[r#"
             Program {
-                source: 0..30,
                 statements: [
-                    Expression {
-                        source: 0..30,
-                        expression: Call {
-                            source: 4..30,
-                            function: Identifier {
-                                source: 0..4,
-                                name: "call",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Call {
+                                    function: Expression {
+                                        kind: Identifier(
+                                            "call",
+                                        ),
+                                        source: 0..4,
+                                    },
+                                    arguments: [
+                                        Expression {
+                                            kind: Identifier(
+                                                "+",
+                                            ),
+                                            source: 5..6,
+                                        },
+                                        Expression {
+                                            kind: Identifier(
+                                                "-",
+                                            ),
+                                            source: 8..9,
+                                        },
+                                        Expression {
+                                            kind: Identifier(
+                                                "/",
+                                            ),
+                                            source: 11..12,
+                                        },
+                                        Expression {
+                                            kind: Identifier(
+                                                "%",
+                                            ),
+                                            source: 14..15,
+                                        },
+                                        Expression {
+                                            kind: Identifier(
+                                                ">",
+                                            ),
+                                            source: 17..18,
+                                        },
+                                        Expression {
+                                            kind: Identifier(
+                                                "<",
+                                            ),
+                                            source: 20..21,
+                                        },
+                                        Expression {
+                                            kind: Identifier(
+                                                ">=",
+                                            ),
+                                            source: 23..25,
+                                        },
+                                        Expression {
+                                            kind: Identifier(
+                                                "<=",
+                                            ),
+                                            source: 27..29,
+                                        },
+                                    ],
+                                },
+                                source: 4..30,
                             },
-                            arguments: [
-                                Identifier {
-                                    source: 5..6,
-                                    name: "+",
-                                },
-                                Identifier {
-                                    source: 8..9,
-                                    name: "-",
-                                },
-                                Identifier {
-                                    source: 11..12,
-                                    name: "/",
-                                },
-                                Identifier {
-                                    source: 14..15,
-                                    name: "%",
-                                },
-                                Identifier {
-                                    source: 17..18,
-                                    name: ">",
-                                },
-                                Identifier {
-                                    source: 20..21,
-                                    name: "<",
-                                },
-                                Identifier {
-                                    source: 23..25,
-                                    name: ">=",
-                                },
-                                Identifier {
-                                    source: 27..29,
-                                    name: "<=",
-                                },
-                            ],
-                        },
+                        ),
+                        source: 0..30,
                     },
                 ],
             }"#]],
@@ -1539,43 +2158,59 @@ fn function_composition() {
         "#,
         expect![[r#"
             Program {
-                source: 0..22,
                 statements: [
-                    Expression {
-                        source: 0..22,
-                        expression: FunctionComposition {
-                            source: 4..22,
-                            functions: [
-                                Identifier {
-                                    source: 0..3,
-                                    name: "inc",
-                                },
-                                Infix {
-                                    source: 9..13,
-                                    operator: Plus,
-                                    left: Placeholder {
-                                        source: 7..8,
-                                    },
-                                    right: Integer {
-                                        source: 11..12,
-                                        value: "1",
-                                    },
-                                },
-                                Call {
-                                    source: 19..22,
-                                    function: Identifier {
-                                        source: 16..19,
-                                        name: "add",
-                                    },
-                                    arguments: [
-                                        Integer {
-                                            source: 20..21,
-                                            value: "1",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: FunctionComposition(
+                                    [
+                                        Expression {
+                                            kind: Identifier(
+                                                "inc",
+                                            ),
+                                            source: 0..3,
+                                        },
+                                        Expression {
+                                            kind: Infix {
+                                                operator: Plus,
+                                                left: Expression {
+                                                    kind: Placeholder,
+                                                    source: 7..8,
+                                                },
+                                                right: Expression {
+                                                    kind: Integer(
+                                                        "1",
+                                                    ),
+                                                    source: 11..12,
+                                                },
+                                            },
+                                            source: 9..13,
+                                        },
+                                        Expression {
+                                            kind: Call {
+                                                function: Expression {
+                                                    kind: Identifier(
+                                                        "add",
+                                                    ),
+                                                    source: 16..19,
+                                                },
+                                                arguments: [
+                                                    Expression {
+                                                        kind: Integer(
+                                                            "1",
+                                                        ),
+                                                        source: 20..21,
+                                                    },
+                                                ],
+                                            },
+                                            source: 19..22,
                                         },
                                     ],
-                                },
-                            ],
-                        },
+                                ),
+                                source: 4..22,
+                            },
+                        ),
+                        source: 0..22,
                     },
                 ],
             }"#]],
@@ -1591,139 +2226,201 @@ fn function_threading() {
         "#,
         expect![[r#"
             Program {
-                source: 0..86,
                 statements: [
-                    Expression {
-                        source: 0..41,
-                        expression: FunctionThread {
-                            source: 10..27,
-                            initial: List {
-                                source: 0..10,
-                                elements: [
-                                    Integer {
-                                        source: 1..2,
-                                        value: "1",
-                                    },
-                                    Integer {
-                                        source: 4..5,
-                                        value: "2",
-                                    },
-                                    Integer {
-                                        source: 7..8,
-                                        value: "3",
-                                    },
-                                ],
-                            },
-                            functions: [
-                                Call {
-                                    source: 16..27,
-                                    function: Identifier {
-                                        source: 13..16,
-                                        name: "map",
-                                    },
-                                    arguments: [
-                                        Function {
-                                            source: 17..26,
-                                            parameters: [
-                                                Identifier {
-                                                    source: 18..19,
-                                                    name: "x",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: FunctionThread {
+                                    initial: Expression {
+                                        kind: List(
+                                            [
+                                                Expression {
+                                                    kind: Integer(
+                                                        "1",
+                                                    ),
+                                                    source: 1..2,
+                                                },
+                                                Expression {
+                                                    kind: Integer(
+                                                        "2",
+                                                    ),
+                                                    source: 4..5,
+                                                },
+                                                Expression {
+                                                    kind: Integer(
+                                                        "3",
+                                                    ),
+                                                    source: 7..8,
                                                 },
                                             ],
-                                            body: Block {
-                                                source: 21..26,
-                                                statements: [
+                                        ),
+                                        source: 0..10,
+                                    },
+                                    functions: [
+                                        Expression {
+                                            kind: Call {
+                                                function: Expression {
+                                                    kind: Identifier(
+                                                        "map",
+                                                    ),
+                                                    source: 13..16,
+                                                },
+                                                arguments: [
                                                     Expression {
-                                                        source: 21..26,
-                                                        expression: Infix {
-                                                            source: 23..26,
-                                                            operator: Plus,
-                                                            left: Identifier {
-                                                                source: 21..22,
-                                                                name: "x",
-                                                            },
-                                                            right: Integer {
-                                                                source: 25..26,
-                                                                value: "1",
+                                                        kind: Function {
+                                                            parameters: [
+                                                                Expression {
+                                                                    kind: Identifier(
+                                                                        "x",
+                                                                    ),
+                                                                    source: 18..19,
+                                                                },
+                                                            ],
+                                                            body: Statement {
+                                                                kind: Block(
+                                                                    [
+                                                                        Statement {
+                                                                            kind: Expression(
+                                                                                Expression {
+                                                                                    kind: Infix {
+                                                                                        operator: Plus,
+                                                                                        left: Expression {
+                                                                                            kind: Identifier(
+                                                                                                "x",
+                                                                                            ),
+                                                                                            source: 21..22,
+                                                                                        },
+                                                                                        right: Expression {
+                                                                                            kind: Integer(
+                                                                                                "1",
+                                                                                            ),
+                                                                                            source: 25..26,
+                                                                                        },
+                                                                                    },
+                                                                                    source: 23..26,
+                                                                                },
+                                                                            ),
+                                                                            source: 21..26,
+                                                                        },
+                                                                    ],
+                                                                ),
+                                                                source: 21..26,
                                                             },
                                                         },
+                                                        source: 17..26,
                                                     },
                                                 ],
                                             },
+                                            source: 16..27,
                                         },
                                     ],
                                 },
-                            ],
-                        },
-                    },
-                    Expression {
-                        source: 41..86,
-                        expression: FunctionThread {
-                            source: 43..85,
-                            initial: Integer {
-                                source: 41..42,
-                                value: "1",
+                                source: 10..27,
                             },
-                            functions: [
-                                Call {
-                                    source: 49..53,
-                                    function: Identifier {
-                                        source: 46..49,
-                                        name: "add",
+                        ),
+                        source: 0..41,
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: FunctionThread {
+                                    initial: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 41..42,
                                     },
-                                    arguments: [
-                                        Integer {
-                                            source: 50..51,
-                                            value: "1",
-                                        },
-                                    ],
-                                },
-                                Function {
-                                    source: 56..70,
-                                    parameters: [
-                                        Identifier {
-                                            source: 57..58,
-                                            name: "a",
-                                        },
-                                    ],
-                                    body: Block {
-                                        source: 60..70,
-                                        statements: [
-                                            Expression {
-                                                source: 62..68,
-                                                expression: Infix {
-                                                    source: 64..68,
-                                                    operator: Plus,
-                                                    left: Identifier {
-                                                        source: 62..63,
-                                                        name: "a",
+                                    functions: [
+                                        Expression {
+                                            kind: Call {
+                                                function: Expression {
+                                                    kind: Identifier(
+                                                        "add",
+                                                    ),
+                                                    source: 46..49,
+                                                },
+                                                arguments: [
+                                                    Expression {
+                                                        kind: Integer(
+                                                            "1",
+                                                        ),
+                                                        source: 50..51,
                                                     },
-                                                    right: Integer {
-                                                        source: 66..67,
-                                                        value: "1",
+                                                ],
+                                            },
+                                            source: 49..53,
+                                        },
+                                        Expression {
+                                            kind: Function {
+                                                parameters: [
+                                                    Expression {
+                                                        kind: Identifier(
+                                                            "a",
+                                                        ),
+                                                        source: 57..58,
                                                     },
+                                                ],
+                                                body: Statement {
+                                                    kind: Block(
+                                                        [
+                                                            Statement {
+                                                                kind: Expression(
+                                                                    Expression {
+                                                                        kind: Infix {
+                                                                            operator: Plus,
+                                                                            left: Expression {
+                                                                                kind: Identifier(
+                                                                                    "a",
+                                                                                ),
+                                                                                source: 62..63,
+                                                                            },
+                                                                            right: Expression {
+                                                                                kind: Integer(
+                                                                                    "1",
+                                                                                ),
+                                                                                source: 66..67,
+                                                                            },
+                                                                        },
+                                                                        source: 64..68,
+                                                                    },
+                                                                ),
+                                                                source: 62..68,
+                                                            },
+                                                        ],
+                                                    ),
+                                                    source: 60..70,
                                                 },
                                             },
-                                        ],
-                                    },
+                                            source: 56..70,
+                                        },
+                                        Expression {
+                                            kind: Identifier(
+                                                "inc",
+                                            ),
+                                            source: 73..76,
+                                        },
+                                        Expression {
+                                            kind: Infix {
+                                                operator: Plus,
+                                                left: Expression {
+                                                    kind: Placeholder,
+                                                    source: 80..81,
+                                                },
+                                                right: Expression {
+                                                    kind: Integer(
+                                                        "1",
+                                                    ),
+                                                    source: 84..85,
+                                                },
+                                            },
+                                            source: 82..85,
+                                        },
+                                    ],
                                 },
-                                Identifier {
-                                    source: 73..76,
-                                    name: "inc",
-                                },
-                                Infix {
-                                    source: 82..85,
-                                    operator: Plus,
-                                    left: Placeholder {
-                                        source: 80..81,
-                                    },
-                                    right: Integer {
-                                        source: 84..85,
-                                        value: "1",
-                                    },
-                                },
-                            ],
-                        },
+                                source: 43..85,
+                            },
+                        ),
+                        source: 41..86,
                     },
                 ],
             }"#]],
@@ -1739,108 +2436,155 @@ fn trailing_lambdas() {
         "#,
         expect![[r#"
             Program {
-                source: 0..66,
                 statements: [
-                    Expression {
-                        source: 0..32,
-                        expression: Call {
-                            source: 5..18,
-                            function: Identifier {
-                                source: 0..4,
-                                name: "with",
-                            },
-                            arguments: [
-                                Identifier {
-                                    source: 6..7,
-                                    name: "x",
-                                },
-                                Function {
-                                    source: 9..18,
-                                    parameters: [
-                                        Identifier {
-                                            source: 10..11,
-                                            name: "y",
-                                        },
-                                    ],
-                                    body: Block {
-                                        source: 13..18,
-                                        statements: [
-                                            Expression {
-                                                source: 15..17,
-                                                expression: Identifier {
-                                                    source: 15..16,
-                                                    name: "y",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                    Expression {
-                        source: 32..66,
-                        expression: FunctionThread {
-                            source: 42..65,
-                            initial: List {
-                                source: 32..42,
-                                elements: [
-                                    Integer {
-                                        source: 33..34,
-                                        value: "1",
-                                    },
-                                    Integer {
-                                        source: 36..37,
-                                        value: "2",
-                                    },
-                                    Integer {
-                                        source: 39..40,
-                                        value: "3",
-                                    },
-                                ],
-                            },
-                            functions: [
-                                Call {
-                                    source: 45..65,
-                                    function: Identifier {
-                                        source: 45..49,
-                                        name: "each",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Call {
+                                    function: Expression {
+                                        kind: Identifier(
+                                            "with",
+                                        ),
+                                        source: 0..4,
                                     },
                                     arguments: [
-                                        Function {
-                                            source: 50..65,
-                                            parameters: [
-                                                Identifier {
-                                                    source: 51..52,
-                                                    name: "x",
+                                        Expression {
+                                            kind: Identifier(
+                                                "x",
+                                            ),
+                                            source: 6..7,
+                                        },
+                                        Expression {
+                                            kind: Function {
+                                                parameters: [
+                                                    Expression {
+                                                        kind: Identifier(
+                                                            "y",
+                                                        ),
+                                                        source: 10..11,
+                                                    },
+                                                ],
+                                                body: Statement {
+                                                    kind: Block(
+                                                        [
+                                                            Statement {
+                                                                kind: Expression(
+                                                                    Expression {
+                                                                        kind: Identifier(
+                                                                            "y",
+                                                                        ),
+                                                                        source: 15..16,
+                                                                    },
+                                                                ),
+                                                                source: 15..17,
+                                                            },
+                                                        ],
+                                                    ),
+                                                    source: 13..18,
+                                                },
+                                            },
+                                            source: 9..18,
+                                        },
+                                    ],
+                                },
+                                source: 5..18,
+                            },
+                        ),
+                        source: 0..32,
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: FunctionThread {
+                                    initial: Expression {
+                                        kind: List(
+                                            [
+                                                Expression {
+                                                    kind: Integer(
+                                                        "1",
+                                                    ),
+                                                    source: 33..34,
+                                                },
+                                                Expression {
+                                                    kind: Integer(
+                                                        "2",
+                                                    ),
+                                                    source: 36..37,
+                                                },
+                                                Expression {
+                                                    kind: Integer(
+                                                        "3",
+                                                    ),
+                                                    source: 39..40,
                                                 },
                                             ],
-                                            body: Block {
-                                                source: 54..65,
-                                                statements: [
+                                        ),
+                                        source: 32..42,
+                                    },
+                                    functions: [
+                                        Expression {
+                                            kind: Call {
+                                                function: Expression {
+                                                    kind: Identifier(
+                                                        "each",
+                                                    ),
+                                                    source: 45..49,
+                                                },
+                                                arguments: [
                                                     Expression {
-                                                        source: 56..64,
-                                                        expression: Call {
-                                                            source: 60..64,
-                                                            function: Identifier {
-                                                                source: 56..60,
-                                                                name: "puts",
-                                                            },
-                                                            arguments: [
-                                                                Identifier {
-                                                                    source: 61..62,
-                                                                    name: "x",
+                                                        kind: Function {
+                                                            parameters: [
+                                                                Expression {
+                                                                    kind: Identifier(
+                                                                        "x",
+                                                                    ),
+                                                                    source: 51..52,
                                                                 },
                                                             ],
+                                                            body: Statement {
+                                                                kind: Block(
+                                                                    [
+                                                                        Statement {
+                                                                            kind: Expression(
+                                                                                Expression {
+                                                                                    kind: Call {
+                                                                                        function: Expression {
+                                                                                            kind: Identifier(
+                                                                                                "puts",
+                                                                                            ),
+                                                                                            source: 56..60,
+                                                                                        },
+                                                                                        arguments: [
+                                                                                            Expression {
+                                                                                                kind: Identifier(
+                                                                                                    "x",
+                                                                                                ),
+                                                                                                source: 61..62,
+                                                                                            },
+                                                                                        ],
+                                                                                    },
+                                                                                    source: 60..64,
+                                                                                },
+                                                                            ),
+                                                                            source: 56..64,
+                                                                        },
+                                                                    ],
+                                                                ),
+                                                                source: 54..65,
+                                                            },
                                                         },
+                                                        source: 50..65,
                                                     },
                                                 ],
                                             },
+                                            source: 45..65,
                                         },
                                     ],
                                 },
-                            ],
-                        },
+                                source: 42..65,
+                            },
+                        ),
+                        source: 32..66,
                     },
                 ],
             }"#]],
@@ -1862,166 +2606,255 @@ fn collection_indexing() {
         "#,
         expect![[r#"
             Program {
-                source: 0..171,
                 statements: [
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Index {
+                                    left: Expression {
+                                        kind: Identifier(
+                                            "col",
+                                        ),
+                                        source: 0..3,
+                                    },
+                                    index: Expression {
+                                        kind: Integer(
+                                            "1",
+                                        ),
+                                        source: 4..5,
+                                    },
+                                },
+                                source: 3..6,
+                            },
+                        ),
                         source: 0..20,
-                        expression: Index {
-                            source: 3..6,
-                            left: Identifier {
-                                source: 0..3,
-                                name: "col",
-                            },
-                            index: Integer {
-                                source: 4..5,
-                                value: "1",
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Index {
+                                    left: Expression {
+                                        kind: Identifier(
+                                            "col",
+                                        ),
+                                        source: 20..23,
+                                    },
+                                    index: Expression {
+                                        kind: Prefix {
+                                            operator: Minus,
+                                            right: Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 25..26,
+                                            },
+                                        },
+                                        source: 24..26,
+                                    },
+                                },
+                                source: 23..27,
+                            },
+                        ),
                         source: 20..41,
-                        expression: Index {
-                            source: 23..27,
-                            left: Identifier {
-                                source: 20..23,
-                                name: "col",
-                            },
-                            index: Prefix {
-                                source: 24..26,
-                                operator: Minus,
-                                right: Integer {
-                                    source: 25..26,
-                                    value: "1",
-                                },
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Index {
+                                    left: Expression {
+                                        kind: Identifier(
+                                            "col",
+                                        ),
+                                        source: 41..44,
+                                    },
+                                    index: Expression {
+                                        kind: InclusiveRange {
+                                            from: Expression {
+                                                kind: Integer(
+                                                    "2",
+                                                ),
+                                                source: 45..46,
+                                            },
+                                            to: Expression {
+                                                kind: Integer(
+                                                    "5",
+                                                ),
+                                                source: 49..50,
+                                            },
+                                        },
+                                        source: 46..50,
+                                    },
+                                },
+                                source: 44..51,
+                            },
+                        ),
                         source: 41..65,
-                        expression: Index {
-                            source: 44..51,
-                            left: Identifier {
-                                source: 41..44,
-                                name: "col",
-                            },
-                            index: InclusiveRange {
-                                source: 46..50,
-                                from: Integer {
-                                    source: 45..46,
-                                    value: "2",
-                                },
-                                to: Integer {
-                                    source: 49..50,
-                                    value: "5",
-                                },
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Index {
+                                    left: Expression {
+                                        kind: Identifier(
+                                            "col",
+                                        ),
+                                        source: 65..68,
+                                    },
+                                    index: Expression {
+                                        kind: ExclusiveRange {
+                                            from: Expression {
+                                                kind: Integer(
+                                                    "2",
+                                                ),
+                                                source: 69..70,
+                                            },
+                                            until: Expression {
+                                                kind: Integer(
+                                                    "5",
+                                                ),
+                                                source: 72..73,
+                                            },
+                                        },
+                                        source: 70..73,
+                                    },
+                                },
+                                source: 68..74,
+                            },
+                        ),
                         source: 65..88,
-                        expression: Index {
-                            source: 68..74,
-                            left: Identifier {
-                                source: 65..68,
-                                name: "col",
-                            },
-                            index: ExclusiveRange {
-                                source: 70..73,
-                                from: Integer {
-                                    source: 69..70,
-                                    value: "2",
-                                },
-                                until: Integer {
-                                    source: 72..73,
-                                    value: "5",
-                                },
-                            },
-                        },
                     },
-                    Expression {
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Index {
+                                    left: Expression {
+                                        kind: Identifier(
+                                            "col",
+                                        ),
+                                        source: 88..91,
+                                    },
+                                    index: Expression {
+                                        kind: UnboundedRange {
+                                            from: Expression {
+                                                kind: Prefix {
+                                                    operator: Minus,
+                                                    right: Expression {
+                                                        kind: Integer(
+                                                            "2",
+                                                        ),
+                                                        source: 93..94,
+                                                    },
+                                                },
+                                                source: 92..94,
+                                            },
+                                        },
+                                        source: 94..96,
+                                    },
+                                },
+                                source: 91..97,
+                            },
+                        ),
                         source: 88..111,
-                        expression: Index {
-                            source: 91..97,
-                            left: Identifier {
-                                source: 88..91,
-                                name: "col",
-                            },
-                            index: UnboundedRange {
-                                source: 94..96,
-                                from: Prefix {
-                                    source: 92..94,
-                                    operator: Minus,
-                                    right: Integer {
-                                        source: 93..94,
-                                        value: "2",
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Index {
+                                    left: Expression {
+                                        kind: Identifier(
+                                            "col",
+                                        ),
+                                        source: 111..114,
+                                    },
+                                    index: Expression {
+                                        kind: InclusiveRange {
+                                            from: Expression {
+                                                kind: Integer(
+                                                    "0",
+                                                ),
+                                                source: 115..116,
+                                            },
+                                            to: Expression {
+                                                kind: Prefix {
+                                                    operator: Minus,
+                                                    right: Expression {
+                                                        kind: Integer(
+                                                            "2",
+                                                        ),
+                                                        source: 120..121,
+                                                    },
+                                                },
+                                                source: 119..121,
+                                            },
+                                        },
+                                        source: 116..121,
                                     },
                                 },
+                                source: 114..122,
                             },
-                        },
-                    },
-                    Expression {
+                        ),
                         source: 111..136,
-                        expression: Index {
-                            source: 114..122,
-                            left: Identifier {
-                                source: 111..114,
-                                name: "col",
-                            },
-                            index: InclusiveRange {
-                                source: 116..121,
-                                from: Integer {
-                                    source: 115..116,
-                                    value: "0",
-                                },
-                                to: Prefix {
-                                    source: 119..121,
-                                    operator: Minus,
-                                    right: Integer {
-                                        source: 120..121,
-                                        value: "2",
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Index {
+                                    left: Expression {
+                                        kind: Identifier(
+                                            "col",
+                                        ),
+                                        source: 136..139,
+                                    },
+                                    index: Expression {
+                                        kind: ExclusiveRange {
+                                            from: Expression {
+                                                kind: Integer(
+                                                    "0",
+                                                ),
+                                                source: 140..141,
+                                            },
+                                            until: Expression {
+                                                kind: Prefix {
+                                                    operator: Minus,
+                                                    right: Expression {
+                                                        kind: Integer(
+                                                            "2",
+                                                        ),
+                                                        source: 144..145,
+                                                    },
+                                                },
+                                                source: 143..145,
+                                            },
+                                        },
+                                        source: 141..145,
                                     },
                                 },
+                                source: 139..146,
                             },
-                        },
-                    },
-                    Expression {
+                        ),
                         source: 136..160,
-                        expression: Index {
-                            source: 139..146,
-                            left: Identifier {
-                                source: 136..139,
-                                name: "col",
-                            },
-                            index: ExclusiveRange {
-                                source: 141..145,
-                                from: Integer {
-                                    source: 140..141,
-                                    value: "0",
-                                },
-                                until: Prefix {
-                                    source: 143..145,
-                                    operator: Minus,
-                                    right: Integer {
-                                        source: 144..145,
-                                        value: "2",
+                    },
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Index {
+                                    left: Expression {
+                                        kind: Identifier(
+                                            "col",
+                                        ),
+                                        source: 160..163,
+                                    },
+                                    index: Expression {
+                                        kind: String(
+                                            "\"key\"",
+                                        ),
+                                        source: 164..169,
                                     },
                                 },
+                                source: 163..170,
                             },
-                        },
-                    },
-                    Expression {
+                        ),
                         source: 160..171,
-                        expression: Index {
-                            source: 163..170,
-                            left: Identifier {
-                                source: 160..163,
-                                name: "col",
-                            },
-                            index: String {
-                                source: 164..169,
-                                value: "\"key\"",
-                            },
-                        },
                     },
                 ],
             }"#]],
@@ -2040,76 +2873,91 @@ fn sections() {
         "#,
         expect![[r#"
             Program {
-                source: 0..145,
                 statements: [
-                    Section {
-                        source: 0..39,
-                        name: Identifier {
-                            source: 0..11,
+                    Statement {
+                        kind: Section {
                             name: "section_one",
+                            body: Statement {
+                                kind: Block(
+                                    [
+                                        Statement {
+                                            kind: Expression(
+                                                Expression {
+                                                    kind: String(
+                                                        "\"sample \"",
+                                                    ),
+                                                    source: 15..24,
+                                                },
+                                            ),
+                                            source: 15..24,
+                                        },
+                                    ],
+                                ),
+                                source: 13..25,
+                            },
                         },
-                        body: Block {
-                            source: 13..25,
-                            statements: [
-                                Expression {
-                                    source: 15..24,
-                                    expression: String {
-                                        source: 15..24,
-                                        value: "\"sample \"",
-                                    },
-                                },
-                            ],
-                        },
+                        source: 0..39,
                     },
-                    Section {
-                        source: 39..74,
-                        name: Identifier {
-                            source: 39..50,
+                    Statement {
+                        kind: Section {
                             name: "section_two",
+                            body: Statement {
+                                kind: Block(
+                                    [
+                                        Statement {
+                                            kind: Expression(
+                                                Expression {
+                                                    kind: String(
+                                                        "\"sample\"",
+                                                    ),
+                                                    source: 52..60,
+                                                },
+                                            ),
+                                            source: 52..74,
+                                        },
+                                    ],
+                                ),
+                                source: 52..74,
+                            },
                         },
-                        body: Block {
-                            source: 52..74,
-                            statements: [
-                                Expression {
-                                    source: 52..74,
-                                    expression: String {
-                                        source: 52..60,
-                                        value: "\"sample\"",
-                                    },
-                                },
-                            ],
-                        },
+                        source: 39..74,
                     },
-                    Section {
-                        source: 74..145,
-                        name: Identifier {
-                            source: 74..87,
+                    Statement {
+                        kind: Section {
                             name: "section_three",
-                        },
-                        body: Block {
-                            source: 89..144,
-                            statements: [
-                                Section {
-                                    source: 107..143,
-                                    name: Identifier {
-                                        source: 107..119,
-                                        name: "section_four",
-                                    },
-                                    body: Block {
-                                        source: 121..143,
-                                        statements: [
-                                            Expression {
-                                                source: 121..143,
-                                                expression: String {
-                                                    source: 121..129,
-                                                    value: "\"sample\"",
+                            body: Statement {
+                                kind: Block(
+                                    [
+                                        Statement {
+                                            kind: Section {
+                                                name: "section_four",
+                                                body: Statement {
+                                                    kind: Block(
+                                                        [
+                                                            Statement {
+                                                                kind: Expression(
+                                                                    Expression {
+                                                                        kind: String(
+                                                                            "\"sample\"",
+                                                                        ),
+                                                                        source: 121..129,
+                                                                    },
+                                                                ),
+                                                                source: 121..143,
+                                                            },
+                                                        ],
+                                                    ),
+                                                    source: 121..143,
                                                 },
                                             },
-                                        ],
-                                    },
-                                },
-                            ],
+                                            source: 107..143,
+                                        },
+                                    ],
+                                ),
+                                source: 89..144,
+                            },
                         },
+                        source: 74..145,
                     },
                 ],
             }"#]],
@@ -2129,91 +2977,128 @@ fn match_with_primitives() {
         "#,
         expect![[r#"
             Program {
-                source: 0..146,
                 statements: [
-                    Expression {
-                        source: 0..146,
-                        expression: Match {
-                            source: 0..146,
-                            subject: Identifier {
-                                source: 6..7,
-                                name: "x",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Match {
+                                    subject: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 6..7,
+                                    },
+                                    cases: [
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 26..27,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"one\"",
+                                                                    ),
+                                                                    source: 30..35,
+                                                                },
+                                                            ),
+                                                            source: 30..36,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 28..37,
+                                            },
+                                        },
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: Decimal(
+                                                    "2.0",
+                                                ),
+                                                source: 55..58,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"two\"",
+                                                                    ),
+                                                                    source: 61..66,
+                                                                },
+                                                            ),
+                                                            source: 61..67,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 59..68,
+                                            },
+                                        },
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: Boolean(
+                                                    true,
+                                                ),
+                                                source: 86..90,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"three\"",
+                                                                    ),
+                                                                    source: 93..100,
+                                                                },
+                                                            ),
+                                                            source: 93..101,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 91..102,
+                                            },
+                                        },
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: String(
+                                                    "\"four\"",
+                                                ),
+                                                source: 120..126,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: Integer(
+                                                                        "4",
+                                                                    ),
+                                                                    source: 129..130,
+                                                                },
+                                                            ),
+                                                            source: 129..131,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 127..145,
+                                            },
+                                        },
+                                    ],
+                                },
+                                source: 0..146,
                             },
-                            cases: [
-                                Unguarded {
-                                    pattern: Integer {
-                                        source: 26..27,
-                                        value: "1",
-                                    },
-                                    consequence: Block {
-                                        source: 28..37,
-                                        statements: [
-                                            Expression {
-                                                source: 30..36,
-                                                expression: String {
-                                                    source: 30..35,
-                                                    value: "\"one\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                Unguarded {
-                                    pattern: Decimal {
-                                        source: 55..58,
-                                        value: "2.0",
-                                    },
-                                    consequence: Block {
-                                        source: 59..68,
-                                        statements: [
-                                            Expression {
-                                                source: 61..67,
-                                                expression: String {
-                                                    source: 61..66,
-                                                    value: "\"two\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                Unguarded {
-                                    pattern: Boolean {
-                                        source: 86..90,
-                                        value: true,
-                                    },
-                                    consequence: Block {
-                                        source: 91..102,
-                                        statements: [
-                                            Expression {
-                                                source: 93..101,
-                                                expression: String {
-                                                    source: 93..100,
-                                                    value: "\"three\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                Unguarded {
-                                    pattern: String {
-                                        source: 120..126,
-                                        value: "\"four\"",
-                                    },
-                                    consequence: Block {
-                                        source: 127..145,
-                                        statements: [
-                                            Expression {
-                                                source: 129..131,
-                                                expression: Integer {
-                                                    source: 129..130,
-                                                    value: "4",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
+                        ),
+                        source: 0..146,
                     },
                 ],
             }"#]],
@@ -2232,90 +3117,129 @@ fn match_with_ranges() {
         "#,
         expect![[r#"
             Program {
-                source: 0..119,
                 statements: [
-                    Expression {
-                        source: 0..119,
-                        expression: Match {
-                            source: 0..119,
-                            subject: Identifier {
-                                source: 6..7,
-                                name: "x",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Match {
+                                    subject: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 6..7,
+                                    },
+                                    cases: [
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: ExclusiveRange {
+                                                    from: Expression {
+                                                        kind: Integer(
+                                                            "1",
+                                                        ),
+                                                        source: 26..27,
+                                                    },
+                                                    until: Expression {
+                                                        kind: Integer(
+                                                            "3",
+                                                        ),
+                                                        source: 29..30,
+                                                    },
+                                                },
+                                                source: 27..31,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"1-2\"",
+                                                                    ),
+                                                                    source: 33..38,
+                                                                },
+                                                            ),
+                                                            source: 33..39,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 31..40,
+                                            },
+                                        },
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: InclusiveRange {
+                                                    from: Expression {
+                                                        kind: Integer(
+                                                            "3",
+                                                        ),
+                                                        source: 58..59,
+                                                    },
+                                                    to: Expression {
+                                                        kind: Integer(
+                                                            "5",
+                                                        ),
+                                                        source: 62..63,
+                                                    },
+                                                },
+                                                source: 59..64,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"3-5\"",
+                                                                    ),
+                                                                    source: 66..71,
+                                                                },
+                                                            ),
+                                                            source: 66..72,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 64..73,
+                                            },
+                                        },
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: UnboundedRange {
+                                                    from: Expression {
+                                                        kind: Integer(
+                                                            "6",
+                                                        ),
+                                                        source: 91..92,
+                                                    },
+                                                },
+                                                source: 92..95,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\">= 6\"",
+                                                                    ),
+                                                                    source: 97..103,
+                                                                },
+                                                            ),
+                                                            source: 97..104,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 95..118,
+                                            },
+                                        },
+                                    ],
+                                },
+                                source: 0..119,
                             },
-                            cases: [
-                                Unguarded {
-                                    pattern: ExclusiveRange {
-                                        source: 27..31,
-                                        from: Integer {
-                                            source: 26..27,
-                                            value: "1",
-                                        },
-                                        until: Integer {
-                                            source: 29..30,
-                                            value: "3",
-                                        },
-                                    },
-                                    consequence: Block {
-                                        source: 31..40,
-                                        statements: [
-                                            Expression {
-                                                source: 33..39,
-                                                expression: String {
-                                                    source: 33..38,
-                                                    value: "\"1-2\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                Unguarded {
-                                    pattern: InclusiveRange {
-                                        source: 59..64,
-                                        from: Integer {
-                                            source: 58..59,
-                                            value: "3",
-                                        },
-                                        to: Integer {
-                                            source: 62..63,
-                                            value: "5",
-                                        },
-                                    },
-                                    consequence: Block {
-                                        source: 64..73,
-                                        statements: [
-                                            Expression {
-                                                source: 66..72,
-                                                expression: String {
-                                                    source: 66..71,
-                                                    value: "\"3-5\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                Unguarded {
-                                    pattern: UnboundedRange {
-                                        source: 92..95,
-                                        from: Integer {
-                                            source: 91..92,
-                                            value: "6",
-                                        },
-                                    },
-                                    consequence: Block {
-                                        source: 95..118,
-                                        statements: [
-                                            Expression {
-                                                source: 97..104,
-                                                expression: String {
-                                                    source: 97..103,
-                                                    value: "\">= 6\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
+                        ),
+                        source: 0..119,
                     },
                 ],
             }"#]],
@@ -2334,113 +3258,162 @@ fn match_with_if_guards() {
         "#,
         expect![[r#"
             Program {
-                source: 0..163,
                 statements: [
-                    Expression {
-                        source: 0..163,
-                        expression: Match {
-                            source: 0..163,
-                            subject: Identifier {
-                                source: 6..7,
-                                name: "x",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Match {
+                                    subject: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 6..7,
+                                    },
+                                    cases: [
+                                        Guarded {
+                                            pattern: Expression {
+                                                kind: Integer(
+                                                    "1",
+                                                ),
+                                                source: 26..27,
+                                            },
+                                            guard: Expression {
+                                                kind: Infix {
+                                                    operator: NotEqual,
+                                                    left: Expression {
+                                                        kind: Integer(
+                                                            "1",
+                                                        ),
+                                                        source: 31..32,
+                                                    },
+                                                    right: Expression {
+                                                        kind: Integer(
+                                                            "2",
+                                                        ),
+                                                        source: 36..37,
+                                                    },
+                                                },
+                                                source: 33..38,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"one\"",
+                                                                    ),
+                                                                    source: 40..45,
+                                                                },
+                                                            ),
+                                                            source: 40..46,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 38..47,
+                                            },
+                                        },
+                                        Guarded {
+                                            pattern: Expression {
+                                                kind: Decimal(
+                                                    "2.0",
+                                                ),
+                                                source: 65..68,
+                                            },
+                                            guard: Expression {
+                                                kind: Infix {
+                                                    operator: And,
+                                                    left: Expression {
+                                                        kind: Boolean(
+                                                            true,
+                                                        ),
+                                                        source: 72..76,
+                                                    },
+                                                    right: Expression {
+                                                        kind: Prefix {
+                                                            operator: Bang,
+                                                            right: Expression {
+                                                                kind: Boolean(
+                                                                    false,
+                                                                ),
+                                                                source: 81..86,
+                                                            },
+                                                        },
+                                                        source: 80..87,
+                                                    },
+                                                },
+                                                source: 77..87,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"two\"",
+                                                                    ),
+                                                                    source: 89..94,
+                                                                },
+                                                            ),
+                                                            source: 89..95,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 87..96,
+                                            },
+                                        },
+                                        Guarded {
+                                            pattern: Expression {
+                                                kind: Identifier(
+                                                    "e",
+                                                ),
+                                                source: 114..115,
+                                            },
+                                            guard: Expression {
+                                                kind: Infix {
+                                                    operator: GreaterThan,
+                                                    left: Expression {
+                                                        kind: Identifier(
+                                                            "e",
+                                                        ),
+                                                        source: 119..120,
+                                                    },
+                                                    right: Expression {
+                                                        kind: Integer(
+                                                            "3",
+                                                        ),
+                                                        source: 123..124,
+                                                    },
+                                                },
+                                                source: 121..125,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"greater than three\"",
+                                                                    ),
+                                                                    source: 127..147,
+                                                                },
+                                                            ),
+                                                            source: 127..148,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 125..162,
+                                            },
+                                        },
+                                    ],
+                                },
+                                source: 0..163,
                             },
-                            cases: [
-                                Guarded {
-                                    pattern: Integer {
-                                        source: 26..27,
-                                        value: "1",
-                                    },
-                                    guard: Infix {
-                                        source: 33..38,
-                                        operator: NotEqual,
-                                        left: Integer {
-                                            source: 31..32,
-                                            value: "1",
-                                        },
-                                        right: Integer {
-                                            source: 36..37,
-                                            value: "2",
-                                        },
-                                    },
-                                    consequence: Block {
-                                        source: 38..47,
-                                        statements: [
-                                            Expression {
-                                                source: 40..46,
-                                                expression: String {
-                                                    source: 40..45,
-                                                    value: "\"one\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                Guarded {
-                                    pattern: Decimal {
-                                        source: 65..68,
-                                        value: "2.0",
-                                    },
-                                    guard: Infix {
-                                        source: 77..87,
-                                        operator: And,
-                                        left: Boolean {
-                                            source: 72..76,
-                                            value: true,
-                                        },
-                                        right: Prefix {
-                                            source: 80..87,
-                                            operator: Bang,
-                                            right: Boolean {
-                                                source: 81..86,
-                                                value: false,
-                                            },
-                                        },
-                                    },
-                                    consequence: Block {
-                                        source: 87..96,
-                                        statements: [
-                                            Expression {
-                                                source: 89..95,
-                                                expression: String {
-                                                    source: 89..94,
-                                                    value: "\"two\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                Guarded {
-                                    pattern: Identifier {
-                                        source: 114..115,
-                                        name: "e",
-                                    },
-                                    guard: Infix {
-                                        source: 121..125,
-                                        operator: GreaterThan,
-                                        left: Identifier {
-                                            source: 119..120,
-                                            name: "e",
-                                        },
-                                        right: Integer {
-                                            source: 123..124,
-                                            value: "3",
-                                        },
-                                    },
-                                    consequence: Block {
-                                        source: 125..162,
-                                        statements: [
-                                            Expression {
-                                                source: 127..148,
-                                                expression: String {
-                                                    source: 127..147,
-                                                    value: "\"greater than three\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
+                        ),
+                        source: 0..163,
                     },
                 ],
             }"#]],
@@ -2460,107 +3433,151 @@ fn match_with_list_destructing() {
         "#,
         expect![[r#"
             Program {
-                source: 0..168,
                 statements: [
-                    Expression {
-                        source: 0..168,
-                        expression: Match {
-                            source: 0..168,
-                            subject: Identifier {
-                                source: 6..7,
-                                name: "x",
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Match {
+                                    subject: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 6..7,
+                                    },
+                                    cases: [
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: ListMatchPattern(
+                                                    [],
+                                                ),
+                                                source: 26..27,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"empty\"",
+                                                                    ),
+                                                                    source: 31..38,
+                                                                },
+                                                            ),
+                                                            source: 31..39,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 29..40,
+                                            },
+                                        },
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: ListMatchPattern(
+                                                    [
+                                                        Expression {
+                                                            kind: Identifier(
+                                                                "x",
+                                                            ),
+                                                            source: 59..60,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 58..62,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"one item\"",
+                                                                    ),
+                                                                    source: 64..74,
+                                                                },
+                                                            ),
+                                                            source: 64..75,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 62..76,
+                                            },
+                                        },
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: ListMatchPattern(
+                                                    [
+                                                        Expression {
+                                                            kind: Identifier(
+                                                                "x",
+                                                            ),
+                                                            source: 95..96,
+                                                        },
+                                                        Expression {
+                                                            kind: RestElement {
+                                                                name: Expression {
+                                                                    kind: Identifier(
+                                                                        "xs",
+                                                                    ),
+                                                                    source: 100..102,
+                                                                },
+                                                            },
+                                                            source: 98..102,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 94..104,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"many items\"",
+                                                                    ),
+                                                                    source: 106..118,
+                                                                },
+                                                            ),
+                                                            source: 106..119,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 104..120,
+                                            },
+                                        },
+                                        Unguarded {
+                                            pattern: Expression {
+                                                kind: Placeholder,
+                                                source: 138..139,
+                                            },
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: String(
+                                                                        "\"unknown\"",
+                                                                    ),
+                                                                    source: 142..151,
+                                                                },
+                                                            ),
+                                                            source: 142..152,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 140..154,
+                                            },
+                                        },
+                                    ],
+                                },
+                                source: 0..168,
                             },
-                            cases: [
-                                Unguarded {
-                                    pattern: ListMatchPattern {
-                                        source: 26..27,
-                                        pattern: [],
-                                    },
-                                    consequence: Block {
-                                        source: 29..40,
-                                        statements: [
-                                            Expression {
-                                                source: 31..39,
-                                                expression: String {
-                                                    source: 31..38,
-                                                    value: "\"empty\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                Unguarded {
-                                    pattern: ListMatchPattern {
-                                        source: 58..62,
-                                        pattern: [
-                                            Identifier {
-                                                source: 59..60,
-                                                name: "x",
-                                            },
-                                        ],
-                                    },
-                                    consequence: Block {
-                                        source: 62..76,
-                                        statements: [
-                                            Expression {
-                                                source: 64..75,
-                                                expression: String {
-                                                    source: 64..74,
-                                                    value: "\"one item\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                Unguarded {
-                                    pattern: ListMatchPattern {
-                                        source: 94..104,
-                                        pattern: [
-                                            Identifier {
-                                                source: 95..96,
-                                                name: "x",
-                                            },
-                                            RestElement {
-                                                source: 98..102,
-                                                name: Identifier {
-                                                    source: 100..102,
-                                                    name: "xs",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                    consequence: Block {
-                                        source: 104..120,
-                                        statements: [
-                                            Expression {
-                                                source: 106..119,
-                                                expression: String {
-                                                    source: 106..118,
-                                                    value: "\"many items\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                                Unguarded {
-                                    pattern: Placeholder {
-                                        source: 138..139,
-                                    },
-                                    consequence: Block {
-                                        source: 140..154,
-                                        statements: [
-                                            Expression {
-                                                source: 142..152,
-                                                expression: String {
-                                                    source: 142..151,
-                                                    value: "\"unknown\"",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
+                        ),
+                        source: 0..168,
                     },
                 ],
             }"#]],

@@ -66,12 +66,8 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse(&mut self) -> Result<Program, ParserErr> {
-        let start = self.current_token;
-        let statements = self.parse_statements()?;
-
         Ok(Program {
-            source: start.location_range(&self.current_token),
-            statements,
+            statements: self.parse_statements()?,
         })
     }
 
@@ -98,7 +94,7 @@ impl<'a> Parser<'a> {
 
         Err(ParserErr {
             message: format!("Expected: {:?}, Actual: {:?}", kind, self.current_token.kind),
-            source: self.current_token.location,
+            source: self.current_token.source,
         })
     }
 
@@ -120,7 +116,7 @@ impl<'a> Parser<'a> {
             T![ID] if self.next_token.kind == T![:] => Ok(Some(self.parse_section_statement()?)),
             T!['}'] | T![EOF] => Ok(None),
             T![ILLEGAL] => Err(ParserErr {
-                source: self.current_token.location,
+                source: self.current_token.source,
                 message: "Illegal token".to_owned(),
             }),
             _ => Ok(Some(self.parse_expression_statement()?)),
@@ -133,9 +129,9 @@ impl<'a> Parser<'a> {
         let value = Box::new(self.parse_expression(Precedence::Lowest)?);
         self.consume_if(T![;]);
 
-        Ok(Statement::Return {
-            source: start.location_range(&self.current_token),
-            value,
+        Ok(Statement {
+            kind: StatementKind::Return(value),
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -145,9 +141,9 @@ impl<'a> Parser<'a> {
         let value = Box::new(self.parse_expression(Precedence::Lowest)?);
         self.consume_if(T![;]);
 
-        Ok(Statement::Break {
-            source: start.location_range(&self.current_token),
-            value,
+        Ok(Statement {
+            kind: StatementKind::Break(value),
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -155,24 +151,22 @@ impl<'a> Parser<'a> {
         let token = self.expect(T![CMT])?;
         let value = self.lexer.get_source(&token).to_string();
 
-        Ok(Statement::Comment {
-            source: token.location,
-            value,
+        Ok(Statement {
+            kind: StatementKind::Comment(value),
+            source: token.source,
         })
     }
 
     fn parse_section_statement(&mut self) -> RStatement {
-        let start = self.current_token;
-
-        let name = Box::new(self.parse_identifier_expression()?);
+        let token = self.expect(T![ID])?;
+        let name = self.lexer.get_source(&token).to_string();
         self.expect(T![:])?;
         let body = Box::new(self.parse_block_statement()?);
         self.consume_if(T![;]);
 
-        Ok(Statement::Section {
-            source: start.location_range(&self.current_token),
-            name,
-            body,
+        Ok(Statement {
+            kind: StatementKind::Section { name, body },
+            source: token.source_range(&self.current_token),
         })
     }
 
@@ -182,9 +176,9 @@ impl<'a> Parser<'a> {
         let expression = Box::new(self.parse_expression(Precedence::Lowest)?);
         self.consume_if(T![;]);
 
-        Ok(Statement::Expression {
-            source: start.location_range(&self.current_token),
-            expression,
+        Ok(Statement {
+            kind: StatementKind::Expression(expression),
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -199,9 +193,9 @@ impl<'a> Parser<'a> {
             vec![self.parse_expression_statement()?]
         };
 
-        Ok(Statement::Block {
-            source: start.location_range(&self.current_token),
-            statements,
+        Ok(Statement {
+            kind: StatementKind::Block(statements),
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -232,18 +226,21 @@ impl<'a> Parser<'a> {
 
                 let trailing_lambda = self.parse_function_expression()?;
 
-                Ok(Expression::Call {
-                    source: start.location_range(&self.current_token),
-                    function: Box::new(id),
-                    arguments: vec![trailing_lambda],
+                Ok(Expression {
+                    kind: ExpressionKind::Call {
+                        function: Box::new(id),
+                        arguments: vec![trailing_lambda],
+                    },
+                    source: start.source_range(&self.current_token),
                 })
             }
             T![INT] => self.parse_integer_expression(),
             T![DEC] => self.parse_decimal_expression(),
             T![STR] => self.parse_string_expression(),
             T![TRUE] | T![FALSE] => self.parse_booleon_expression(),
-            T![NIL] => Ok(Expression::Nil {
-                source: self.expect(T![NIL])?.location,
+            T![NIL] => Ok(Expression {
+                kind: ExpressionKind::Nil,
+                source: self.expect(T![NIL])?.source,
             }),
             T!['('] => self.parse_grouped_expression(),
             T!['['] => self.parse_list_expression(),
@@ -258,8 +255,9 @@ impl<'a> Parser<'a> {
                 }
                 _ => self.parse_operator_identifier_expression(),
             },
-            T![_] => Ok(Expression::Placeholder {
-                source: self.expect(T![_])?.location,
+            T![_] => Ok(Expression {
+                kind: ExpressionKind::Placeholder,
+                source: self.expect(T![_])?.source,
             }),
             T![LET] => self.parse_let_expression(),
             _ => self.parse_operator_identifier_expression(),
@@ -302,7 +300,7 @@ impl<'a> Parser<'a> {
             _ => {
                 return Err(ParserErr {
                     message: format!("{:?} is not legal in the prefix position", self.current_token.kind),
-                    source: self.current_token.location,
+                    source: self.current_token.source,
                 })
             }
         };
@@ -310,10 +308,9 @@ impl<'a> Parser<'a> {
 
         let right = Box::new(self.parse_expression(Precedence::Prefix)?);
 
-        Ok(Expression::Prefix {
-            source: start.location_range(&self.current_token),
-            operator,
-            right,
+        Ok(Expression {
+            kind: ExpressionKind::Prefix { operator, right },
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -336,15 +333,15 @@ impl<'a> Parser<'a> {
             T![&&] => Infix::And,
             T!['`'] => {
                 let name = self.lexer.get_source(&token).to_string();
-                Infix::Call(Box::new(Expression::Identifier {
-                    source: token.location,
-                    name,
+                Infix::Call(Box::new(Expression {
+                    kind: ExpressionKind::Identifier(name),
+                    source: token.source,
                 }))
             }
             _ => {
                 return Err(ParserErr {
                     message: format!("{:?} is not legal in the infix position", self.current_token.kind),
-                    source: self.current_token.location,
+                    source: self.current_token.source,
                 })
             }
         };
@@ -352,11 +349,13 @@ impl<'a> Parser<'a> {
 
         let right = Box::new(self.parse_expression(infix_binding_precedence(&token.kind))?);
 
-        Ok(Expression::Infix {
-            source: token.location_range(&self.current_token),
-            operator,
-            left: Box::new(left),
-            right,
+        Ok(Expression {
+            kind: ExpressionKind::Infix {
+                operator,
+                left: Box::new(left),
+                right,
+            },
+            source: token.source_range(&self.current_token),
         })
     }
 
@@ -368,10 +367,12 @@ impl<'a> Parser<'a> {
             arguments.push(self.parse_function_expression()?);
         }
 
-        Ok(Expression::Call {
-            source: start.location_range(&self.current_token),
-            function: Box::new(function),
-            arguments,
+        Ok(Expression {
+            kind: ExpressionKind::Call {
+                function: Box::new(function),
+                arguments,
+            },
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -381,10 +382,12 @@ impl<'a> Parser<'a> {
         let index = Box::new(self.parse_expression(Precedence::Lowest)?);
         self.expect(T![']'])?;
 
-        Ok(Expression::Index {
-            source: start.location_range(&self.current_token),
-            left: Box::new(left),
-            index,
+        Ok(Expression {
+            kind: ExpressionKind::Index {
+                left: Box::new(left),
+                index,
+            },
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -392,9 +395,9 @@ impl<'a> Parser<'a> {
         let token = self.expect(T![ID])?;
         let name = self.lexer.get_source(&token).to_string();
 
-        Ok(Expression::Identifier {
-            source: token.location,
-            name,
+        Ok(Expression {
+            kind: ExpressionKind::Identifier(name),
+            source: token.source,
         })
     }
 
@@ -403,14 +406,14 @@ impl<'a> Parser<'a> {
             T![==] | T![!=] | T![<] | T![<=] | T![>] | T![>=] | T![+] | T![-] | T![/] | T![*] | T![%] => {
                 let token = self.expect(self.current_token.kind)?;
                 let name = self.lexer.get_source(&token).to_string();
-                Ok(Expression::Identifier {
-                    source: token.location,
-                    name,
+                Ok(Expression {
+                    kind: ExpressionKind::Identifier(name),
+                    source: token.source,
                 })
             }
             _ => Err(ParserErr {
                 message: format!("{:?} is not a legal identifier", self.current_token.kind),
-                source: self.current_token.location,
+                source: self.current_token.source,
             }),
         }
     }
@@ -419,9 +422,9 @@ impl<'a> Parser<'a> {
         let token = self.expect(T![INT])?;
         let value = self.lexer.get_source(&token).to_string();
 
-        Ok(Expression::Integer {
-            source: token.location,
-            value,
+        Ok(Expression {
+            kind: ExpressionKind::Integer(value),
+            source: token.source,
         })
     }
 
@@ -429,9 +432,9 @@ impl<'a> Parser<'a> {
         let token = self.expect(T![DEC])?;
         let value = self.lexer.get_source(&token).to_string();
 
-        Ok(Expression::Decimal {
-            source: token.location,
-            value,
+        Ok(Expression {
+            kind: ExpressionKind::Decimal(value),
+            source: token.source,
         })
     }
 
@@ -439,9 +442,9 @@ impl<'a> Parser<'a> {
         let token = self.expect(T![STR])?;
         let value = self.lexer.get_source(&token).to_string();
 
-        Ok(Expression::String {
-            source: token.location,
-            value,
+        Ok(Expression {
+            kind: ExpressionKind::String(value),
+            source: token.source,
         })
     }
 
@@ -450,9 +453,9 @@ impl<'a> Parser<'a> {
         self.next_token();
         let value = token.kind == T![TRUE];
 
-        Ok(Expression::Boolean {
-            source: token.location,
-            value,
+        Ok(Expression {
+            kind: ExpressionKind::Boolean(value),
+            source: token.source,
         })
     }
 
@@ -469,9 +472,9 @@ impl<'a> Parser<'a> {
 
         let elements = self.parse_arguments(T![']'])?;
 
-        Ok(Expression::List {
-            source: start.location_range(&self.current_token),
-            elements,
+        Ok(Expression {
+            kind: ExpressionKind::List(elements),
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -480,9 +483,9 @@ impl<'a> Parser<'a> {
 
         let elements = self.parse_arguments(T!['}'])?;
 
-        Ok(Expression::Set {
-            source: start.location_range(&self.current_token),
-            elements,
+        Ok(Expression {
+            kind: ExpressionKind::Set(elements),
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -495,9 +498,9 @@ impl<'a> Parser<'a> {
             if self.current_token.kind == T![ID] && self.next_token.kind != T![:] {
                 let name = self.lexer.get_source(&self.current_token).to_string();
 
-                let key = Expression::String {
-                    source: self.current_token.location,
-                    value: name.to_owned(),
+                let key = Expression {
+                    kind: ExpressionKind::String(name.to_owned()),
+                    source: self.current_token.source,
                 };
                 let value = self.parse_expression(Precedence::Lowest)?;
                 elements.push((key, value));
@@ -517,9 +520,9 @@ impl<'a> Parser<'a> {
         }
         self.expect(T!['}'])?;
 
-        Ok(Expression::Hash {
-            source: start.location_range(&self.current_token),
-            elements,
+        Ok(Expression {
+            kind: ExpressionKind::Hash(elements),
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -536,11 +539,13 @@ impl<'a> Parser<'a> {
             None
         };
 
-        Ok(Expression::If {
-            source: start.location_range(&self.current_token),
-            condition,
-            consequence,
-            alternative,
+        Ok(Expression {
+            kind: ExpressionKind::If {
+                condition,
+                consequence,
+                alternative,
+            },
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -554,10 +559,9 @@ impl<'a> Parser<'a> {
         };
         let body = Box::new(self.parse_block_statement()?);
 
-        Ok(Expression::Function {
-            source: start.location_range(&self.current_token),
-            parameters,
-            body,
+        Ok(Expression {
+            kind: ExpressionKind::Function { parameters, body },
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -567,15 +571,17 @@ impl<'a> Parser<'a> {
         match &self.current_token.kind {
             T![ID] | T![INT] | T!['('] | T![-] => {
                 let until = Box::new(self.parse_expression(Precedence::Composition)?);
-                Ok(Expression::ExclusiveRange {
-                    source: start.location_range(&self.current_token),
-                    from: Box::new(from),
-                    until,
+                Ok(Expression {
+                    kind: ExpressionKind::ExclusiveRange {
+                        from: Box::new(from),
+                        until,
+                    },
+                    source: start.source_range(&self.current_token),
                 })
             }
-            _ => Ok(Expression::UnboundedRange {
-                source: start.location_range(&self.current_token),
-                from: Box::new(from),
+            _ => Ok(Expression {
+                kind: ExpressionKind::UnboundedRange { from: Box::new(from) },
+                source: start.source_range(&self.current_token),
             }),
         }
     }
@@ -585,10 +591,12 @@ impl<'a> Parser<'a> {
 
         let to = Box::new(self.parse_expression(Precedence::Composition)?);
 
-        Ok(Expression::InclusiveRange {
-            source: start.location_range(&self.current_token),
-            from: Box::new(from),
-            to,
+        Ok(Expression {
+            kind: ExpressionKind::InclusiveRange {
+                from: Box::new(from),
+                to,
+            },
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -601,15 +609,15 @@ impl<'a> Parser<'a> {
             T!['['] => {
                 self.next_token();
                 let pattern = self.parse_parameters(T![']'])?;
-                Expression::IdentifierListPattern {
-                    source: start.location_range(&self.current_token),
-                    pattern,
+                Expression {
+                    kind: ExpressionKind::IdentifierListPattern(pattern),
+                    source: start.source_range(&self.current_token),
                 }
             }
             _ => {
                 return Err(ParserErr {
                     message: format!("{:?} is not legal within a let identifier", self.current_token.kind),
-                    source: self.current_token.location,
+                    source: self.current_token.source,
                 });
             }
         };
@@ -617,17 +625,21 @@ impl<'a> Parser<'a> {
         let value = Box::new(self.parse_expression(Precedence::Lowest)?);
 
         if is_mutable {
-            return Ok(Expression::MutableLet {
-                source: start.location_range(&self.current_token),
-                name: Box::new(name),
-                value,
+            return Ok(Expression {
+                kind: ExpressionKind::MutableLet {
+                    name: Box::new(name),
+                    value,
+                },
+                source: start.source_range(&self.current_token),
             });
         }
 
-        Ok(Expression::Let {
-            source: start.location_range(&self.current_token),
-            name: Box::new(name),
-            value,
+        Ok(Expression {
+            kind: ExpressionKind::Let {
+                name: Box::new(name),
+                value,
+            },
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -636,10 +648,12 @@ impl<'a> Parser<'a> {
 
         let value = Box::new(self.parse_expression(Precedence::Equals)?);
 
-        Ok(Expression::Assign {
-            source: start.location_range(&self.current_token),
-            name: Box::new(name),
-            value,
+        Ok(Expression {
+            kind: ExpressionKind::Assign {
+                name: Box::new(name),
+                value,
+            },
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -651,9 +665,9 @@ impl<'a> Parser<'a> {
             functions.push(self.parse_expression(Precedence::Composition)?);
         }
 
-        Ok(Expression::FunctionComposition {
-            source: start.location_range(&self.current_token),
-            functions,
+        Ok(Expression {
+            kind: ExpressionKind::FunctionComposition(functions),
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -665,10 +679,12 @@ impl<'a> Parser<'a> {
             functions.push(self.parse_expression(Precedence::Composition)?);
         }
 
-        Ok(Expression::FunctionThread {
-            source: start.location_range(&self.current_token),
-            initial: Box::new(initial),
-            functions,
+        Ok(Expression {
+            kind: ExpressionKind::FunctionThread {
+                initial: Box::new(initial),
+                functions,
+            },
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -701,10 +717,9 @@ impl<'a> Parser<'a> {
             let _ = self.consume_if(T![,]) || self.consume_if(T![CMT]);
         }
 
-        Ok(Expression::Match {
-            source: start.location_range(&self.current_token),
-            subject,
-            cases,
+        Ok(Expression {
+            kind: ExpressionKind::Match { subject, cases },
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -715,22 +730,23 @@ impl<'a> Parser<'a> {
             T![DEC] => self.parse_decimal_expression(),
             T![STR] => self.parse_string_expression(),
             T![TRUE] | T![FALSE] => self.parse_booleon_expression(),
-            T![_] => Ok(Expression::Placeholder {
-                source: self.expect(T![_])?.location,
+            T![_] => Ok(Expression {
+                kind: ExpressionKind::Placeholder,
+                source: self.expect(T![_])?.source,
             }),
             T!['['] => self.parse_match_list_pattern(),
             T![-] => self.parse_prefix_operator_expression(),
             T![..] => {
                 let start = self.expect(T![..])?;
                 let name = Box::new(self.parse_identifier_expression()?);
-                Ok(Expression::RestElement {
-                    source: start.location_range(&self.current_token),
-                    name,
+                Ok(Expression {
+                    kind: ExpressionKind::RestElement { name },
+                    source: start.source_range(&self.current_token),
                 })
             }
             _ => Err(ParserErr {
                 message: format!("{:?} is not legal in a match pattern", self.current_token.kind),
-                source: self.current_token.location,
+                source: self.current_token.source,
             }),
         }
     }
@@ -741,9 +757,9 @@ impl<'a> Parser<'a> {
         let mut pattern = Vec::<Expression>::new();
 
         if self.consume_if(T![']']) {
-            return Ok(Expression::ListMatchPattern {
-                source: start.location,
-                pattern,
+            return Ok(Expression {
+                kind: ExpressionKind::ListMatchPattern(pattern),
+                source: start.source,
             });
         }
 
@@ -753,9 +769,9 @@ impl<'a> Parser<'a> {
         }
         self.expect(T![']'])?;
 
-        Ok(Expression::ListMatchPattern {
-            source: start.location_range(&self.current_token),
-            pattern,
+        Ok(Expression {
+            kind: ExpressionKind::ListMatchPattern(pattern),
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -769,26 +785,26 @@ impl<'a> Parser<'a> {
         let value = match self.current_token.kind {
             T![ID] => self.parse_identifier_expression()?,
             T![_] => {
-                let start = self.current_token;
-                self.next_token();
-                Expression::Placeholder {
-                    source: start.location_range(&self.current_token),
+                let start = self.expect(T![_])?;
+                Expression {
+                    kind: ExpressionKind::Placeholder,
+                    source: start.source_range(&self.current_token),
                 }
             }
             T!['['] => {
-                let start = self.current_token;
-                self.next_token();
-                Expression::IdentifierListPattern {
-                    source: start.location_range(&self.current_token),
-                    pattern: self.parse_parameters(T![']'])?,
+                let start = self.expect(T!['['])?;
+                Expression {
+                    kind: ExpressionKind::IdentifierListPattern(self.parse_parameters(T![']'])?),
+                    source: start.source_range(&self.current_token),
                 }
             }
             T![..] => {
-                let start = self.current_token;
-                self.next_token();
-                Expression::RestElement {
-                    source: start.location_range(&self.current_token),
-                    name: Box::new(self.parse_identifier_expression()?),
+                let start = self.expect(T![..])?;
+                Expression {
+                    kind: ExpressionKind::RestElement {
+                        name: Box::new(self.parse_identifier_expression()?),
+                    },
+                    source: start.source_range(&self.current_token),
                 }
             }
             _ => self.parse_expression(Precedence::Lowest)?,
@@ -799,26 +815,26 @@ impl<'a> Parser<'a> {
             let value = match self.current_token.kind {
                 T![ID] => self.parse_identifier_expression()?,
                 T![_] => {
-                    let start = self.current_token;
-                    self.next_token();
-                    Expression::Placeholder {
-                        source: start.location_range(&self.current_token),
+                    let start = self.expect(T![_])?;
+                    Expression {
+                        kind: ExpressionKind::Placeholder,
+                        source: start.source_range(&self.current_token),
                     }
                 }
                 T!['['] => {
-                    let start = self.current_token;
-                    self.next_token();
-                    Expression::IdentifierListPattern {
-                        source: start.location_range(&self.current_token),
-                        pattern: self.parse_parameters(T![']'])?,
+                    let start = self.expect(T!['['])?;
+                    Expression {
+                        kind: ExpressionKind::IdentifierListPattern(self.parse_parameters(T![']'])?),
+                        source: start.source_range(&self.current_token),
                     }
                 }
                 T![..] => {
-                    let start = self.current_token;
-                    self.next_token();
-                    Expression::RestElement {
-                        source: start.location_range(&self.current_token),
-                        name: Box::new(self.parse_identifier_expression()?),
+                    let start = self.expect(T![..])?;
+                    Expression {
+                        kind: ExpressionKind::RestElement {
+                            name: Box::new(self.parse_identifier_expression()?),
+                        },
+                        source: start.source_range(&self.current_token),
                     }
                 }
                 _ => self.parse_expression(Precedence::Lowest)?,
@@ -840,11 +856,12 @@ impl<'a> Parser<'a> {
 
         let value = match self.current_token.kind {
             T![..] => {
-                let start = self.current_token;
-                self.next_token();
-                Expression::SpreadElement {
-                    source: start.location_range(&self.current_token),
-                    value: Box::new(self.parse_expression(Precedence::Lowest)?),
+                let start = self.expect(T![..])?;
+                Expression {
+                    kind: ExpressionKind::SpreadElement {
+                        value: Box::new(self.parse_expression(Precedence::Lowest)?),
+                    },
+                    source: start.source_range(&self.current_token),
                 }
             }
             _ => self.parse_expression(Precedence::Lowest)?,
@@ -854,11 +871,12 @@ impl<'a> Parser<'a> {
         while self.consume_if(T![,]) {
             let value = match self.current_token.kind {
                 T![..] => {
-                    let start = self.current_token;
-                    self.next_token();
-                    Expression::SpreadElement {
-                        source: start.location_range(&self.current_token),
-                        value: Box::new(self.parse_expression(Precedence::Lowest)?),
+                    let start = self.expect(T![..])?;
+                    Expression {
+                        kind: ExpressionKind::SpreadElement {
+                            value: Box::new(self.parse_expression(Precedence::Lowest)?),
+                        },
+                        source: start.source_range(&self.current_token),
                     }
                 }
                 _ => self.parse_expression(Precedence::Lowest)?,
