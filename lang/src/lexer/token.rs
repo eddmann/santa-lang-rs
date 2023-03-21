@@ -3,7 +3,7 @@ use std::fmt;
 #[derive(PartialEq, Debug, Clone, Copy, Eq, Hash)]
 pub struct Token {
     pub kind: TokenKind,
-    pub location: Location,
+    pub source: Location,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, Eq, Hash)]
@@ -84,7 +84,7 @@ impl Token {
     pub fn new(kind: TokenKind, start: usize, end: usize) -> Token {
         Token {
             kind,
-            location: Location { start, end },
+            source: Location { start, end },
         }
     }
 
@@ -104,10 +104,10 @@ impl Token {
         }
     }
 
-    pub fn location_range(&self, token: &Token) -> Location {
+    pub fn source_range(&self, token: &Token) -> Location {
         Location {
-            start: self.location.start,
-            end: token.location.start,
+            start: self.source.start,
+            end: token.source.start,
         }
     }
 }

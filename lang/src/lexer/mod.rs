@@ -236,7 +236,7 @@ impl<'a> Lexer<'a> {
     }
 
     pub fn get_source(&self, token: &Token) -> &'a str {
-        &self.input[token.location.start..token.location.end]
+        &self.input[token.source.start..token.source.end]
     }
 }
 
