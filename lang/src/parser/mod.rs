@@ -738,9 +738,10 @@ impl<'a> Parser<'a> {
             T![-] => self.parse_prefix_operator_expression(),
             T![..] => {
                 let start = self.expect(T![..])?;
-                let name = Box::new(self.parse_identifier_expression()?);
+                let name = self.expect(T![ID])?;
+
                 Ok(Expression {
-                    kind: ExpressionKind::RestElement { name },
+                    kind: ExpressionKind::RestIdentifier(self.lexer.get_source(&name).to_string()),
                     source: start.source_range(&self.current_token),
                 })
             }
@@ -800,10 +801,9 @@ impl<'a> Parser<'a> {
             }
             T![..] => {
                 let start = self.expect(T![..])?;
+                let name = self.expect(T![ID])?;
                 Expression {
-                    kind: ExpressionKind::RestElement {
-                        name: Box::new(self.parse_identifier_expression()?),
-                    },
+                    kind: ExpressionKind::RestIdentifier(self.lexer.get_source(&name).to_string()),
                     source: start.source_range(&self.current_token),
                 }
             }
@@ -830,10 +830,9 @@ impl<'a> Parser<'a> {
                 }
                 T![..] => {
                     let start = self.expect(T![..])?;
+                    let name = self.expect(T![ID])?;
                     Expression {
-                        kind: ExpressionKind::RestElement {
-                            name: Box::new(self.parse_identifier_expression()?),
-                        },
+                        kind: ExpressionKind::RestIdentifier(self.lexer.get_source(&name).to_string()),
                         source: start.source_range(&self.current_token),
                     }
                 }
@@ -858,9 +857,7 @@ impl<'a> Parser<'a> {
             T![..] => {
                 let start = self.expect(T![..])?;
                 Expression {
-                    kind: ExpressionKind::SpreadElement {
-                        value: Box::new(self.parse_expression(Precedence::Lowest)?),
-                    },
+                    kind: ExpressionKind::Spread(Box::new(self.parse_expression(Precedence::Lowest)?)),
                     source: start.source_range(&self.current_token),
                 }
             }
@@ -873,9 +870,7 @@ impl<'a> Parser<'a> {
                 T![..] => {
                     let start = self.expect(T![..])?;
                     Expression {
-                        kind: ExpressionKind::SpreadElement {
-                            value: Box::new(self.parse_expression(Precedence::Lowest)?),
-                        },
+                        kind: ExpressionKind::Spread(Box::new(self.parse_expression(Precedence::Lowest)?)),
                         source: start.source_range(&self.current_token),
                     }
                 }

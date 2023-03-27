@@ -254,19 +254,19 @@ fn list() {
                                             source: 9..24,
                                         },
                                         Expression {
-                                            kind: SpreadElement {
-                                                value: Expression {
+                                            kind: Spread(
+                                                Expression {
                                                     kind: Identifier(
                                                         "xs",
                                                     ),
                                                     source: 28..30,
                                                 },
-                                            },
+                                            ),
                                             source: 26..30,
                                         },
                                         Expression {
-                                            kind: SpreadElement {
-                                                value: Expression {
+                                            kind: Spread(
+                                                Expression {
                                                     kind: List(
                                                         [
                                                             Expression {
@@ -279,7 +279,7 @@ fn list() {
                                                     ),
                                                     source: 34..40,
                                                 },
-                                            },
+                                            ),
                                             source: 32..40,
                                         },
                                     ],
@@ -423,8 +423,8 @@ fn set() {
                                             source: 9..24,
                                         },
                                         Expression {
-                                            kind: SpreadElement {
-                                                value: Expression {
+                                            kind: Spread(
+                                                Expression {
                                                     kind: List(
                                                         [
                                                             Expression {
@@ -437,7 +437,7 @@ fn set() {
                                                     ),
                                                     source: 28..34,
                                                 },
-                                            },
+                                            ),
                                             source: 26..34,
                                         },
                                     ],
@@ -899,14 +899,9 @@ fn let_assignments() {
                                                     source: 80..86,
                                                 },
                                                 Expression {
-                                                    kind: RestElement {
-                                                        name: Expression {
-                                                            kind: Identifier(
-                                                                "e",
-                                                            ),
-                                                            source: 90..91,
-                                                        },
-                                                    },
+                                                    kind: RestIdentifier(
+                                                        "e",
+                                                    ),
                                                     source: 88..91,
                                                 },
                                             ],
@@ -1663,14 +1658,9 @@ fn function_literals() {
                                                         source: 62..63,
                                                     },
                                                     Expression {
-                                                        kind: RestElement {
-                                                            name: Expression {
-                                                                kind: Identifier(
-                                                                    "ys",
-                                                                ),
-                                                                source: 67..69,
-                                                            },
-                                                        },
+                                                        kind: RestIdentifier(
+                                                            "ys",
+                                                        ),
                                                         source: 65..69,
                                                     },
                                                 ],
@@ -1678,14 +1668,9 @@ fn function_literals() {
                                             source: 61..70,
                                         },
                                         Expression {
-                                            kind: RestElement {
-                                                name: Expression {
-                                                    kind: Identifier(
-                                                        "z",
-                                                    ),
-                                                    source: 74..75,
-                                                },
-                                            },
+                                            kind: RestIdentifier(
+                                                "z",
+                                            ),
                                             source: 72..75,
                                         },
                                     ],
@@ -1815,14 +1800,14 @@ fn call_expressions() {
                                     },
                                     arguments: [
                                         Expression {
-                                            kind: SpreadElement {
-                                                value: Expression {
+                                            kind: Spread(
+                                                Expression {
                                                     kind: Identifier(
                                                         "xs",
                                                     ),
                                                     source: 56..58,
                                                 },
-                                            },
+                                            ),
                                             source: 54..58,
                                         },
                                     ],
@@ -3515,14 +3500,9 @@ fn match_with_list_destructing() {
                                                             source: 95..96,
                                                         },
                                                         Expression {
-                                                            kind: RestElement {
-                                                                name: Expression {
-                                                                    kind: Identifier(
-                                                                        "xs",
-                                                                    ),
-                                                                    source: 100..102,
-                                                                },
-                                                            },
+                                                            kind: RestIdentifier(
+                                                                "xs",
+                                                            ),
                                                             source: 98..102,
                                                         },
                                                     ],

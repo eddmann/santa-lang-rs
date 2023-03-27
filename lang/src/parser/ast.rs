@@ -68,6 +68,7 @@ pub struct Expression {
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionKind {
     Identifier(String),
+    RestIdentifier(String),
     Let {
         name: Box<Expression>,
         value: Box<Expression>,
@@ -133,12 +134,7 @@ pub enum ExpressionKind {
     Decimal(String),
     String(String),
     Boolean(bool),
-    RestElement {
-        name: Box<Expression>,
-    },
-    SpreadElement {
-        value: Box<Expression>,
-    },
+    Spread(Box<Expression>),
     IdentifierListPattern(Vec<Expression>),
     ListMatchPattern(Vec<Expression>),
     Placeholder,
@@ -189,6 +185,7 @@ impl fmt::Display for ExpressionKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match self {
             Self::Identifier(name) => name.to_string(),
+            Self::RestIdentifier(name) => format!("..{}", name),
             Self::Let { name, value } => format!("let {} = {};", name, value),
             Self::MutableLet { name, value } => format!("let mut {} = {};", name, value),
             Self::List(elements) => {
@@ -261,8 +258,7 @@ impl fmt::Display for ExpressionKind {
             Self::Decimal(value) => value.to_string(),
             Self::String(value) => value.to_string(),
             Self::Boolean(value) => value.to_string(),
-            Self::RestElement { name } => format!("..{}", name),
-            Self::SpreadElement { value } => format!("..{}", value),
+            Self::Spread(value) => format!("..{}", value),
             Self::IdentifierListPattern(pattern) => {
                 let formatted: Vec<String> = pattern.iter().map(|element| element.to_string()).collect();
                 format!("[{}]", formatted.join(", "))
