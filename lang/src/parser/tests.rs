@@ -91,7 +91,7 @@ fn strings() {
                         kind: Expression(
                             Expression {
                                 kind: String(
-                                    "\"Hello, world!\"",
+                                    "Hello, world!",
                                 ),
                                 source: 0..15,
                             },
@@ -102,7 +102,7 @@ fn strings() {
                         kind: Expression(
                             Expression {
                                 kind: String(
-                                    "\"\\n\\t\\\"\"",
+                                    "\\n\\t\\\"",
                                 ),
                                 source: 28..36,
                             },
@@ -113,7 +113,7 @@ fn strings() {
                         kind: Expression(
                             Expression {
                                 kind: String(
-                                    "\"µࠒ𒀀\"",
+                                    "µࠒ𒀀",
                                 ),
                                 source: 49..60,
                             },
@@ -249,7 +249,7 @@ fn list() {
                                         },
                                         Expression {
                                             kind: String(
-                                                "\"Hello, world!\"",
+                                                "Hello, world!",
                                             ),
                                             source: 9..24,
                                         },
@@ -311,7 +311,7 @@ fn hash() {
                                         (
                                             Expression {
                                                 kind: String(
-                                                    "\"Hello, world!\"",
+                                                    "Hello, world!",
                                                 ),
                                                 source: 2..17,
                                             },
@@ -346,7 +346,7 @@ fn hash() {
                                             },
                                             Expression {
                                                 kind: String(
-                                                    "\"2\"",
+                                                    "2",
                                                 ),
                                                 source: 28..31,
                                             },
@@ -418,7 +418,7 @@ fn set() {
                                         },
                                         Expression {
                                             kind: String(
-                                                "\"Hello, world!\"",
+                                                "Hello, world!",
                                             ),
                                             source: 9..24,
                                         },
@@ -2831,7 +2831,7 @@ fn collection_indexing() {
                                     },
                                     index: Expression {
                                         kind: String(
-                                            "\"key\"",
+                                            "key",
                                         ),
                                         source: 164..169,
                                     },
@@ -2869,7 +2869,7 @@ fn sections() {
                                             kind: Expression(
                                                 Expression {
                                                     kind: String(
-                                                        "\"sample \"",
+                                                        "sample ",
                                                     ),
                                                     source: 15..24,
                                                 },
@@ -2893,7 +2893,7 @@ fn sections() {
                                             kind: Expression(
                                                 Expression {
                                                     kind: String(
-                                                        "\"sample\"",
+                                                        "sample",
                                                     ),
                                                     source: 52..60,
                                                 },
@@ -2923,7 +2923,7 @@ fn sections() {
                                                                 kind: Expression(
                                                                     Expression {
                                                                         kind: String(
-                                                                            "\"sample\"",
+                                                                            "sample",
                                                                         ),
                                                                         source: 121..129,
                                                                     },
@@ -2988,7 +2988,7 @@ fn match_with_primitives() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"one\"",
+                                                                        "one",
                                                                     ),
                                                                     source: 30..35,
                                                                 },
@@ -3014,7 +3014,7 @@ fn match_with_primitives() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"two\"",
+                                                                        "two",
                                                                     ),
                                                                     source: 61..66,
                                                                 },
@@ -3040,7 +3040,7 @@ fn match_with_primitives() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"three\"",
+                                                                        "three",
                                                                     ),
                                                                     source: 93..100,
                                                                 },
@@ -3055,7 +3055,7 @@ fn match_with_primitives() {
                                         Unguarded {
                                             pattern: Expression {
                                                 kind: String(
-                                                    "\"four\"",
+                                                    "four",
                                                 ),
                                                 source: 120..126,
                                             },
@@ -3139,7 +3139,7 @@ fn match_with_ranges() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"1-2\"",
+                                                                        "1-2",
                                                                     ),
                                                                     source: 33..38,
                                                                 },
@@ -3176,7 +3176,7 @@ fn match_with_ranges() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"3-5\"",
+                                                                        "3-5",
                                                                     ),
                                                                     source: 66..71,
                                                                 },
@@ -3207,7 +3207,7 @@ fn match_with_ranges() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\">= 6\"",
+                                                                        ">= 6",
                                                                     ),
                                                                     source: 97..103,
                                                                 },
@@ -3287,7 +3287,7 @@ fn match_with_if_guards() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"one\"",
+                                                                        "one",
                                                                     ),
                                                                     source: 40..45,
                                                                 },
@@ -3337,7 +3337,7 @@ fn match_with_if_guards() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"two\"",
+                                                                        "two",
                                                                     ),
                                                                     source: 89..94,
                                                                 },
@@ -3381,7 +3381,7 @@ fn match_with_if_guards() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"greater than three\"",
+                                                                        "greater than three",
                                                                     ),
                                                                     source: 127..147,
                                                                 },
@@ -3444,7 +3444,7 @@ fn match_with_list_destructing() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"empty\"",
+                                                                        "empty",
                                                                     ),
                                                                     source: 31..38,
                                                                 },
@@ -3477,7 +3477,7 @@ fn match_with_list_destructing() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"one item\"",
+                                                                        "one item",
                                                                     ),
                                                                     source: 64..74,
                                                                 },
@@ -3516,7 +3516,7 @@ fn match_with_list_destructing() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"many items\"",
+                                                                        "many items",
                                                                     ),
                                                                     source: 106..118,
                                                                 },
@@ -3540,7 +3540,7 @@ fn match_with_list_destructing() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: String(
-                                                                        "\"unknown\"",
+                                                                        "unknown",
                                                                     ),
                                                                     source: 142..151,
                                                                 },

@@ -440,7 +440,9 @@ impl<'a> Parser<'a> {
 
     fn parse_string_expression(&mut self) -> RExpression {
         let token = self.expect(T![STR])?;
-        let value = self.lexer.get_source(&token).to_string();
+        let mut value = self.lexer.get_source(&token).to_string();
+        value.remove(0); // remove start "
+        value.pop(); // remove end "
 
         Ok(Expression {
             kind: ExpressionKind::String(value),
@@ -849,7 +851,7 @@ impl<'a> Parser<'a> {
     fn parse_arguments(&mut self, terminator: TokenKind) -> RExpressions {
         let mut values = Vec::<Expression>::new();
 
-        if self.current_token.kind == terminator {
+        if self.consume_if(terminator) {
             return Ok(values);
         }
 
