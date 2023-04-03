@@ -22,3 +22,5 @@ test:
 .PHONY: fmt
 fmt:
 	@$(DOCKER) -it $(IMAGE) bash -c "rustup component add rustfmt && cargo fmt"
+
+# https://dmitryfrank.com/articles/js_closures
