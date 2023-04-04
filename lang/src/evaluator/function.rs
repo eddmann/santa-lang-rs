@@ -1,15 +1,15 @@
 use super::environment::{Environment, EnvironmentRef};
-use crate::evaluator::Evaluation;
-use crate::evaluator::Evaluator;
-use crate::evaluator::Frame;
-use crate::evaluator::Object;
-use crate::evaluator::RuntimeErr;
+use crate::evaluator::{Evaluation, Evaluator, Frame, Object, RuntimeErr};
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Statement};
+use std::collections::HashMap;
 use std::fmt;
+use std::hash::Hash;
 use std::rc::Rc;
 
-pub type Arguments = std::collections::HashMap<String, Rc<Object>>;
+pub type Arguments = HashMap<String, Rc<Object>>;
+type BuiltinFn = fn(&mut Evaluator, Arguments, Location) -> Evaluation;
+type ExternalFn = Rc<dyn Fn(&mut Evaluator, Arguments, Location) -> Evaluation>;
 
 #[derive(Clone)]
 pub enum Function {
@@ -25,7 +25,7 @@ pub enum Function {
     //     parameters: Vec<Expression>,
     //     body: Statement,
     //     environment: EnvironmentRef,
-    //     cache: std::collections::HashMap<Vec<Rc<Object>>, Rc<Object>>
+    //     cache: HashMap<Vec<Rc<Object>>, Rc<Object>>
     // },
     // ContinuationClosure {
     //     arguments: Vec<Rc<Object>>,
@@ -34,12 +34,12 @@ pub enum Function {
     // },
     Builtin {
         parameters: Vec<ExpressionKind>,
-        body: fn(&mut Evaluator, Arguments, Location) -> Evaluation,
+        body: BuiltinFn,
         partial: Option<Arguments>,
     },
     External {
         parameters: Vec<ExpressionKind>,
-        body: Rc<dyn Fn(&mut Evaluator, Arguments, Location) -> Evaluation>,
+        body: ExternalFn,
         partial: Option<Arguments>,
     },
 }
@@ -111,7 +111,7 @@ impl Function {
             } => {
                 let mut evaluated_arguments = match partial {
                     Some(args) => args.clone(),
-                    None => std::collections::HashMap::new(),
+                    None => HashMap::new(),
                 };
                 let mut remaining_parameters = vec![];
 
@@ -163,7 +163,7 @@ impl Function {
             } => {
                 let mut evaluated_arguments = match partial {
                     Some(args) => args.clone(),
-                    None => std::collections::HashMap::new(),
+                    None => HashMap::new(),
                 };
                 let mut remaining_parameters = vec![];
 
@@ -222,7 +222,7 @@ impl Function {
 }
 
 impl fmt::Debug for Function {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         todo!()
     }
 }
@@ -249,7 +249,27 @@ impl fmt::Display for Function {
 }
 
 impl PartialEq for Function {
-    fn eq(&self, other: &Self) -> bool {
+    fn eq(&self, _other: &Self) -> bool {
         false
+    }
+}
+
+impl Eq for Function {}
+
+impl Ord for Function {
+    fn cmp(&self, _other: &Self) -> std::cmp::Ordering {
+        unreachable!()
+    }
+}
+
+impl PartialOrd for Function {
+    fn partial_cmp(&self, _other: &Self) -> Option<std::cmp::Ordering> {
+        unreachable!()
+    }
+}
+
+impl Hash for Function {
+    fn hash<H: std::hash::Hasher>(&self, _state: &mut H) {
+        unreachable!()
     }
 }

@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! builtin {
-    ( $name: ident ($( $parameter: ident ),*, ..$rest: ident) [$evaluator: ident, $source: ident] { $( $pattern: pat_param => $body: block )* }) => {
+    ( $name: ident ($( $parameter: ident ),*, ..$rest: ident) [$evaluator: ident, $source: ident] match { $( $pattern: pat_param => $body: block )* }) => {
         pub mod $name {
             use super::*;
 
@@ -43,7 +43,7 @@ macro_rules! builtin {
             }
         }
     };
-    ( $name: ident ($( $parameter: ident ),*) { $( $pattern: pat_param => $body: block )* }) => {
+    ( $name: ident ($( $parameter: ident ),*) match { $( $pattern: pat_param => $body: block )* }) => {
         pub mod $name {
             use super::*;
 
@@ -83,7 +83,7 @@ macro_rules! builtin {
             }
         }
     };
-    ( $name: ident ($( $parameter: ident ),*) [$evaluator: ident, $source: ident] { $( $pattern: pat_param => $body: block )* }) => {
+    ( $name: ident ($( $parameter: ident ),*) [$evaluator: ident, $source: ident] match { $( $pattern: pat_param => $body: block )* }) => {
         pub mod $name {
             use super::*;
 

@@ -1,15 +1,13 @@
 use crate::evaluator::lazy_sequence::{LazyFn, LazySequence};
 use crate::evaluator::object::Object;
-use crate::evaluator::Evaluation;
-use crate::evaluator::Evaluator;
-use crate::evaluator::RuntimeErr;
+use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
 use crate::lexer::Location;
 use im_rc::{HashMap, HashSet, Vector};
 use std::cell::RefCell;
 use std::rc::Rc;
 
 builtin! {
-    push(value, collection) {
+    push(value, collection) match {
         (_, Object::List(list)) => {
             let mut next_list = list.clone();
             next_list.push_back(Rc::clone(value));
@@ -24,7 +22,7 @@ builtin! {
 }
 
 builtin! {
-    map(mapper, collection) [evaluator, source] {
+    map(mapper, collection) [evaluator, source] match {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
@@ -33,14 +31,14 @@ builtin! {
             Ok(Rc::new(Object::List(elements)))
         }
         (Object::Function(mapper), Object::Set(set)) => {
-            let mut elements = HashSet::new();
+            let mut elements = HashSet::default();
             for element in set {
                 elements.insert(mapper.apply(evaluator, vec![Rc::clone(element)], source)?);
             }
             Ok(Rc::new(Object::Set(elements)))
         }
         (Object::Function(mapper), Object::Hash(map)) => {
-            let mut elements = HashMap::new();
+            let mut elements = HashMap::default();
             for (key, value) in map {
                 elements.insert(Rc::clone(key), mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?);
             }
@@ -49,11 +47,18 @@ builtin! {
         (Object::Function(mapper), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Map(mapper.clone())))))
         }
+        (Object::Function(mapper), Object::String(string)) => {
+            let mut elements = Vector::new();
+            for character in string.chars() {
+                elements.push_back(mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?);
+            }
+            Ok(Rc::new(Object::List(elements)))
+        }
     }
 }
 
 builtin! {
-    filter(predicate, collection) [evaluator, source] {
+    filter(predicate, collection) [evaluator, source] match {
         (Object::Function(predicate), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
@@ -64,7 +69,7 @@ builtin! {
             Ok(Rc::new(Object::List(elements)))
         }
         (Object::Function(predicate), Object::Set(list)) => {
-            let mut elements = HashSet::new();
+            let mut elements = HashSet::default();
             for element in list {
                 if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
                     elements.insert(Rc::clone(element));
@@ -73,7 +78,7 @@ builtin! {
             Ok(Rc::new(Object::Set(elements)))
         }
         (Object::Function(predicate), Object::Hash(map)) => {
-            let mut elements = HashMap::new();
+            let mut elements = HashMap::default();
             for (key, value) in map {
                 if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
                     elements.insert(Rc::clone(key), Rc::clone(value));
@@ -84,11 +89,21 @@ builtin! {
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Filter(predicate.clone())))))
         }
+        (Object::Function(predicate), Object::String(string)) => {
+            let mut elements = Vector::new();
+            for character in string.chars() {
+                let object = Rc::new(Object::String(character.to_string()));
+                if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
+                    elements.push_back(Rc::clone(&object));
+                }
+            }
+            Ok(Rc::new(Object::List(elements)))
+        }
     }
 }
 
 builtin! {
-    fold(initial, folder, collection) [evaluator, source] {
+    fold(initial, folder, collection) [evaluator, source] match {
         (_, Object::Function(folder), Object::List(list)) => {
             let mut accumulator = Rc::clone(initial);
             for element in list {
@@ -118,16 +133,59 @@ builtin! {
             }
             Ok(Rc::clone(&accumulator))
         }
+        (_, Object::Function(folder), Object::String(string)) => {
+            let mut accumulator = Rc::clone(initial);
+            for character in string.chars() {
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+            }
+            Ok(Rc::clone(&accumulator))
+        }
     }
 }
 
 builtin! {
-    reduce(reducer, collection) [evaluator, source] {
+    each(side_effect, collection) [evaluator, source] match {
+        (Object::Function(side_effect), Object::List(list)) => {
+            for element in list {
+                side_effect.apply(evaluator, vec![Rc::clone(element)], source)?;
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(side_effect), Object::Set(set)) => {
+            for element in set {
+                side_effect.apply(evaluator, vec![Rc::clone(element)], source)?;
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(side_effect), Object::Hash(map)) => {
+            for (key, value) in map {
+                side_effect.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(side_effect), Object::LazySequence(sequence)) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
+                side_effect.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?;
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(side_effect), Object::String(string)) => {
+            for character in string.chars() {
+                side_effect.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+    }
+}
+
+builtin! {
+    reduce(reducer, collection) [evaluator, source] match {
         (Object::Function(reducer), Object::List(list)) => {
             let mut accumulator = match list.get(0) {
                 Some(element) => Rc::clone(element),
                 None => return Err(RuntimeErr {
-                    message: "Unable to reduce an empty list".to_owned(),
+                    message: "Unable to reduce an empty List".to_owned(),
                     source
                 })
             };
@@ -136,11 +194,25 @@ builtin! {
             }
             Ok(Rc::clone(&accumulator))
         }
+        (Object::Function(reducer), Object::String(string)) => {
+            let mut characters = string.chars();
+            let mut accumulator = match characters.next() {
+                Some(character) => Rc::new(Object::String(character.to_string())),
+                None => return Err(RuntimeErr {
+                    message: "Unable to reduce an empty String".to_owned(),
+                    source
+                })
+            };
+            for character in characters {
+                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+            }
+            Ok(Rc::clone(&accumulator))
+        }
     }
 }
 
 builtin! {
-    flat_map(mapper, collection) [evaluator, source] {
+    flat_map(mapper, collection) [evaluator, source] match {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
@@ -154,7 +226,7 @@ builtin! {
 }
 
 builtin! {
-    skip(total, collection) [evaluator, source] {
+    skip(total, collection) [evaluator, source] match {
         (Object::Integer(total), Object::List(list)) => {
             Ok(Rc::new(Object::List(list.clone().into_iter().skip(*total as usize).collect())))
         }
@@ -165,7 +237,7 @@ builtin! {
 }
 
 builtin! {
-    take(total, collection) [evaluator, source] {
+    take(total, collection) [evaluator, source] match {
         (Object::Integer(total), Object::List(list)) => {
             Ok(Rc::new(Object::List(list.clone().into_iter().take(*total as usize).collect())))
         }
@@ -176,7 +248,7 @@ builtin! {
 }
 
 builtin! {
-    list(value) [evaluator, source] {
+    list(value) [evaluator, source] match {
         Object::List(list) => {
             Ok(Rc::new(Object::List(list.clone())))
         }
@@ -190,6 +262,107 @@ builtin! {
         Object::LazySequence(sequence) => {
             Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).collect::<Vector<Rc<Object>>>())))
         }
+        Object::String(string) => {
+            Ok(Rc::new(Object::List(string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<Vector<Rc<Object>>>())))
+        }
+    }
+}
+
+builtin! {
+    set(value) [evaluator, source] match {
+        Object::List(list) => {
+            let mut elements = HashSet::default();
+            for element in list {
+                if !element.is_hashable() {
+                    return Err(RuntimeErr {
+                        message: format!("Unable to include a {} within an Set", element.name()),
+                        source
+                    });
+                }
+                elements.insert(Rc::clone(element));
+            }
+            Ok(Rc::new(Object::Set(elements)))
+        }
+        Object::Set(set) => {
+            Ok(Rc::new(Object::Set(set.clone())))
+        }
+        Object::LazySequence(sequence) => {
+            let mut elements = HashSet::default();
+            for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+                if !element.is_hashable() {
+                    return Err(RuntimeErr {
+                        message: format!("Unable to include a {} within an Set", element.name()),
+                        source
+                    });
+                }
+                elements.insert(Rc::clone(&element));
+            }
+            Ok(Rc::new(Object::Set(elements)))
+        }
+        Object::String(string) => {
+            Ok(Rc::new(Object::Set(string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>())))
+        }
+    }
+}
+
+builtin! {
+    hash(value) [evaluator, source] match {
+        Object::List(list) => {
+            let mut elements = HashMap::default();
+
+            for element in list.clone() {
+                if let Object::List(pair) = &*element {
+                    if pair.len() == 2 {
+                        if !pair[0].is_hashable() {
+                            return Err(RuntimeErr {
+                                message: format!("Unable to use a {} as a Hash key", pair[0].name()),
+                                source
+                            });
+                        }
+                        elements.insert(Rc::clone(&pair[0]), Rc::clone(&pair[1]));
+                        continue;
+                    }
+                }
+
+                return Err(RuntimeErr {
+                    message: format!(
+                        "Expected a [key, value] List pair, found: {}",
+                        element.name()
+                    ),
+                    source,
+                })
+            }
+
+            Ok(Rc::new(Object::Hash(elements)))
+        }
+        Object::LazySequence(sequence) => {
+            let mut elements = HashMap::default();
+
+            for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+                if let Object::List(pair) = &*element {
+                    if pair.len() == 2 {
+                        if !pair[0].is_hashable() {
+                            return Err(RuntimeErr {
+                                message: format!("Unable to use a {} as a Hash key", pair[0].name()),
+                                source
+                            });
+                        }
+                        elements.insert(Rc::clone(&pair[0]), Rc::clone(&pair[1]));
+                        continue;
+                    }
+                }
+
+                return Err(RuntimeErr {
+                    message: format!(
+                        "Expected a [key, value] List pair, found: {}",
+                        element.name()
+                    ),
+                    source,
+                })
+            }
+
+            Ok(Rc::new(Object::Hash(elements)))
+        }
     }
 }
 
@@ -200,15 +373,19 @@ builtin! {
 }
 
 builtin! {
-    cycle(list) {
+    cycle(list) match {
         Object::List(list) => {
             Ok(Rc::new(Object::LazySequence(LazySequence::cycle(list.clone()))))
+        }
+        Object::String(string) => {
+            let characters = string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<Vector<Rc<Object>>>();
+            Ok(Rc::new(Object::LazySequence(LazySequence::cycle(characters))))
         }
     }
 }
 
 builtin! {
-    iterate(generator, initial) {
+    iterate(generator, initial) match {
         (Object::Function(generator), _) => {
             Ok(Rc::new(Object::LazySequence(LazySequence::iterate(generator.clone(), Rc::clone(initial)))))
         }
@@ -240,16 +417,18 @@ fn eager_zipper(sequences: Vector<Rc<Object>>, evaluator: &mut Evaluator, source
     for sequence in &sequences {
         match &**sequence {
             Object::List(list) => iterators.push(Box::new(list.clone().into_iter())),
-            Object::String(string) => {
-                iterators.push(Box::new(string.chars().map(|c| Rc::new(Object::String(c.to_string())))))
-            }
+            Object::String(string) => iterators.push(Box::new(
+                string
+                    .chars()
+                    .map(|character| Rc::new(Object::String(character.to_string()))),
+            )),
             Object::LazySequence(sequence) => {
                 iterators.push(Box::new(sequence.resolve_iter(Rc::clone(&shared_evaluator), source)));
             }
             _ => {
                 return Err(RuntimeErr {
                     message: format!(
-                        "Unable to zip an {}, expected an List, String or LazySequence",
+                        "Expected a List, String or LazySequence to zip, found: {}",
                         sequence.name()
                     ),
                     source,
@@ -274,7 +453,7 @@ fn eager_zipper(sequences: Vector<Rc<Object>>, evaluator: &mut Evaluator, source
 }
 
 builtin! {
-    zip(collection, ..collections) [evaluator, source] {
+    zip(collection, ..collections) [evaluator, source] match {
         (_, Object::List(collections)) => {
             let mut collections = collections.clone();
             collections.push_front(Rc::clone(collection));

@@ -15,6 +15,7 @@ use crate::evaluator::object::Object;
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Program, Statement, StatementKind};
 use im_rc::{HashMap, HashSet, Vector};
+use ordered_float::OrderedFloat;
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -150,19 +151,19 @@ impl Evaluator {
                     return Ok(builtin);
                 }
 
-                if let Some(system) = &self.system_functions {}
+                if let Some(_system) = &self.system_functions {}
 
                 Err(RuntimeErr {
-                    message: format!("Identifier '{}' can not be found", name),
+                    message: format!("Identifier can not be found: {}", name),
                     source: expression.source,
                 })
             }
             ExpressionKind::Integer(value) => {
                 Ok(Rc::new(Object::Integer(value.replace('_', "").parse::<i64>().unwrap())))
             }
-            ExpressionKind::Decimal(value) => {
-                Ok(Rc::new(Object::Decimal(value.replace('_', "").parse::<f64>().unwrap())))
-            }
+            ExpressionKind::Decimal(value) => Ok(Rc::new(Object::Decimal(
+                value.replace('_', "").parse::<OrderedFloat<f64>>().unwrap(),
+            ))),
             ExpressionKind::String(value) => Ok(Rc::new(Object::String(value.to_owned()))),
             ExpressionKind::Boolean(value) => Ok(Rc::new(Object::Boolean(*value))),
             ExpressionKind::If {
@@ -184,16 +185,35 @@ impl Evaluator {
                 }
 
                 Err(RuntimeErr {
-                    message: format!("Unable to call: {}", function),
+                    message: format!("Expected a Function, found: {}", evaluated_function.name()),
                     source: function.source,
                 })
             }
             ExpressionKind::List(list) => Ok(Rc::new(Object::List(Vector::from(self.eval_expressions(list)?)))),
-            ExpressionKind::Set(set) => Ok(Rc::new(Object::Set(HashSet::from(self.eval_expressions(set)?)))),
+            ExpressionKind::Set(set) => {
+                let mut elements = HashSet::default();
+                for element in self.eval_expressions(set)? {
+                    if !element.is_hashable() {
+                        return Err(RuntimeErr {
+                            message: format!("Unable to include a {} within an Set", element.name()),
+                            source: expression.source,
+                        });
+                    }
+                    elements.insert(element);
+                }
+                Ok(Rc::new(Object::Set(elements)))
+            }
             ExpressionKind::Hash(map) => {
-                let mut elements = HashMap::new();
+                let mut elements = HashMap::default();
                 for (key, value) in map {
-                    elements.insert(self.eval_expression(key)?, self.eval_expression(value)?);
+                    let evaluated_key = self.eval_expression(key)?;
+                    if !evaluated_key.is_hashable() {
+                        return Err(RuntimeErr {
+                            message: format!("Unable to use a {} as a Hash key", evaluated_key.name()),
+                            source: key.source,
+                        });
+                    }
+                    elements.insert(evaluated_key, self.eval_expression(value)?);
                 }
                 Ok(Rc::new(Object::Hash(elements)))
             }
@@ -201,13 +221,15 @@ impl Evaluator {
                 let mut result = self.eval_expression(initial)?;
 
                 for function in functions {
-                    if let Object::Function(f) = &*self.eval_expression(function)? {
+                    let evaluated_function = self.eval_expression(function)?;
+
+                    if let Object::Function(f) = &*evaluated_function {
                         result = f.apply(self, vec![result], function.source)?;
                         continue;
                     }
 
                     return Err(RuntimeErr {
-                        message: format!("Not a function: {}", function),
+                        message: format!("Expected a Function, found: {}", evaluated_function.name()),
                         source: function.source,
                     });
                 }
@@ -218,13 +240,15 @@ impl Evaluator {
                 let mut evaluated_functions = Vec::with_capacity(functions.len());
 
                 for function in functions {
-                    if let Object::Function(f) = &*self.eval_expression(function)? {
+                    let evaluated_function = self.eval_expression(function)?;
+
+                    if let Object::Function(f) = &*evaluated_function {
                         evaluated_functions.push(f.clone());
                         continue;
                     }
 
                     return Err(RuntimeErr {
-                        message: format!("Not a function: {}", function),
+                        message: format!("Expected a Function, found: {}", evaluated_function.name()),
                         source: function.source,
                     });
                 }
@@ -238,8 +262,12 @@ impl Evaluator {
                     (Object::Integer(from), Object::Integer(to)) => {
                         Ok(Rc::new(Object::LazySequence(LazySequence::inclusive_range(*from, *to))))
                     }
-                    _ => Err(RuntimeErr {
-                        message: "Inclusive range requires Integer values".to_owned(),
+                    (from, to) => Err(RuntimeErr {
+                        message: format!(
+                            "Expected Integer inclusive range, found: {}..={}",
+                            from.name(),
+                            to.name()
+                        ),
                         source: expression.source,
                     }),
                 }
@@ -249,28 +277,30 @@ impl Evaluator {
                     (Object::Integer(from), Object::Integer(until)) => Ok(Rc::new(Object::LazySequence(
                         LazySequence::exclusive_range(*from, *until),
                     ))),
-                    _ => Err(RuntimeErr {
-                        message: "Exclusive range requires Integer values".to_owned(),
+                    (from, until) => Err(RuntimeErr {
+                        message: format!(
+                            "Expected Integer inclusive range, found: {}..{}",
+                            from.name(),
+                            until.name()
+                        ),
                         source: expression.source,
                     }),
                 }
             }
-            ExpressionKind::UnboundedRange { from } => {
-                if let Object::Integer(from) = &*self.eval_expression(from)? {
-                    return Ok(Rc::new(Object::LazySequence(LazySequence::unbounded_range(*from))));
-                }
-                Err(RuntimeErr {
-                    message: "Exclusive range requires Integer values".to_owned(),
+            ExpressionKind::UnboundedRange { from } => match &*self.eval_expression(from)? {
+                Object::Integer(from) => Ok(Rc::new(Object::LazySequence(LazySequence::unbounded_range(*from)))),
+                from => Err(RuntimeErr {
+                    message: format!("Expected Integer unbounded range, found: {}..", from.name()),
                     source: expression.source,
-                })
-            }
+                }),
+            },
             ExpressionKind::Infix { left, operator, right } => {
                 crate::evaluator::infix::apply(self, left, operator, right, expression.source)
             }
             ExpressionKind::Nil => Ok(Rc::clone(&self.nil)),
             ExpressionKind::Placeholder => Ok(Rc::clone(&self.placeholder)),
             ExpressionKind::Spread(_) => Err(RuntimeErr {
-                message: "Unable to spread in this context".to_owned(),
+                message: "Unable to spread within this context".to_owned(),
                 source: expression.source,
             }),
             _ => Err(RuntimeErr {
@@ -373,7 +403,7 @@ impl Evaluator {
                 }
 
                 return Err(RuntimeErr {
-                    message: format!("Expected a list to spread: {}", expression),
+                    message: format!("Expected a List to spread, found: {}", expression),
                     source: expression.source,
                 });
             }

@@ -1,21 +1,24 @@
 use crate::evaluator::lazy_sequence::LazySequence;
 use crate::evaluator::Function;
 use im_rc::{HashMap, HashSet, Vector};
+use ordered_float::OrderedFloat;
+use std::collections::hash_map::DefaultHasher;
 use std::fmt;
+use std::hash::BuildHasherDefault;
 use std::hash::Hash;
 use std::rc::Rc;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Object {
     Nil,
     Integer(i64),
-    Decimal(f64),
+    Decimal(OrderedFloat<f64>),
     Boolean(bool),
     String(String),
 
     List(Vector<Rc<Object>>),
-    Set(HashSet<Rc<Object>>),
-    Hash(HashMap<Rc<Object>, Rc<Object>>),
+    Set(HashSet<Rc<Object>, BuildHasherDefault<DefaultHasher>>),
+    Hash(HashMap<Rc<Object>, Rc<Object>, BuildHasherDefault<DefaultHasher>>),
     LazySequence(LazySequence),
 
     Function(Function),
@@ -51,7 +54,7 @@ impl Object {
         match self {
             Self::Nil => false,
             Self::Integer(v) => *v > 0,
-            Self::Decimal(v) => *v > 0.0,
+            Self::Decimal(OrderedFloat(v)) => *v > 0.0,
             Self::Boolean(v) => *v,
             Self::String(v) => !v.is_empty(),
 
@@ -113,54 +116,5 @@ impl fmt::Display for Object {
             Self::Break(v) => format!("{}", v),
         };
         write!(f, "{}", s)
-    }
-}
-
-impl PartialEq for Object {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Nil, Self::Nil) => true,
-            (Self::Integer(v1), Self::Integer(v2)) => v1 == v2,
-            (Self::Decimal(v1), Self::Decimal(v2)) => v1 == v2,
-            (Self::Boolean(v1), Self::Boolean(v2)) => v1 == v2,
-            (Self::String(v1), Self::String(v2)) => v1 == v2,
-
-            (Self::List(v1), Self::List(v2)) => v1 == v2,
-            (Self::Set(v1), Self::Set(v2)) => v1 == v2,
-            (Self::Hash(v1), Self::Hash(v2)) => v1 == v2,
-            (Self::LazySequence(v1), Self::LazySequence(v2)) => v1 == v2,
-
-            (Self::Function(v1), Self::Function(v2)) => v1 == v2,
-
-            (Self::Placeholder, Self::Placeholder) => false,
-            (Self::Return(v1), Self::Return(v2)) => v1 == v2,
-            (v1, Self::Return(v2)) => v1.eq(v2),
-            (Self::Return(v1), v2) => v2.eq(v1),
-            (Self::Break(v1), Self::Break(v2)) => v1 == v2,
-            (v1, Self::Break(v2)) => v1.eq(v2),
-            (Self::Break(v1), v2) => v2.eq(v1),
-
-            _ => false,
-        }
-    }
-}
-
-impl Eq for Object {}
-
-impl Hash for Object {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        match self {
-            Self::Nil => {}
-            Self::Integer(v) => state.write_i64(*v),
-            Self::Decimal(v) => state.write_u64(v.to_bits()),
-            Self::Boolean(v) => state.write_u8(*v as u8),
-            Self::String(v) => state.write(v.as_bytes()),
-
-            Self::List(v) => v.hash(state),
-            Self::Set(v) => v.hash(state),
-            Self::Hash(v) => v.hash(state),
-
-            _ => unreachable!(),
-        }
     }
 }

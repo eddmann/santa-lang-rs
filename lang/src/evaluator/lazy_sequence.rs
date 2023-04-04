@@ -4,9 +4,10 @@ use im_rc::Vector;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
+use std::hash::Hash;
 use std::rc::Rc;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 enum LazyValue {
     InclusiveRange { current: i64, to: i64, step: i64 },
     ExclusiveRange { current: i64, until: i64, step: i64 },
@@ -16,7 +17,7 @@ enum LazyValue {
     Iterate { current: Rc<Object>, generator: Function },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LazyFn {
     Map(Function),
     Filter(Function),
@@ -25,7 +26,7 @@ pub enum LazyFn {
     Zip(Vec<LazySequence>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct LazySequence {
     value: LazyValue,
     functions: Vec<LazyFn>,
@@ -42,12 +43,6 @@ impl fmt::Display for LazySequence {
             LazyValue::Iterate { .. } => "[iterate ∞]".to_owned(),
         };
         write!(f, "{}", s)
-    }
-}
-
-impl PartialEq for LazySequence {
-    fn eq(&self, other: &Self) -> bool {
-        false
     }
 }
 
