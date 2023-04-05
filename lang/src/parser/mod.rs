@@ -440,9 +440,36 @@ impl<'a> Parser<'a> {
 
     fn parse_string_expression(&mut self) -> RExpression {
         let token = self.expect(T![STR])?;
-        let mut value = self.lexer.get_source(&token).to_string();
-        value.remove(0); // remove start "
-        value.pop(); // remove end "
+
+        let string = self.lexer.get_source(&token);
+        let unquoted = &string[1..string.len() - 1];
+
+        let mut value = String::with_capacity(unquoted.len());
+        let mut characters = unquoted.chars();
+        while let Some(character) = characters.next() {
+            let unescaped = match character {
+                '\\' => match characters.next() {
+                    Some('n') => '\n',
+                    Some('t') => '\t',
+                    Some('\\') => '\\',
+                    Some('"') => '"',
+                    Some(character) => {
+                        return Err(ParserErr {
+                            message: format!("Unexpected escape sequence: \\{character}"),
+                            source: token.source,
+                        });
+                    }
+                    None => {
+                        return Err(ParserErr {
+                            message: format!("Unexpected EOF within escape sequence"),
+                            source: token.source,
+                        })
+                    }
+                },
+                character => character,
+            };
+            value.push(unescaped);
+        }
 
         Ok(Expression {
             kind: ExpressionKind::String(value),
@@ -557,6 +584,7 @@ impl<'a> Parser<'a> {
         let parameters = if self.consume_if(T![|]) {
             self.parse_parameters(T![|])?
         } else {
+            self.expect(T![||])?;
             vec![]
         };
         let body = Box::new(self.parse_block_statement()?);

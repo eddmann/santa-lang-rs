@@ -102,7 +102,7 @@ fn strings() {
                         kind: Expression(
                             Expression {
                                 kind: String(
-                                    "\\n\\t\\\"",
+                                    "\n\t\"",
                                 ),
                                 source: 28..36,
                             },
