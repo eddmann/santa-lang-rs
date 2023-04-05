@@ -247,6 +247,53 @@ builtin! {
 }
 
 builtin! {
+    find(predicate, collection) [evaluator, source] match {
+        (Object::Function(predicate), Object::List(list)) => {
+            for element in list {
+                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                    return Ok(Rc::clone(element))
+                }
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(predicate), Object::Set(set)) => {
+            for element in set {
+                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                    return Ok(Rc::clone(element))
+                }
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(predicate), Object::Hash(map)) => {
+            for (key, value) in map {
+                if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(predicate), Object::LazySequence(sequence)) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
+                if predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
+                    return Ok(Rc::clone(&element))
+                }
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(predicate), Object::String(string)) => {
+            for character in string.chars() {
+                let object = Rc::new(Object::String(character.to_string()));
+                if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
+                    return Ok(Rc::clone(&object))
+                }
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+    }
+}
+
+builtin! {
     skip(total, collection) [evaluator, source] match {
         (Object::Integer(total), Object::List(list)) => {
             Ok(Rc::new(Object::List(list.clone().into_iter().skip(*total as usize).collect())))
