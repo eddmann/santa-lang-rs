@@ -72,17 +72,11 @@ impl Object {
     }
 
     pub fn is_hashable(&self) -> bool {
-        matches!(
-            self,
-            Self::Nil
-                | Self::Integer(_)
-                | Self::Decimal(_)
-                | Self::Boolean(_)
-                | Self::String(_)
-                | Self::List(_)
-                | Self::Set(_)
-                | Self::Hash(_)
-        )
+        match self {
+            Self::Nil | Self::Integer(_) | Self::Decimal(_) | Self::Boolean(_) | Self::String(_) | Self::Set(_) => true,
+            Self::List(list) => list.iter().all(|element| element.is_hashable()),
+            _ => false,
+        }
     }
 }
 
