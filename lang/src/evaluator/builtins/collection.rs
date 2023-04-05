@@ -108,6 +108,9 @@ builtin! {
             let mut accumulator = Rc::clone(initial);
             for element in list {
                 accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
             }
             Ok(Rc::clone(&accumulator))
         }
@@ -115,6 +118,9 @@ builtin! {
             let mut accumulator = Rc::clone(initial);
             for element in set {
                 accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
             }
             Ok(Rc::clone(&accumulator))
         }
@@ -122,6 +128,9 @@ builtin! {
             let mut accumulator = Rc::clone(initial);
             for (key, value) in map {
                 accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(value), Rc::clone(key)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
             }
             Ok(Rc::clone(&accumulator))
         }
@@ -130,6 +139,9 @@ builtin! {
             let mut accumulator = Rc::clone(initial);
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
                 accumulator = folder.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&accumulator), Rc::clone(&element)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
             }
             Ok(Rc::clone(&accumulator))
         }
@@ -137,6 +149,9 @@ builtin! {
             let mut accumulator = Rc::clone(initial);
             for character in string.chars() {
                 accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
             }
             Ok(Rc::clone(&accumulator))
         }
@@ -191,6 +206,9 @@ builtin! {
             };
             for element in list.iter().skip(1) {
                 accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
             }
             Ok(Rc::clone(&accumulator))
         }
@@ -205,6 +223,9 @@ builtin! {
             };
             for character in characters {
                 accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
             }
             Ok(Rc::clone(&accumulator))
         }

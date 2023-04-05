@@ -101,7 +101,7 @@ impl Evaluator {
 
             result = self.eval_statement(statement)?;
 
-            if let Object::Return(_) = *result {
+            if matches!(&*result, Object::Return(_) | Object::Break(_)) {
                 return Ok(result);
             }
         }
