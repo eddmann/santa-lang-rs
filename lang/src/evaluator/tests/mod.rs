@@ -20,4 +20,6 @@ macro_rules! test_eval {
 }
 
 mod assignment;
+mod functions;
 mod literals;
+mod operators;

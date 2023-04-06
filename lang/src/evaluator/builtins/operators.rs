@@ -12,6 +12,8 @@ pub fn plus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, so
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a + *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a + (*b as f64)))),
         (Object::String(a), Object::String(b)) => Ok(Rc::new(Object::String(format!("{}{}", a, b)))),
+        (Object::String(a), Object::Integer(b)) => Ok(Rc::new(Object::String(format!("{}{}", a, b)))),
+        (Object::String(a), Object::Decimal(b)) => Ok(Rc::new(Object::String(format!("{}{}", a, b)))),
         (Object::List(a), Object::List(b)) => {
             let mut list = a.clone();
             list.append(b.clone());
@@ -132,7 +134,7 @@ pub fn asterisk(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Eval
         (Object::String(a), Object::Integer(b)) => Ok(Rc::new(Object::String(a.repeat(*b as usize)))),
         (Object::List(a), Object::Integer(b)) => {
             let mut list = a.clone();
-            for _ in 0..*b {
+            for _ in 1..*b {
                 list.append(a.clone());
             }
             Ok(Rc::new(Object::List(list)))
@@ -174,6 +176,7 @@ builtin! {
 pub fn modulo(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
         (Object::Integer(a), Object::Integer(b)) => {
+            // http://python-history.blogspot.com/2010/08/why-pythons-integer-division-floors.html
             let remainder = a % b;
             let result = if remainder == 0 || a.signum() == b.signum() {
                 remainder
@@ -208,7 +211,7 @@ builtin! {
 
 #[inline]
 pub fn not_equal(left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
-    Ok(Rc::new(Object::Boolean(left == right)))
+    Ok(Rc::new(Object::Boolean(left != right)))
 }
 
 builtin! {

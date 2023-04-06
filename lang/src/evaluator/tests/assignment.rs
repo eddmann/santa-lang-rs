@@ -24,6 +24,14 @@ test_eval! {
     ),
     (
         r#"
+            let [_, _, value] = [1, 2, 3];
+            value
+        "#,
+        "3",
+        ignored_placeholders_within_let_list_destructing
+    ),
+    (
+        r#"
             let total = 1;
             let fn = || { let total = 2; total; };
             [total, fn()];

@@ -2,7 +2,8 @@ test_eval! {
     suite integer;
     ("5", "5", single_number),
     ("125", "125", multi_number),
-    ("1_000_000", "1000000", with_underscore_seperators)
+    ("1_000_000", "1000000", with_underscore_seperators),
+    ("-5", "-5", negative)
 }
 
 test_eval! {
@@ -10,7 +11,8 @@ test_eval! {
     ("5.05", "5.05", with_single_fraction),
     ("5.25", "5.25", with_multi_number_fraction),
     ("5.50", "5.5", with_trailing_fraction_zero),
-    ("5.5", "5.5", with_no_trailing_fraction_zero)
+    ("5.5", "5.5", with_no_trailing_fraction_zero),
+    ("-5.25", "-5.25", negative)
 }
 
 test_eval! {
@@ -75,4 +77,28 @@ test_eval! {
         line
     ),
     ("1 // trailing comment", "1", trailing)
+}
+
+test_eval! {
+    suite negation;
+    ("!true", "false", true_boolean),
+    ("!false", "true", false_boolean),
+    ("!(\"abc\")", "false", truthy_string_value),
+    ("!(\"\")", "true", falsey_string_value),
+    ("!([1, 2, 3])", "false", truthy_list_value),
+    ("!([])", "true", falsey_list_value),
+    ("!({1, 2, 3})", "false", truthy_set_value),
+    ("!({})", "true", falsey_set_value),
+    ("!(#{1: 2})", "false", truthy_hash_value),
+    ("!(#{})", "true", falsey_hash_value)
+}
+
+test_eval! {
+    suite if_expression;
+    ("if 1 == 1 { 1 }", "1", true_without_else),
+    ("if 1 != 1 { 1 }", "nil", false_without_else),
+    ("if 1 == 1 { 1 } else { 2 }", "1", true_with_else),
+    ("if 1 != 1 { 1 } else { 2 }", "2", false_with_else),
+    ("if let x = 1 { x }", "1", true_let_assignment),
+    ("if let x = 0 { x }", "nil", false_let_assignment)
 }

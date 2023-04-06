@@ -27,11 +27,9 @@ pub enum Function {
     //     environment: EnvironmentRef,
     //     cache: HashMap<Vec<Rc<Object>>, Rc<Object>>
     // },
-    // ContinuationClosure {
-    //     arguments: Vec<Rc<Object>>,
-    //     body: Statement,
-    //     environment: EnvironmentRef
-    // },
+    Continuation {
+        arguments: Vec<Rc<Object>>,
+    },
     Builtin {
         parameters: Vec<ExpressionKind>,
         body: BuiltinFn,
@@ -79,7 +77,7 @@ impl Function {
                         }
                         _ => {
                             return Err(RuntimeErr {
-                                message: "Unknown parameter type".to_owned(),
+                                message: format!("Unexpected parameter, found: {}", parameter.kind),
                                 source: parameter.source,
                             })
                         }
@@ -91,9 +89,49 @@ impl Function {
                 if remaining_parameters.is_empty() {
                     evaluator.push_frame(Frame::ClosureCall {
                         source,
-                        environment: enclosed_enviornment,
+                        environment: Rc::clone(&enclosed_enviornment),
                     });
-                    let result = evaluator.eval_statement(body)?;
+
+                    let mut result = evaluator.eval_statement(body)?;
+
+                    loop {
+                        if let Object::Function(Function::Continuation { arguments }) = &*result {
+                            for (position, (parameter, argument)) in parameters.iter().zip(arguments.iter()).enumerate()
+                            {
+                                match &parameter.kind {
+                                    ExpressionKind::Identifier(name) => {
+                                        enclosed_enviornment
+                                            .borrow_mut()
+                                            .set_variable(name, Rc::clone(argument));
+                                    }
+                                    ExpressionKind::RestIdentifier(name) => {
+                                        enclosed_enviornment.borrow_mut().set_variable(
+                                            name,
+                                            Rc::new(Object::List(
+                                                arguments.clone().into_iter().skip(position).collect(),
+                                            )),
+                                        );
+                                        break;
+                                    }
+                                    ExpressionKind::Placeholder => {
+                                        continue;
+                                    }
+                                    _ => {
+                                        return Err(RuntimeErr {
+                                            message: format!("Unexpected parameter, found: {}", parameter.kind),
+                                            source: parameter.source,
+                                        })
+                                    }
+                                }
+                            }
+
+                            result = evaluator.eval_statement(body)?;
+                            continue;
+                        }
+
+                        break;
+                    }
+
                     evaluator.pop_frame();
                     return Ok(result);
                 }
@@ -217,6 +255,7 @@ impl Function {
 
                 Ok(result)
             }
+            Self::Continuation { .. } => unreachable!(),
         }
     }
 }
@@ -242,7 +281,8 @@ impl fmt::Display for Function {
                 let formatted: Vec<String> = parameters.iter().map(|parameter| parameter.to_string()).collect();
                 format!("|{}| {{ [external] }}", formatted.join(", "))
             }
-            Function::Composition { .. } => "|a| { [compose] }".to_owned(),
+            Function::Composition { .. } => "|a| { [composition] }".to_owned(),
+            Function::Continuation { .. } => unreachable!(),
         };
         write!(f, "{}", s)
     }

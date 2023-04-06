@@ -106,18 +106,18 @@ pub fn apply(
                 evaluator.eval_expression(left)?.is_truthy() && evaluator.eval_expression(right)?.is_truthy(),
             )))
         }
-        Infix::Call(identifier) => {
-            let evaluated_identifier = evaluator.eval_expression(identifier)?;
+        Infix::Call(function) => {
+            let evaluated_function = evaluator.eval_expression(function)?;
 
-            if let Object::Function(function) = &*evaluated_identifier {
+            if let Object::Function(func) = &*evaluated_function {
                 let evaluated_left = evaluator.eval_expression(left)?;
                 let evaluated_right = evaluator.eval_expression(right)?;
-                return function.apply(evaluator, vec![evaluated_left, evaluated_right], source);
+                return func.apply(evaluator, vec![evaluated_left, evaluated_right], function.source);
             }
 
             return Err(RuntimeErr {
-                message: format!("Expected a Function, found: {}", evaluated_identifier.name()),
-                source,
+                message: format!("Expected a Function, found: {}", evaluated_function.name()),
+                source: function.source,
             });
         }
         _ => {}

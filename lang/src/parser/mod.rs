@@ -332,9 +332,10 @@ impl<'a> Parser<'a> {
             T![||] => Infix::Or,
             T![&&] => Infix::And,
             T!['`'] => {
-                let name = self.lexer.get_source(&token).to_string();
+                let name = self.lexer.get_source(&token);
+                let unquoted = &name[1..name.len() - 1];
                 Infix::Call(Box::new(Expression {
-                    kind: ExpressionKind::Identifier(name),
+                    kind: ExpressionKind::Identifier(unquoted.to_owned()),
                     source: token.source,
                 }))
             }
@@ -461,7 +462,7 @@ impl<'a> Parser<'a> {
                     }
                     None => {
                         return Err(ParserErr {
-                            message: format!("Unexpected EOF within escape sequence"),
+                            message: "Unexpected EOF within escape sequence".to_owned(),
                             source: token.source,
                         })
                     }

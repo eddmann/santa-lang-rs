@@ -1824,7 +1824,7 @@ fn call_expressions() {
                                     operator: Call(
                                         Expression {
                                             kind: Identifier(
-                                                "`add`",
+                                                "add",
                                             ),
                                             source: 75..80,
                                         },
@@ -1854,7 +1854,7 @@ fn call_expressions() {
                                     operator: Call(
                                         Expression {
                                             kind: Identifier(
-                                                "`add`",
+                                                "add",
                                             ),
                                             source: 98..103,
                                         },
@@ -2001,7 +2001,7 @@ fn partial_application_using_placeholders() {
                                     operator: Call(
                                         Expression {
                                             kind: Identifier(
-                                                "`add`",
+                                                "add",
                                             ),
                                             source: 81..86,
                                         },
@@ -2029,7 +2029,7 @@ fn partial_application_using_placeholders() {
                                     operator: Call(
                                         Expression {
                                             kind: Identifier(
-                                                "`add`",
+                                                "add",
                                             ),
                                             source: 104..109,
                                         },

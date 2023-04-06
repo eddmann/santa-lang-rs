@@ -13,7 +13,7 @@ use crate::evaluator::function::Function;
 use crate::evaluator::lazy_sequence::LazySequence;
 use crate::evaluator::object::Object;
 use crate::lexer::Location;
-use crate::parser::ast::{Expression, ExpressionKind, Program, Statement, StatementKind};
+use crate::parser::ast::{Expression, ExpressionKind, Prefix, Program, Statement, StatementKind};
 use im_rc::{HashMap, HashSet, Vector};
 use ordered_float::OrderedFloat;
 use std::rc::Rc;
@@ -94,9 +94,39 @@ impl Evaluator {
     fn eval_statement_block(&mut self, block: &[Statement]) -> Evaluation {
         let mut result = Rc::clone(&self.nil);
 
-        for (_index, statement) in block.iter().enumerate() {
+        for (index, statement) in block.iter().enumerate() {
             if let StatementKind::Comment(_) = statement.kind {
                 continue;
+            }
+
+            if let StatementKind::Return(value) = &statement.kind {
+                if let ExpressionKind::Call { function, arguments } = &value.kind {
+                    for frame in self.frames.iter().rev() {
+                        if let Frame::ClosureCall { source, .. } = &frame {
+                            if function.source == *source {
+                                return Ok(Rc::new(Object::Function(Function::Continuation {
+                                    arguments: self.eval_expressions(arguments)?,
+                                })));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if index == block.len() - 1 {
+                if let StatementKind::Expression(expression) = &statement.kind {
+                    if let ExpressionKind::Call { function, arguments } = &expression.kind {
+                        for frame in self.frames.iter().rev() {
+                            if let Frame::ClosureCall { source, .. } = &frame {
+                                if function.source == *source {
+                                    return Ok(Rc::new(Object::Function(Function::Continuation {
+                                        arguments: self.eval_expressions(arguments)?,
+                                    })));
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             result = self.eval_statement(statement)?;
@@ -297,6 +327,15 @@ impl Evaluator {
             ExpressionKind::Infix { left, operator, right } => {
                 crate::evaluator::infix::apply(self, left, operator, right, expression.source)
             }
+            ExpressionKind::Prefix { operator, right } => match (&operator, &*self.eval_expression(right)?) {
+                (Prefix::Bang, object) => Ok(Rc::new(Object::Boolean(!object.is_truthy()))),
+                (Prefix::Minus, Object::Integer(v)) => Ok(Rc::new(Object::Integer(-v))),
+                (Prefix::Minus, Object::Decimal(v)) => Ok(Rc::new(Object::Decimal(-v))),
+                (Prefix::Minus, object) => Err(RuntimeErr {
+                    message: format!("Unexpected prefix operation: -{}", object.name()),
+                    source: right.source,
+                }),
+            },
             ExpressionKind::Nil => Ok(Rc::clone(&self.nil)),
             ExpressionKind::Placeholder => Ok(Rc::clone(&self.placeholder)),
             ExpressionKind::Spread(_) => Err(RuntimeErr {
@@ -327,7 +366,13 @@ impl Evaluator {
                     }),
                 }
             }
-            _ => Ok(Rc::clone(&self.nil)),
+            ExpressionKind::IdentifierListPattern(pattern) => {
+                self.destructure_list_pattern(pattern, evaluated_value, false, name.source)
+            }
+            _ => Err(RuntimeErr {
+                message: format!("Unexpected Let identifier, found: {}", name.kind),
+                source: name.source,
+            }),
         }
     }
 
@@ -348,7 +393,13 @@ impl Evaluator {
                     }),
                 }
             }
-            _ => Ok(Rc::clone(&self.nil)),
+            ExpressionKind::IdentifierListPattern(pattern) => {
+                self.destructure_list_pattern(pattern, evaluated_value, true, name.source)
+            }
+            _ => Err(RuntimeErr {
+                message: format!("Unexpected Let identifier, found: {}", name.kind),
+                source: name.source,
+            }),
         }
     }
 
@@ -412,5 +463,82 @@ impl Evaluator {
         }
 
         Ok(results)
+    }
+
+    fn destructure_list_pattern(
+        &mut self,
+        pattern: &[Expression],
+        subject: Rc<Object>,
+        is_mutable: bool,
+        source: Location,
+    ) -> Evaluation {
+        let list = match &*subject {
+            Object::List(list) => list,
+            _ => {
+                return Err(RuntimeErr {
+                    message: format!("Expected a List to destructure, found: {}", subject.name()),
+                    source,
+                })
+            }
+        };
+
+        for (position, pattern) in pattern.iter().enumerate() {
+            match &pattern.kind {
+                ExpressionKind::Identifier(name) => {
+                    match self.enviornment().borrow_mut().declare_variable(
+                        name,
+                        Rc::clone(list.iter().nth(position).unwrap_or(&Rc::new(Object::Nil))),
+                        is_mutable,
+                    ) {
+                        Ok(_) => {}
+                        Err(EnvironmentErr { message }) => {
+                            return Err(RuntimeErr {
+                                message,
+                                source: pattern.source,
+                            })
+                        }
+                    }
+                }
+                ExpressionKind::RestIdentifier(name) => {
+                    match self.enviornment().borrow_mut().declare_variable(
+                        name,
+                        Rc::new(Object::List(list.clone().into_iter().skip(position).collect())),
+                        is_mutable,
+                    ) {
+                        Ok(_) => {}
+                        Err(EnvironmentErr { message }) => {
+                            return Err(RuntimeErr {
+                                message,
+                                source: pattern.source,
+                            })
+                        }
+                    }
+                    break;
+                }
+                ExpressionKind::Placeholder => {
+                    continue;
+                }
+                ExpressionKind::IdentifierListPattern(next_pattern) => {
+                    self.destructure_list_pattern(
+                        next_pattern,
+                        Rc::clone(
+                            list.iter()
+                                .nth(position)
+                                .unwrap_or(&Rc::new(Object::List(Vector::new()))),
+                        ),
+                        is_mutable,
+                        pattern.source,
+                    )?;
+                }
+                _ => {
+                    return Err(RuntimeErr {
+                        message: format!("Unexpected List destructing pattern, found: {}", pattern.kind),
+                        source: pattern.source,
+                    })
+                }
+            }
+        }
+
+        Ok(subject)
     }
 }
