@@ -2,6 +2,7 @@ use super::environment::{Environment, EnvironmentRef};
 use crate::evaluator::{Evaluation, Evaluator, Frame, Object, RuntimeErr};
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Statement};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 use std::hash::Hash;
@@ -10,6 +11,7 @@ use std::rc::Rc;
 pub type Arguments = HashMap<String, Rc<Object>>;
 type BuiltinFn = fn(&mut Evaluator, Arguments, Location) -> Evaluation;
 type ExternalFn = Rc<dyn Fn(&mut Evaluator, Arguments, Location) -> Evaluation>;
+type MemoizedCache = Rc<RefCell<HashMap<Vec<Rc<Object>>, Rc<Object>>>>;
 
 #[derive(Clone)]
 pub enum Function {
@@ -18,17 +20,11 @@ pub enum Function {
         body: Statement,
         environment: EnvironmentRef,
     },
-    Composition {
-        functions: Vec<Function>,
-    },
-    // MemoizedClosure {
-    //     parameters: Vec<Expression>,
-    //     body: Statement,
-    //     environment: EnvironmentRef,
-    //     cache: HashMap<Vec<Rc<Object>>, Rc<Object>>
-    // },
-    Continuation {
-        arguments: Vec<Rc<Object>>,
+    MemoizedClosure {
+        parameters: Vec<Expression>,
+        body: Statement,
+        environment: EnvironmentRef,
+        cache: MemoizedCache,
     },
     Builtin {
         parameters: Vec<ExpressionKind>,
@@ -39,6 +35,12 @@ pub enum Function {
         parameters: Vec<ExpressionKind>,
         body: ExternalFn,
         partial: Option<Arguments>,
+    },
+    Composition {
+        functions: Vec<Function>,
+    },
+    Continuation {
+        arguments: Vec<Rc<Object>>,
     },
 }
 
@@ -141,6 +143,57 @@ impl Function {
                     body: body.clone(),
                     environment: enclosed_enviornment,
                 })))
+            }
+            Self::MemoizedClosure {
+                parameters,
+                body,
+                environment,
+                cache,
+            } => {
+                if let Some(result) = cache.borrow().get(&arguments) {
+                    return Ok(Rc::clone(result));
+                }
+
+                let enclosed_enviornment = Environment::from(Rc::clone(environment));
+
+                for (position, (parameter, argument)) in parameters.iter().zip(arguments.iter()).enumerate() {
+                    match &parameter.kind {
+                        ExpressionKind::Identifier(name) => {
+                            enclosed_enviornment
+                                .borrow_mut()
+                                .set_variable(name, Rc::clone(argument));
+                        }
+                        ExpressionKind::RestIdentifier(name) => {
+                            enclosed_enviornment.borrow_mut().set_variable(
+                                name,
+                                Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
+                            );
+                            break;
+                        }
+                        ExpressionKind::Placeholder => {
+                            continue;
+                        }
+                        _ => {
+                            return Err(RuntimeErr {
+                                message: format!("Unexpected parameter, found: {}", parameter.kind),
+                                source: parameter.source,
+                            })
+                        }
+                    }
+                }
+
+                evaluator.push_frame(Frame::ClosureCall {
+                    source,
+                    environment: Rc::clone(&enclosed_enviornment),
+                });
+
+                let result = evaluator.eval_statement(body)?;
+
+                cache.borrow_mut().insert(arguments, Rc::clone(&result));
+
+                evaluator.pop_frame();
+
+                Ok(result)
             }
             Self::Builtin {
                 parameters,
@@ -272,6 +325,10 @@ impl fmt::Display for Function {
             Function::Closure { parameters, .. } => {
                 let formatted: Vec<String> = parameters.iter().map(|parameter| parameter.to_string()).collect();
                 format!("|{}| {{ [closure] }}", formatted.join(", "))
+            }
+            Function::MemoizedClosure { parameters, .. } => {
+                let formatted: Vec<String> = parameters.iter().map(|parameter| parameter.to_string()).collect();
+                format!("|{}| {{ [memoized] }}", formatted.join(", "))
             }
             Function::Builtin { parameters, .. } => {
                 let formatted: Vec<String> = parameters.iter().map(|parameter| parameter.to_string()).collect();

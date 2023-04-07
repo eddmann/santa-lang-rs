@@ -21,7 +21,8 @@ builtins! {
     collection::cycle,
     collection::iterate,
     operators::or,
-    operators::and
+    operators::and,
+    operators::memoize
 }
 
 builtin_aliases! {

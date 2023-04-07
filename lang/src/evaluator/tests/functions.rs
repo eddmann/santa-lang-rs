@@ -115,5 +115,23 @@ test_eval! {
         "#,
         "3",
         enclosed_function_closure_state
+    ),
+    (
+        r#"
+            let mut x = 0;
+            let f = memoize |n| x = x + n;
+            f(1); f(2); f(1);
+            x;
+        "#,
+        "3",
+        memoization
+    ),
+    (
+        r#"
+            let fibonacci = memoize |n| if (n > 1) { fibonacci(n - 1) + fibonacci(n - 2) } else { n };
+            fibonacci(30)
+        "#,
+        "832040",
+        recursive_memoization
     )
 }
