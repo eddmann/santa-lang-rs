@@ -1,5 +1,6 @@
 test_eval! {
     suite functions;
+
     ("let fn = |x, y| { x + y }; fn(5, 2)", "7", function_literal_with_block),
     ("let fn = |x, y| x + y; fn(5, 2)", "7", function_literal_with_expression),
     // ("let fn = |a, [b, ..c], ..d| [a, b, c, d]; fn(1, [2, 3, 4], 5, 6)", "[1, 2, [3, 4], [5, 6]]", function_literal_with_parameter_destructuring),

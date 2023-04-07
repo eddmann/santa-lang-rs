@@ -119,6 +119,13 @@ impl LazySequence {
             source,
         }
     }
+
+    pub fn is_unbounded_negative_range(&self) -> bool {
+        match self.value {
+            LazyValue::UnboundedRange { current, .. } => current < 0,
+            _ => false,
+        }
+    }
 }
 
 pub struct LazySequenceIter<'a> {

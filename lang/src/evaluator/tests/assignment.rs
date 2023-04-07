@@ -1,5 +1,6 @@
 test_eval! {
     suite assigment;
+
     ("let x = 1; x", "1", let_assignment),
     ("let mut x = 1; x = 2; x", "2", mutable_let_assignment),
     ("let x = 1; let x = 2;", "Variable 'x' has already been declared", unable_to_declare_variable_more_than_once),
@@ -53,6 +54,7 @@ test_eval! {
 
 test_eval! {
     suite spread;
+
     (
         r#"
             let x = [2, 3];

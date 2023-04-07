@@ -1,6 +1,7 @@
 mod builtins;
 mod environment;
 mod function;
+mod index;
 mod infix;
 mod lazy_sequence;
 mod object;
@@ -247,6 +248,7 @@ impl Evaluator {
                 }
                 Ok(Rc::new(Object::Hash(elements)))
             }
+            ExpressionKind::Index { left, index } => crate::evaluator::index::lookup(self, left, index),
             ExpressionKind::FunctionThread { initial, functions } => {
                 let mut result = self.eval_expression(initial)?;
 

@@ -1,5 +1,6 @@
 test_eval! {
     suite plus;
+
     ("1 + 1", "2", integer_integer),
     ("1 + 1.5", "2", integer_decimal),
     ("1.5 + 1.5", "3", decimal_decimal),
@@ -17,6 +18,7 @@ test_eval! {
 
 test_eval! {
     suite minus;
+
     ("2 - 1", "1", integer_integer),
     ("3 - 1.5", "2", integer_decimal),
     ("2.5 - 1.2", "1.3", decimal_decimal),
@@ -30,6 +32,7 @@ test_eval! {
 
 test_eval! {
     suite asterisk;
+
     ("2 * 2", "4", integer_integer),
     ("1 * 5.5", "5", integer_decimal),
     ("1.5 * 1.5", "2.25", decimal_decimal),
@@ -41,6 +44,7 @@ test_eval! {
 
 test_eval! {
     suite slash;
+
     ("5 / 2", "2", integer_integer),
     ("6 / 3.2", "2", integer_decimal),
     ("5.4 / 3.2", "1.6875", decimal_decimal),
@@ -50,6 +54,7 @@ test_eval! {
 
 test_eval! {
     suite modulo;
+
     ("5 % 2", "1", positive_positive),
     ("5 % -2", "-1", positive_negative),
     ("-5 % 4", "3", negative_positive),
@@ -59,6 +64,7 @@ test_eval! {
 
 test_eval! {
     suite equal;
+
     ("1 == 1", "true", true_integer_integer),
     ("1 == 2", "false", false_integer_integer),
     ("1 == 1.0", "false", false_integer_decimal),
@@ -82,6 +88,7 @@ test_eval! {
 
 test_eval! {
     suite not_equal;
+
     ("1 != 1", "false", false_integer_integer),
     ("1 != 2", "true", true_integer_integer),
     ("1 != 1.0", "true", true_integer_decimal),
@@ -105,6 +112,7 @@ test_eval! {
 
 test_eval! {
     suite less_than;
+
     ("1 < 2", "true", true_integer_integer),
     ("2 < 1", "false", false_integer_integer),
     ("1.5 < 2.5", "true", true_decimal_decimal),
@@ -114,6 +122,7 @@ test_eval! {
 
 test_eval! {
     suite less_than_equal;
+
     ("1 <= 2", "true", less_integer_integer),
     ("1 <= 1", "true", equal_integer_integer),
     ("2 <= 1", "false", false_integer_integer),
@@ -125,6 +134,7 @@ test_eval! {
 
 test_eval! {
     suite greater_than;
+
     ("2 > 1", "true", true_integer_integer),
     ("1 > 2", "false", false_integer_integer),
     ("2.5 > 1.5", "true", true_decimal_decimal),
@@ -134,6 +144,7 @@ test_eval! {
 
 test_eval! {
     suite greater_than_equal;
+
     ("2 >= 1", "true", greater_integer_integer),
     ("1 >= 1", "true", equal_integer_integer),
     ("1 >= 2", "false", false_integer_integer),
@@ -145,6 +156,7 @@ test_eval! {
 
 test_eval! {
     suite and;
+
     ("true && !false", "true", true_value),
     ("true && false", "false", false_value),
     ("let mut x = true; false && (|| x = false)(); x", "true", short_circuit_evaluation),
@@ -153,6 +165,7 @@ test_eval! {
 
 test_eval! {
     suite or;
+
     ("true || !false", "true", true_value),
     ("!true || false", "false", false_value),
     ("let mut x = true; true || (|| x = false)(); x", "true", short_circuit_evaluation),
