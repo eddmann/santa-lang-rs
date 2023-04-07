@@ -1,7 +1,8 @@
 use super::environment::{Environment, EnvironmentRef};
-use crate::evaluator::{Evaluation, Evaluator, Frame, Object, RuntimeErr};
+use crate::evaluator::{EnvironmentErr, Evaluation, Evaluator, Frame, Object, RuntimeErr};
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Statement};
+use im_rc::Vector;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
@@ -53,96 +54,48 @@ impl Function {
                 environment,
             } => {
                 let enclosed_enviornment = Environment::from(Rc::clone(environment));
-                let mut remaining_parameters = vec![];
+                let remaining_parameters =
+                    self.assign_closure_parameters(Rc::clone(&enclosed_enviornment), parameters, &arguments)?;
 
-                for (position, (parameter, argument)) in parameters.iter().zip(arguments.iter()).enumerate() {
-                    if let Object::Placeholder = **argument {
-                        remaining_parameters.push(parameter.clone());
+                if !remaining_parameters.is_empty() {
+                    return Ok(Rc::new(Object::Function(Self::Closure {
+                        parameters: remaining_parameters,
+                        body: body.clone(),
+                        environment: enclosed_enviornment,
+                    })));
+                }
+
+                evaluator.push_frame(Frame::ClosureCall {
+                    source,
+                    environment: Rc::clone(&enclosed_enviornment),
+                });
+
+                let mut result = evaluator.eval_statement(body)?;
+
+                loop {
+                    if let Object::Function(Function::Continuation { arguments }) = &*result {
+                        let remaining_parameters =
+                            self.assign_closure_parameters(Rc::clone(&enclosed_enviornment), parameters, arguments)?;
+
+                        if !remaining_parameters.is_empty() {
+                            result = Rc::new(Object::Function(Self::Closure {
+                                parameters: remaining_parameters,
+                                body: body.clone(),
+                                environment: enclosed_enviornment,
+                            }));
+                            break;
+                        }
+
+                        result = evaluator.eval_statement(body)?;
                         continue;
                     }
 
-                    match &parameter.kind {
-                        ExpressionKind::Identifier(name) => {
-                            enclosed_enviornment
-                                .borrow_mut()
-                                .set_variable(name, Rc::clone(argument));
-                        }
-                        ExpressionKind::RestIdentifier(name) => {
-                            enclosed_enviornment.borrow_mut().set_variable(
-                                name,
-                                Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
-                            );
-                            break;
-                        }
-                        ExpressionKind::Placeholder => {
-                            continue;
-                        }
-                        _ => {
-                            return Err(RuntimeErr {
-                                message: format!("Unexpected parameter, found: {}", parameter.kind),
-                                source: parameter.source,
-                            })
-                        }
-                    }
+                    break;
                 }
 
-                remaining_parameters.append(&mut parameters.clone().into_iter().skip(arguments.len()).collect());
+                evaluator.pop_frame();
 
-                if remaining_parameters.is_empty() {
-                    evaluator.push_frame(Frame::ClosureCall {
-                        source,
-                        environment: Rc::clone(&enclosed_enviornment),
-                    });
-
-                    let mut result = evaluator.eval_statement(body)?;
-
-                    loop {
-                        if let Object::Function(Function::Continuation { arguments }) = &*result {
-                            for (position, (parameter, argument)) in parameters.iter().zip(arguments.iter()).enumerate()
-                            {
-                                match &parameter.kind {
-                                    ExpressionKind::Identifier(name) => {
-                                        enclosed_enviornment
-                                            .borrow_mut()
-                                            .set_variable(name, Rc::clone(argument));
-                                    }
-                                    ExpressionKind::RestIdentifier(name) => {
-                                        enclosed_enviornment.borrow_mut().set_variable(
-                                            name,
-                                            Rc::new(Object::List(
-                                                arguments.clone().into_iter().skip(position).collect(),
-                                            )),
-                                        );
-                                        break;
-                                    }
-                                    ExpressionKind::Placeholder => {
-                                        continue;
-                                    }
-                                    _ => {
-                                        return Err(RuntimeErr {
-                                            message: format!("Unexpected parameter, found: {}", parameter.kind),
-                                            source: parameter.source,
-                                        })
-                                    }
-                                }
-                            }
-
-                            result = evaluator.eval_statement(body)?;
-                            continue;
-                        }
-
-                        break;
-                    }
-
-                    evaluator.pop_frame();
-                    return Ok(result);
-                }
-
-                Ok(Rc::new(Object::Function(Self::Closure {
-                    parameters: remaining_parameters,
-                    body: body.clone(),
-                    environment: enclosed_enviornment,
-                })))
+                Ok(result)
             }
             Self::MemoizedClosure {
                 parameters,
@@ -155,31 +108,15 @@ impl Function {
                 }
 
                 let enclosed_enviornment = Environment::from(Rc::clone(environment));
+                let remaining_parameters =
+                    self.assign_closure_parameters(Rc::clone(&enclosed_enviornment), parameters, &arguments)?;
 
-                for (position, (parameter, argument)) in parameters.iter().zip(arguments.iter()).enumerate() {
-                    match &parameter.kind {
-                        ExpressionKind::Identifier(name) => {
-                            enclosed_enviornment
-                                .borrow_mut()
-                                .set_variable(name, Rc::clone(argument));
-                        }
-                        ExpressionKind::RestIdentifier(name) => {
-                            enclosed_enviornment.borrow_mut().set_variable(
-                                name,
-                                Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
-                            );
-                            break;
-                        }
-                        ExpressionKind::Placeholder => {
-                            continue;
-                        }
-                        _ => {
-                            return Err(RuntimeErr {
-                                message: format!("Unexpected parameter, found: {}", parameter.kind),
-                                source: parameter.source,
-                            })
-                        }
-                    }
+                if !remaining_parameters.is_empty() {
+                    return Ok(Rc::new(Object::Function(Self::Closure {
+                        parameters: remaining_parameters,
+                        body: body.clone(),
+                        environment: enclosed_enviornment,
+                    })));
                 }
 
                 evaluator.push_frame(Frame::ClosureCall {
@@ -187,11 +124,32 @@ impl Function {
                     environment: Rc::clone(&enclosed_enviornment),
                 });
 
-                let result = evaluator.eval_statement(body)?;
+                let mut result = evaluator.eval_statement(body)?;
 
-                cache.borrow_mut().insert(arguments, Rc::clone(&result));
+                loop {
+                    if let Object::Function(Function::Continuation { arguments }) = &*result {
+                        let remaining_parameters =
+                            self.assign_closure_parameters(Rc::clone(&enclosed_enviornment), parameters, arguments)?;
+
+                        if !remaining_parameters.is_empty() {
+                            result = Rc::new(Object::Function(Self::Closure {
+                                parameters: remaining_parameters,
+                                body: body.clone(),
+                                environment: enclosed_enviornment,
+                            }));
+                            break;
+                        }
+
+                        result = evaluator.eval_statement(body)?;
+                        continue;
+                    }
+
+                    break;
+                }
 
                 evaluator.pop_frame();
+
+                cache.borrow_mut().insert(arguments, Rc::clone(&result));
 
                 Ok(result)
             }
@@ -204,48 +162,25 @@ impl Function {
                     Some(args) => args.clone(),
                     None => HashMap::new(),
                 };
-                let mut remaining_parameters = vec![];
 
-                for (position, (parameter, argument)) in parameters.iter().zip(arguments.iter()).enumerate() {
-                    if let Object::Placeholder = **argument {
-                        remaining_parameters.push(parameter.clone());
-                        continue;
-                    }
+                let remaining_parameters =
+                    self.assign_interal_parameters(&mut evaluated_arguments, parameters, &arguments)?;
 
-                    match &parameter {
-                        ExpressionKind::Identifier(name) => {
-                            evaluated_arguments.insert(name.to_owned(), Rc::clone(argument));
-                        }
-                        ExpressionKind::RestIdentifier(name) => {
-                            evaluated_arguments.insert(
-                                name.to_owned(),
-                                Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
-                            );
-                            break;
-                        }
-                        ExpressionKind::Placeholder => {
-                            continue;
-                        }
-                        _ => {
-                            panic!()
-                        }
-                    }
+                if !remaining_parameters.is_empty() {
+                    return Ok(Rc::new(Object::Function(Self::Builtin {
+                        parameters: remaining_parameters,
+                        body: *body,
+                        partial: Some(evaluated_arguments),
+                    })));
                 }
 
-                remaining_parameters.append(&mut parameters.clone().into_iter().skip(arguments.len()).collect());
+                evaluator.push_frame(Frame::BuiltinCall { source });
 
-                if remaining_parameters.is_empty() {
-                    evaluator.push_frame(Frame::BuiltinCall { source });
-                    let result = body(evaluator, evaluated_arguments, source)?;
-                    evaluator.pop_frame();
-                    return Ok(result);
-                }
+                let result = body(evaluator, evaluated_arguments, source)?;
 
-                Ok(Rc::new(Object::Function(Self::Builtin {
-                    parameters: remaining_parameters,
-                    body: *body,
-                    partial: Some(evaluated_arguments),
-                })))
+                evaluator.pop_frame();
+
+                Ok(result)
             }
             Self::External {
                 parameters,
@@ -256,48 +191,25 @@ impl Function {
                     Some(args) => args.clone(),
                     None => HashMap::new(),
                 };
-                let mut remaining_parameters = vec![];
 
-                for (position, (parameter, argument)) in parameters.iter().zip(arguments.iter()).enumerate() {
-                    if let Object::Placeholder = **argument {
-                        remaining_parameters.push(parameter.clone());
-                        continue;
-                    }
+                let remaining_parameters =
+                    self.assign_interal_parameters(&mut evaluated_arguments, parameters, &arguments)?;
 
-                    match &parameter {
-                        ExpressionKind::Identifier(name) => {
-                            evaluated_arguments.insert(name.to_owned(), Rc::clone(argument));
-                        }
-                        ExpressionKind::RestIdentifier(name) => {
-                            evaluated_arguments.insert(
-                                name.to_owned(),
-                                Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
-                            );
-                            break;
-                        }
-                        ExpressionKind::Placeholder => {
-                            continue;
-                        }
-                        _ => {
-                            panic!()
-                        }
-                    }
+                if !remaining_parameters.is_empty() {
+                    return Ok(Rc::new(Object::Function(Self::External {
+                        parameters: remaining_parameters,
+                        body: Rc::clone(body),
+                        partial: Some(evaluated_arguments),
+                    })));
                 }
 
-                remaining_parameters.append(&mut parameters.clone().into_iter().skip(arguments.len()).collect());
+                evaluator.push_frame(Frame::ExternalCall { source });
 
-                if remaining_parameters.is_empty() {
-                    evaluator.push_frame(Frame::ExternalCall { source });
-                    let result = body(evaluator, evaluated_arguments, source)?;
-                    evaluator.pop_frame();
-                    return Ok(result);
-                }
+                let result = body(evaluator, evaluated_arguments, source)?;
 
-                Ok(Rc::new(Object::Function(Self::External {
-                    parameters: remaining_parameters,
-                    body: Rc::clone(body),
-                    partial: Some(evaluated_arguments),
-                })))
+                evaluator.pop_frame();
+
+                Ok(result)
             }
             Self::Composition { functions } => {
                 let mut result = Rc::clone(&arguments[0]);
@@ -310,6 +222,171 @@ impl Function {
             }
             Self::Continuation { .. } => unreachable!(),
         }
+    }
+
+    fn assign_closure_parameters(
+        &self,
+        enviornment: EnvironmentRef,
+        #[allow(clippy::ptr_arg)] parameters: &Vec<Expression>,
+        arguments: &Vec<Rc<Object>>,
+    ) -> Result<Vec<Expression>, RuntimeErr> {
+        let mut remaining_parameters = vec![];
+
+        for (position, (parameter, argument)) in parameters.iter().zip(arguments.iter()).enumerate() {
+            if let Object::Placeholder = **argument {
+                remaining_parameters.push(parameter.clone());
+                continue;
+            }
+
+            match &parameter.kind {
+                ExpressionKind::Identifier(name) => {
+                    enviornment.borrow_mut().set_variable(name, Rc::clone(argument));
+                }
+                ExpressionKind::RestIdentifier(name) => {
+                    enviornment.borrow_mut().set_variable(
+                        name,
+                        Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
+                    );
+                    break;
+                }
+                ExpressionKind::IdentifierListPattern(pattern) => {
+                    Self::destructure_list_pattern_parameter(
+                        Rc::clone(&enviornment),
+                        pattern,
+                        Rc::clone(argument),
+                        parameter.source,
+                    )?;
+                }
+                ExpressionKind::Placeholder => {
+                    continue;
+                }
+                _ => {
+                    return Err(RuntimeErr {
+                        message: format!("Unexpected parameter, found: {}", parameter.kind),
+                        source: parameter.source,
+                    })
+                }
+            }
+        }
+
+        remaining_parameters.append(&mut parameters.clone().into_iter().skip(arguments.len()).collect());
+
+        Ok(remaining_parameters)
+    }
+
+    fn assign_interal_parameters(
+        &self,
+        evaluated_arguments: &mut Arguments,
+        #[allow(clippy::ptr_arg)] parameters: &Vec<ExpressionKind>,
+        arguments: &Vec<Rc<Object>>,
+    ) -> Result<Vec<ExpressionKind>, RuntimeErr> {
+        let mut remaining_parameters = vec![];
+
+        for (position, (parameter, argument)) in parameters.iter().zip(arguments.iter()).enumerate() {
+            if let Object::Placeholder = **argument {
+                remaining_parameters.push(parameter.clone());
+                continue;
+            }
+
+            match &parameter {
+                ExpressionKind::Identifier(name) => {
+                    evaluated_arguments.insert(name.to_owned(), Rc::clone(argument));
+                }
+                ExpressionKind::RestIdentifier(name) => {
+                    evaluated_arguments.insert(
+                        name.to_owned(),
+                        Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
+                    );
+                    break;
+                }
+                ExpressionKind::Placeholder => {
+                    continue;
+                }
+                _ => {
+                    unreachable!()
+                }
+            }
+        }
+
+        remaining_parameters.append(&mut parameters.clone().into_iter().skip(arguments.len()).collect());
+
+        Ok(remaining_parameters)
+    }
+
+    fn destructure_list_pattern_parameter(
+        environment: EnvironmentRef,
+        parameter: &[Expression],
+        argument: Rc<Object>,
+        source: Location,
+    ) -> Evaluation {
+        let list = match &*argument {
+            Object::List(list) => list,
+            _ => {
+                return Err(RuntimeErr {
+                    message: format!("Expected a List argument to destructure, found: {}", argument.name()),
+                    source,
+                })
+            }
+        };
+
+        for (position, parameter) in parameter.iter().enumerate() {
+            match &parameter.kind {
+                ExpressionKind::Identifier(name) => {
+                    match environment.borrow_mut().declare_variable(
+                        name,
+                        Rc::clone(list.iter().nth(position).unwrap_or(&Rc::new(Object::Nil))),
+                        false,
+                    ) {
+                        Ok(_) => {}
+                        Err(EnvironmentErr { message }) => {
+                            return Err(RuntimeErr {
+                                message,
+                                source: parameter.source,
+                            })
+                        }
+                    }
+                }
+                ExpressionKind::RestIdentifier(name) => {
+                    match environment.borrow_mut().declare_variable(
+                        name,
+                        Rc::new(Object::List(list.clone().into_iter().skip(position).collect())),
+                        false,
+                    ) {
+                        Ok(_) => {}
+                        Err(EnvironmentErr { message }) => {
+                            return Err(RuntimeErr {
+                                message,
+                                source: parameter.source,
+                            })
+                        }
+                    }
+                    break;
+                }
+                ExpressionKind::Placeholder => {
+                    continue;
+                }
+                ExpressionKind::IdentifierListPattern(next_parameter) => {
+                    Self::destructure_list_pattern_parameter(
+                        Rc::clone(&environment),
+                        next_parameter,
+                        Rc::clone(
+                            list.iter()
+                                .nth(position)
+                                .unwrap_or(&Rc::new(Object::List(Vector::new()))),
+                        ),
+                        parameter.source,
+                    )?;
+                }
+                _ => {
+                    return Err(RuntimeErr {
+                        message: format!("Unexpected List destructing pattern, found: {}", parameter.kind),
+                        source: parameter.source,
+                    })
+                }
+            }
+        }
+
+        Ok(argument)
     }
 }
 
@@ -338,7 +415,7 @@ impl fmt::Display for Function {
                 let formatted: Vec<String> = parameters.iter().map(|parameter| parameter.to_string()).collect();
                 format!("|{}| {{ [external] }}", formatted.join(", "))
             }
-            Function::Composition { .. } => "|a| { [composition] }".to_owned(),
+            Function::Composition { .. } => "|a| { [composed] }".to_owned(),
             Function::Continuation { .. } => unreachable!(),
         };
         write!(f, "{}", s)
