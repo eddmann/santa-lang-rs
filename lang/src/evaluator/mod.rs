@@ -10,7 +10,7 @@ mod object;
 mod tests;
 
 use crate::evaluator::environment::{Environment, EnvironmentErr, EnvironmentRef};
-use crate::evaluator::function::Function;
+use crate::evaluator::function::{ExternalFnDef, Function};
 use crate::evaluator::lazy_sequence::LazySequence;
 use crate::evaluator::object::Object;
 use crate::lexer::Location;
@@ -26,11 +26,12 @@ pub struct RuntimeErr {
 }
 
 pub type Evaluation = Result<Rc<Object>, RuntimeErr>;
+type ExternalFnLookup = std::collections::HashMap<String, Rc<Object>>;
 
 #[derive(Debug)]
 pub struct Evaluator {
     frames: Vec<Frame>,
-    system_functions: Option<std::collections::HashMap<String, Function>>,
+    external_functions: Option<ExternalFnLookup>,
     nil: Rc<Object>,
     placeholder: Rc<Object>,
 }
@@ -60,7 +61,30 @@ impl Evaluator {
     pub fn new() -> Self {
         Evaluator {
             frames: vec![],
-            system_functions: None,
+            external_functions: None,
+            nil: Rc::new(Object::Nil),
+            placeholder: Rc::new(Object::Placeholder),
+        }
+    }
+
+    pub fn new_with_external_functions(external_function_defs: Vec<ExternalFnDef>) -> Self {
+        let external_functions: ExternalFnLookup = external_function_defs
+            .iter()
+            .map(|(name, parameters, body)| {
+                (
+                    name.to_owned(),
+                    Rc::new(Object::Function(Function::External {
+                        parameters: parameters.clone(),
+                        body: Rc::clone(body),
+                        partial: None,
+                    })),
+                )
+            })
+            .collect();
+
+        Evaluator {
+            frames: vec![],
+            external_functions: Some(external_functions),
             nil: Rc::new(Object::Nil),
             placeholder: Rc::new(Object::Placeholder),
         }
@@ -182,7 +206,11 @@ impl Evaluator {
                     return Ok(builtin);
                 }
 
-                if let Some(_system) = &self.system_functions {}
+                if let Some(external_functions) = &self.external_functions {
+                    if let Some(external) = external_functions.get(name) {
+                        return Ok(Rc::clone(external));
+                    }
+                }
 
                 Err(RuntimeErr {
                     message: format!("Identifier can not be found: {}", name),

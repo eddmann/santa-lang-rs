@@ -1,3 +1,8 @@
+use crate::evaluator::function::{Arguments, ExternalFnDef};
+use crate::evaluator::Object;
+use crate::parser::ast::ExpressionKind;
+use std::rc::Rc;
+
 test_eval! {
     suite functions;
 
@@ -135,4 +140,28 @@ test_eval! {
         "832040",
         recursive_memoization
     )
+}
+
+#[test]
+fn external_function() {
+    let hello_template = String::from("Hello, {}!");
+    let hello_function: ExternalFnDef = (
+        "hello".to_owned(),
+        vec![ExpressionKind::Identifier("name".to_owned())],
+        Rc::new(move |arguments: Arguments| match &**arguments.get("name").unwrap() {
+            Object::String(name) => Ok(Rc::new(Object::String(hello_template.replace("{}", name)))),
+            _ => Ok(Rc::new(Object::Nil)),
+        }),
+    );
+
+    let source = "hello(\"world\");";
+    let mut parser = crate::parser::Parser::new(crate::lexer::Lexer::new(source));
+    let program = parser.parse().unwrap();
+    let mut evaluator = crate::evaluator::Evaluator::new_with_external_functions(vec![hello_function]);
+    let actual = match evaluator.evaluate(&program) {
+        Ok(value) => value.to_string(),
+        Err(error) => error.message,
+    };
+
+    assert_eq!("\"Hello, world!\"", actual);
 }

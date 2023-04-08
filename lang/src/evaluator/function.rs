@@ -10,8 +10,10 @@ use std::hash::Hash;
 use std::rc::Rc;
 
 pub type Arguments = HashMap<String, Rc<Object>>;
+pub type ExternalFnDef = (String, Vec<ExpressionKind>, ExternalFn);
+
 type BuiltinFn = fn(&mut Evaluator, Arguments, Location) -> Evaluation;
-type ExternalFn = Rc<dyn Fn(&mut Evaluator, Arguments, Location) -> Evaluation>;
+type ExternalFn = Rc<dyn Fn(Arguments) -> Evaluation>;
 type MemoizedCache = Rc<RefCell<HashMap<Vec<Rc<Object>>, Rc<Object>>>>;
 
 #[derive(Clone)]
@@ -205,7 +207,7 @@ impl Function {
 
                 evaluator.push_frame(Frame::ExternalCall { source });
 
-                let result = body(evaluator, evaluated_arguments, source)?;
+                let result = body(evaluated_arguments)?;
 
                 evaluator.pop_frame();
 
