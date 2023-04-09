@@ -2974,13 +2974,14 @@ fn match_with_primitives() {
                                         source: 6..7,
                                     },
                                     cases: [
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: Integer(
                                                     "1",
                                                 ),
                                                 source: 26..27,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3000,13 +3001,14 @@ fn match_with_primitives() {
                                                 source: 28..37,
                                             },
                                         },
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: Decimal(
                                                     "2.0",
                                                 ),
                                                 source: 55..58,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3026,13 +3028,14 @@ fn match_with_primitives() {
                                                 source: 59..68,
                                             },
                                         },
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: Boolean(
                                                     true,
                                                 ),
                                                 source: 86..90,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3052,13 +3055,14 @@ fn match_with_primitives() {
                                                 source: 91..102,
                                             },
                                         },
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: String(
                                                     "four",
                                                 ),
                                                 source: 120..126,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3114,7 +3118,7 @@ fn match_with_ranges() {
                                         source: 6..7,
                                     },
                                     cases: [
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: ExclusiveRange {
                                                     from: Expression {
@@ -3132,6 +3136,7 @@ fn match_with_ranges() {
                                                 },
                                                 source: 27..31,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3151,7 +3156,7 @@ fn match_with_ranges() {
                                                 source: 31..40,
                                             },
                                         },
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: InclusiveRange {
                                                     from: Expression {
@@ -3169,6 +3174,7 @@ fn match_with_ranges() {
                                                 },
                                                 source: 59..64,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3188,7 +3194,7 @@ fn match_with_ranges() {
                                                 source: 64..73,
                                             },
                                         },
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: UnboundedRange {
                                                     from: Expression {
@@ -3200,6 +3206,7 @@ fn match_with_ranges() {
                                                 },
                                                 source: 92..95,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3255,31 +3262,33 @@ fn match_with_if_guards() {
                                         source: 6..7,
                                     },
                                     cases: [
-                                        Guarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: Integer(
                                                     "1",
                                                 ),
                                                 source: 26..27,
                                             },
-                                            guard: Expression {
-                                                kind: Infix {
-                                                    operator: NotEqual,
-                                                    left: Expression {
-                                                        kind: Integer(
-                                                            "1",
-                                                        ),
-                                                        source: 31..32,
+                                            guard: Some(
+                                                Expression {
+                                                    kind: Infix {
+                                                        operator: NotEqual,
+                                                        left: Expression {
+                                                            kind: Integer(
+                                                                "1",
+                                                            ),
+                                                            source: 31..32,
+                                                        },
+                                                        right: Expression {
+                                                            kind: Integer(
+                                                                "2",
+                                                            ),
+                                                            source: 36..37,
+                                                        },
                                                     },
-                                                    right: Expression {
-                                                        kind: Integer(
-                                                            "2",
-                                                        ),
-                                                        source: 36..37,
-                                                    },
+                                                    source: 33..38,
                                                 },
-                                                source: 33..38,
-                                            },
+                                            ),
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3299,37 +3308,39 @@ fn match_with_if_guards() {
                                                 source: 38..47,
                                             },
                                         },
-                                        Guarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: Decimal(
                                                     "2.0",
                                                 ),
                                                 source: 65..68,
                                             },
-                                            guard: Expression {
-                                                kind: Infix {
-                                                    operator: And,
-                                                    left: Expression {
-                                                        kind: Boolean(
-                                                            true,
-                                                        ),
-                                                        source: 72..76,
-                                                    },
-                                                    right: Expression {
-                                                        kind: Prefix {
-                                                            operator: Bang,
-                                                            right: Expression {
-                                                                kind: Boolean(
-                                                                    false,
-                                                                ),
-                                                                source: 81..86,
-                                                            },
+                                            guard: Some(
+                                                Expression {
+                                                    kind: Infix {
+                                                        operator: And,
+                                                        left: Expression {
+                                                            kind: Boolean(
+                                                                true,
+                                                            ),
+                                                            source: 72..76,
                                                         },
-                                                        source: 80..87,
+                                                        right: Expression {
+                                                            kind: Prefix {
+                                                                operator: Bang,
+                                                                right: Expression {
+                                                                    kind: Boolean(
+                                                                        false,
+                                                                    ),
+                                                                    source: 81..86,
+                                                                },
+                                                            },
+                                                            source: 80..87,
+                                                        },
                                                     },
+                                                    source: 77..87,
                                                 },
-                                                source: 77..87,
-                                            },
+                                            ),
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3349,31 +3360,33 @@ fn match_with_if_guards() {
                                                 source: 87..96,
                                             },
                                         },
-                                        Guarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: Identifier(
                                                     "e",
                                                 ),
                                                 source: 114..115,
                                             },
-                                            guard: Expression {
-                                                kind: Infix {
-                                                    operator: GreaterThan,
-                                                    left: Expression {
-                                                        kind: Identifier(
-                                                            "e",
-                                                        ),
-                                                        source: 119..120,
+                                            guard: Some(
+                                                Expression {
+                                                    kind: Infix {
+                                                        operator: GreaterThan,
+                                                        left: Expression {
+                                                            kind: Identifier(
+                                                                "e",
+                                                            ),
+                                                            source: 119..120,
+                                                        },
+                                                        right: Expression {
+                                                            kind: Integer(
+                                                                "3",
+                                                            ),
+                                                            source: 123..124,
+                                                        },
                                                     },
-                                                    right: Expression {
-                                                        kind: Integer(
-                                                            "3",
-                                                        ),
-                                                        source: 123..124,
-                                                    },
+                                                    source: 121..125,
                                                 },
-                                                source: 121..125,
-                                            },
+                                            ),
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3430,13 +3443,14 @@ fn match_with_list_destructing() {
                                         source: 6..7,
                                     },
                                     cases: [
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: ListMatchPattern(
                                                     [],
                                                 ),
                                                 source: 26..27,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3456,7 +3470,7 @@ fn match_with_list_destructing() {
                                                 source: 29..40,
                                             },
                                         },
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: ListMatchPattern(
                                                     [
@@ -3470,6 +3484,7 @@ fn match_with_list_destructing() {
                                                 ),
                                                 source: 58..62,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3489,7 +3504,7 @@ fn match_with_list_destructing() {
                                                 source: 62..76,
                                             },
                                         },
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: ListMatchPattern(
                                                     [
@@ -3509,6 +3524,7 @@ fn match_with_list_destructing() {
                                                 ),
                                                 source: 94..104,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [
@@ -3528,11 +3544,12 @@ fn match_with_list_destructing() {
                                                 source: 104..120,
                                             },
                                         },
-                                        Unguarded {
+                                        MatchCase {
                                             pattern: Expression {
                                                 kind: Placeholder,
                                                 source: 138..139,
                                             },
+                                            guard: None,
                                             consequence: Statement {
                                                 kind: Block(
                                                     [

@@ -727,23 +727,15 @@ impl<'a> Parser<'a> {
 
         let mut cases = vec![];
         while !self.consume_if(T!['}']) {
-            let pattern = Box::new(self.parse_match_pattern()?);
-            let guard = if self.consume_if(T![IF]) {
-                Some(Box::new(self.parse_expression(Precedence::Lowest)?))
-            } else {
-                None
-            };
-            let consequence = Box::new(self.parse_block_statement()?);
-
-            if let Some(guard) = guard {
-                cases.push(MatchCase::Guarded {
-                    pattern,
-                    guard,
-                    consequence,
-                })
-            } else {
-                cases.push(MatchCase::Unguarded { pattern, consequence })
-            }
+            cases.push(MatchCase {
+                pattern: Box::new(self.parse_match_pattern()?),
+                guard: if self.consume_if(T![IF]) {
+                    Some(self.parse_expression(Precedence::Lowest)?)
+                } else {
+                    None
+                },
+                consequence: Box::new(self.parse_block_statement()?),
+            });
 
             let _ = self.consume_if(T![,]) || self.consume_if(T![CMT]);
         }

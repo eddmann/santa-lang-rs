@@ -23,16 +23,10 @@ pub enum StatementKind {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum MatchCase {
-    Unguarded {
-        pattern: Box<Expression>,
-        consequence: Box<Statement>,
-    },
-    Guarded {
-        pattern: Box<Expression>,
-        guard: Box<Expression>,
-        consequence: Box<Statement>,
-    },
+pub struct MatchCase {
+    pub pattern: Box<Expression>,
+    pub guard: Option<Expression>,
+    pub consequence: Box<Statement>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -232,13 +226,12 @@ impl fmt::Display for ExpressionKind {
             Self::Match { subject, cases } => {
                 let formatted: Vec<String> = cases
                     .iter()
-                    .map(|case| match case {
-                        MatchCase::Unguarded { pattern, consequence } => format!("{} {{ {} }}", pattern, consequence),
-                        MatchCase::Guarded {
-                            pattern,
-                            guard,
-                            consequence,
-                        } => format!("{} if {} {{ {} }}", pattern, guard, consequence),
+                    .map(|case| {
+                        if let Some(guard) = &case.guard {
+                            format!("{} if {} {{ {} }}", case.pattern, guard, case.consequence)
+                        } else {
+                            format!("{} {{ {} }}", case.pattern, case.consequence)
+                        }
                     })
                     .collect();
                 format!("match {} {{ {} }}", subject, formatted.join(", "))
