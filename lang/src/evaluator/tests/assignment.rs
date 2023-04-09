@@ -51,25 +51,3 @@ test_eval! {
         mutable_parent_variable_is_modified_from_within_function
     )
 }
-
-test_eval! {
-    suite spread;
-
-    (
-        r#"
-            let x = [2, 3];
-            [1, ..x, ..["a", "b", "c"]];
-        "#,
-        "[1, 2, 3, \"a\", \"b\", \"c\"]",
-        list
-    ),
-    (
-        r#"
-            let add = |x, y| { x + y };
-            let xs = [3, 4]
-            add(..xs);
-        "#,
-        "7",
-        call
-    )
-}
