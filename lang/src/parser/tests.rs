@@ -2850,7 +2850,7 @@ fn collection_indexing() {
 fn sections() {
     assert_ast(
         r#"
-            section_one: { "sample "};
+            section_one: { "sample" };
             section_two: "sample";
             section_three: {
                 section_four: "sample";
@@ -2869,9 +2869,9 @@ fn sections() {
                                             kind: Expression(
                                                 Expression {
                                                     kind: String(
-                                                        "sample ",
+                                                        "sample",
                                                     ),
-                                                    source: 15..24,
+                                                    source: 15..23,
                                                 },
                                             ),
                                             source: 15..24,
