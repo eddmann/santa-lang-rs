@@ -100,6 +100,13 @@ impl Evaluator {
         Ok(result)
     }
 
+    pub fn evaluate_with_environment(&mut self, program: &Program, environment: EnvironmentRef) -> Evaluation {
+        self.push_frame(Frame::Program { environment });
+        let result = self.eval_statement_block(&program.statements)?;
+        self.pop_frame();
+        Ok(result)
+    }
+
     fn push_frame(&mut self, frame: Frame) {
         self.frames.push(frame);
     }
