@@ -114,20 +114,3 @@ test_eval! {
     ("if let x = 1 { x }", "1", true_let_assignment),
     ("if let x = 0 { x }", "nil", false_let_assignment)
 }
-
-// test_eval! {
-//     suite match_expression;
-//     (
-//         r#"
-//             let sut = |x| match x {
-//                 "1" { "1" }
-//                 2 { "2" }
-//                 3.5 { "3" }
-//                 x { ["4", x] }
-//             };
-//             return [sut("1"), sut(2), sut(3.5), sut([4])]
-//         "#,
-//         "",
-//         basic
-//     )
-// }

@@ -4,6 +4,7 @@ mod function;
 mod index;
 mod infix;
 mod lazy_sequence;
+mod matcher;
 mod object;
 
 #[cfg(test)]
@@ -230,6 +231,7 @@ impl Evaluator {
                 consequence,
                 alternative,
             } => self.eval_if_expression(condition, consequence, alternative),
+            ExpressionKind::Match { subject, cases } => crate::evaluator::matcher::matcher(self, subject, cases),
             ExpressionKind::Function { parameters, body } => Ok(Rc::new(Object::Function(Function::Closure {
                 parameters: parameters.clone(),
                 body: *body.clone(),
@@ -397,7 +399,7 @@ impl Evaluator {
                 }
             }
             ExpressionKind::IdentifierListPattern(pattern) => {
-                self.destructure_list_pattern(pattern, evaluated_value, false, name.source)
+                self.destructure_let_list_pattern(pattern, evaluated_value, false, name.source)
             }
             _ => Err(RuntimeErr {
                 message: format!("Unexpected Let identifier, found: {}", name.kind),
@@ -424,7 +426,7 @@ impl Evaluator {
                 }
             }
             ExpressionKind::IdentifierListPattern(pattern) => {
-                self.destructure_list_pattern(pattern, evaluated_value, true, name.source)
+                self.destructure_let_list_pattern(pattern, evaluated_value, true, name.source)
             }
             _ => Err(RuntimeErr {
                 message: format!("Unexpected Let identifier, found: {}", name.kind),
@@ -495,7 +497,7 @@ impl Evaluator {
         Ok(results)
     }
 
-    fn destructure_list_pattern(
+    fn destructure_let_list_pattern(
         &mut self,
         pattern: &[Expression],
         subject: Rc<Object>,
@@ -549,7 +551,7 @@ impl Evaluator {
                     continue;
                 }
                 ExpressionKind::IdentifierListPattern(next_pattern) => {
-                    self.destructure_list_pattern(
+                    self.destructure_let_list_pattern(
                         next_pattern,
                         Rc::clone(
                             list.iter()

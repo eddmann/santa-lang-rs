@@ -40,4 +40,5 @@ mod assignment;
 mod functions;
 mod indexing;
 mod literals;
+mod matches;
 mod operators;
