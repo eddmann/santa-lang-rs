@@ -5,6 +5,7 @@ pub mod operators;
 
 builtins! {
     collection::push,
+    collection::size,
     collection::map,
     collection::filter,
     collection::fold,

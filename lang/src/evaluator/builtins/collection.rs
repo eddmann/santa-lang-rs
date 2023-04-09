@@ -22,6 +22,26 @@ builtin! {
 }
 
 builtin! {
+    size(collection) [evaluator, source] match {
+        Object::List(list) => {
+            Ok(Rc::new(Object::Integer(list.len() as i64)))
+        }
+        Object::Set(set) => {
+            Ok(Rc::new(Object::Integer(set.len() as i64)))
+        }
+        Object::Hash(map) => {
+            Ok(Rc::new(Object::Integer(map.len() as i64)))
+        }
+        Object::String(string) => {
+            Ok(Rc::new(Object::Integer(string.len() as i64)))
+        }
+        Object::LazySequence(sequence) => {
+            Ok(Rc::new(Object::Integer(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).count() as i64)))
+        }
+    }
+}
+
+builtin! {
     map(mapper, collection) [evaluator, source] match {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
