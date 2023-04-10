@@ -1,5 +1,5 @@
 use crate::evaluator::Object;
-use crate::parser::ast::Statement;
+use crate::parser::ast::Section;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -8,7 +8,7 @@ pub type EnvironmentRef = Rc<RefCell<Environment>>;
 #[derive(Debug, Clone)]
 pub struct Environment {
     store: Vec<(String, Rc<Object>, bool)>,
-    sections: Vec<(String, Rc<Statement>)>,
+    sections: Vec<(String, Rc<Section>)>,
     outer: Option<EnvironmentRef>,
 }
 
@@ -33,14 +33,14 @@ impl Environment {
         }))
     }
 
-    pub fn get_sections(&self, name: &str) -> Vec<Rc<Statement>> {
+    pub fn get_sections(&self, name: &str) -> Vec<Rc<Section>> {
         self.sections
             .iter()
             .filter_map(|(name_, body)| if name_ == name { Some(Rc::clone(body)) } else { None })
             .collect()
     }
 
-    pub fn add_section(&mut self, name: &str, body: Rc<Statement>) {
+    pub fn add_section(&mut self, name: &str, body: Rc<Section>) {
         self.sections.push((name.to_owned(), body))
     }
 

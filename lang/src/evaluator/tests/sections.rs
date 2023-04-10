@@ -7,23 +7,21 @@ fn block_section() {
         "my_section",
         expect![[r#"
             [
-                Statement {
-                    kind: Block(
-                        [
-                            Statement {
-                                kind: Expression(
-                                    Expression {
-                                        kind: String(
-                                            "sample",
-                                        ),
-                                        source: 14..22,
-                                    },
-                                ),
-                                source: 14..23,
-                            },
-                        ],
-                    ),
-                    source: 12..24,
+                Program {
+                    statements: [
+                        Statement {
+                            kind: Expression(
+                                Expression {
+                                    kind: String(
+                                        "sample",
+                                    ),
+                                    source: 14..22,
+                                },
+                            ),
+                            source: 14..23,
+                        },
+                    ],
+                    source: 0..24,
                 },
             ]"#]],
     );
@@ -36,23 +34,21 @@ fn expression_section() {
         "my_section",
         expect![[r#"
             [
-                Statement {
-                    kind: Block(
-                        [
-                            Statement {
-                                kind: Expression(
-                                    Expression {
-                                        kind: String(
-                                            "sample",
-                                        ),
-                                        source: 12..20,
-                                    },
-                                ),
-                                source: 12..20,
-                            },
-                        ],
-                    ),
-                    source: 12..20,
+                Program {
+                    statements: [
+                        Statement {
+                            kind: Expression(
+                                Expression {
+                                    kind: String(
+                                        "sample",
+                                    ),
+                                    source: 12..20,
+                                },
+                            ),
+                            source: 12..20,
+                        },
+                    ],
+                    source: 0..20,
                 },
             ]"#]],
     );
@@ -69,36 +65,32 @@ fn nested_section() {
         "section_one",
         expect![[r#"
             [
-                Statement {
-                    kind: Block(
-                        [
-                            Statement {
-                                kind: Section {
-                                    name: "section_two",
-                                    body: Statement {
-                                        kind: Block(
-                                            [
-                                                Statement {
-                                                    kind: Expression(
-                                                        Expression {
-                                                            kind: String(
-                                                                "sample",
-                                                            ),
-                                                            source: 57..65,
-                                                        },
+                Program {
+                    statements: [
+                        Statement {
+                            kind: Section {
+                                name: "section_two",
+                                body: Program {
+                                    statements: [
+                                        Statement {
+                                            kind: Expression(
+                                                Expression {
+                                                    kind: String(
+                                                        "sample",
                                                     ),
-                                                    source: 57..79,
+                                                    source: 57..65,
                                                 },
-                                            ],
-                                        ),
-                                        source: 57..79,
-                                    },
+                                            ),
+                                            source: 57..79,
+                                        },
+                                    ],
+                                    source: 44..79,
                                 },
-                                source: 44..79,
                             },
-                        ],
-                    ),
-                    source: 26..80,
+                            source: 44..79,
+                        },
+                    ],
+                    source: 13..80,
                 },
             ]"#]],
     );
@@ -114,41 +106,37 @@ fn multiple_sections_with_same_name() {
         "my_section",
         expect![[r#"
             [
-                Statement {
-                    kind: Block(
-                        [
-                            Statement {
-                                kind: Expression(
-                                    Expression {
-                                        kind: Integer(
-                                            "1",
-                                        ),
-                                        source: 27..28,
-                                    },
-                                ),
-                                source: 27..29,
-                            },
-                        ],
-                    ),
-                    source: 25..30,
+                Program {
+                    statements: [
+                        Statement {
+                            kind: Expression(
+                                Expression {
+                                    kind: Integer(
+                                        "1",
+                                    ),
+                                    source: 27..28,
+                                },
+                            ),
+                            source: 27..29,
+                        },
+                    ],
+                    source: 13..30,
                 },
-                Statement {
-                    kind: Block(
-                        [
-                            Statement {
-                                kind: Expression(
-                                    Expression {
-                                        kind: Integer(
-                                            "2",
-                                        ),
-                                        source: 58..59,
-                                    },
-                                ),
-                                source: 58..60,
-                            },
-                        ],
-                    ),
-                    source: 56..61,
+                Program {
+                    statements: [
+                        Statement {
+                            kind: Expression(
+                                Expression {
+                                    kind: Integer(
+                                        "2",
+                                    ),
+                                    source: 58..59,
+                                },
+                            ),
+                            source: 58..60,
+                        },
+                    ],
+                    source: 44..61,
                 },
             ]"#]],
     );

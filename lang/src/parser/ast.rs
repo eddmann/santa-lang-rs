@@ -1,10 +1,13 @@
 use crate::lexer::Location;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Program {
     pub statements: Vec<Statement>,
+    pub source: Location,
 }
+
+pub type Section = Program;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Statement {
@@ -17,7 +20,7 @@ pub enum StatementKind {
     Return(Box<Expression>),
     Break(Box<Expression>),
     Comment(String),
-    Section { name: String, body: Box<Statement> },
+    Section { name: String, body: Box<Section> },
     Expression(Box<Expression>),
     Block(Vec<Statement>),
 }

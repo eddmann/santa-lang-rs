@@ -35,6 +35,7 @@ fn integers() {
                         source: 15..25,
                     },
                 ],
+                source: 0..25,
             }"#]],
     );
 }
@@ -72,6 +73,7 @@ fn decimals() {
                         source: 17..30,
                     },
                 ],
+                source: 0..30,
             }"#]],
     );
 }
@@ -121,6 +123,7 @@ fn strings() {
                         source: 49..60,
                     },
                 ],
+                source: 0..60,
             }"#]],
     );
 }
@@ -158,6 +161,7 @@ fn booleans() {
                         source: 18..24,
                     },
                 ],
+                source: 0..24,
             }"#]],
     );
 }
@@ -179,6 +183,7 @@ fn nil() {
                         source: 0..4,
                     },
                 ],
+                source: 0..4,
             }"#]],
     );
 }
@@ -217,6 +222,7 @@ fn comments() {
                         source: 36..58,
                     },
                 ],
+                source: 0..58,
             }"#]],
     );
 }
@@ -290,6 +296,7 @@ fn list() {
                         source: 0..41,
                     },
                 ],
+                source: 0..41,
             }"#]],
     );
 }
@@ -386,6 +393,7 @@ fn hash() {
                         source: 0..45,
                     },
                 ],
+                source: 0..45,
             }"#]],
     );
 }
@@ -448,6 +456,7 @@ fn set() {
                         source: 0..35,
                     },
                 ],
+                source: 0..35,
             }"#]],
     );
 }
@@ -778,6 +787,7 @@ fn ranges() {
                         source: 119..125,
                     },
                 ],
+                source: 0..125,
             }"#]],
     );
 }
@@ -959,6 +969,7 @@ fn let_assignments() {
                         source: 69..113,
                     },
                 ],
+                source: 0..113,
             }"#]],
     );
 }
@@ -1134,6 +1145,7 @@ fn if_expressions() {
                         source: 65..83,
                     },
                 ],
+                source: 0..83,
             }"#]],
     );
 }
@@ -1261,6 +1273,7 @@ fn prefix_operators() {
                         source: 72..79,
                     },
                 ],
+                source: 0..79,
             }"#]],
     );
 }
@@ -1514,6 +1527,7 @@ fn infix_operators() {
                         source: 135..152,
                     },
                 ],
+                source: 0..152,
             }"#]],
     );
 }
@@ -1699,6 +1713,7 @@ fn function_literals() {
                         source: 57..78,
                     },
                 ],
+                source: 0..78,
             }"#]],
     );
 }
@@ -1878,6 +1893,7 @@ fn call_expressions() {
                         source: 96..106,
                     },
                 ],
+                source: 0..106,
             }"#]],
     );
 }
@@ -2051,6 +2067,7 @@ fn partial_application_using_placeholders() {
                         source: 102..112,
                     },
                 ],
+                source: 0..112,
             }"#]],
     );
 }
@@ -2131,6 +2148,7 @@ fn infix_operators_as_identifiers() {
                         source: 0..30,
                     },
                 ],
+                source: 0..30,
             }"#]],
     );
 }
@@ -2198,6 +2216,7 @@ fn function_composition() {
                         source: 0..22,
                     },
                 ],
+                source: 0..22,
             }"#]],
     );
 }
@@ -2408,6 +2427,7 @@ fn function_threading() {
                         source: 41..86,
                     },
                 ],
+                source: 0..86,
             }"#]],
     );
 }
@@ -2572,6 +2592,7 @@ fn trailing_lambdas() {
                         source: 32..66,
                     },
                 ],
+                source: 0..66,
             }"#]],
     );
 }
@@ -2842,6 +2863,7 @@ fn collection_indexing() {
                         source: 160..171,
                     },
                 ],
+                source: 0..171,
             }"#]],
     );
 }
@@ -2862,23 +2884,21 @@ fn sections() {
                     Statement {
                         kind: Section {
                             name: "section_one",
-                            body: Statement {
-                                kind: Block(
-                                    [
-                                        Statement {
-                                            kind: Expression(
-                                                Expression {
-                                                    kind: String(
-                                                        "sample",
-                                                    ),
-                                                    source: 15..23,
-                                                },
-                                            ),
-                                            source: 15..24,
-                                        },
-                                    ],
-                                ),
-                                source: 13..25,
+                            body: Program {
+                                statements: [
+                                    Statement {
+                                        kind: Expression(
+                                            Expression {
+                                                kind: String(
+                                                    "sample",
+                                                ),
+                                                source: 15..23,
+                                            },
+                                        ),
+                                        source: 15..24,
+                                    },
+                                ],
+                                source: 0..25,
                             },
                         },
                         source: 0..39,
@@ -2886,23 +2906,21 @@ fn sections() {
                     Statement {
                         kind: Section {
                             name: "section_two",
-                            body: Statement {
-                                kind: Block(
-                                    [
-                                        Statement {
-                                            kind: Expression(
-                                                Expression {
-                                                    kind: String(
-                                                        "sample",
-                                                    ),
-                                                    source: 52..60,
-                                                },
-                                            ),
-                                            source: 52..74,
-                                        },
-                                    ],
-                                ),
-                                source: 52..74,
+                            body: Program {
+                                statements: [
+                                    Statement {
+                                        kind: Expression(
+                                            Expression {
+                                                kind: String(
+                                                    "sample",
+                                                ),
+                                                source: 52..60,
+                                            },
+                                        ),
+                                        source: 52..74,
+                                    },
+                                ],
+                                source: 39..74,
                             },
                         },
                         source: 39..74,
@@ -2910,41 +2928,38 @@ fn sections() {
                     Statement {
                         kind: Section {
                             name: "section_three",
-                            body: Statement {
-                                kind: Block(
-                                    [
-                                        Statement {
-                                            kind: Section {
-                                                name: "section_four",
-                                                body: Statement {
-                                                    kind: Block(
-                                                        [
-                                                            Statement {
-                                                                kind: Expression(
-                                                                    Expression {
-                                                                        kind: String(
-                                                                            "sample",
-                                                                        ),
-                                                                        source: 121..129,
-                                                                    },
+                            body: Program {
+                                statements: [
+                                    Statement {
+                                        kind: Section {
+                                            name: "section_four",
+                                            body: Program {
+                                                statements: [
+                                                    Statement {
+                                                        kind: Expression(
+                                                            Expression {
+                                                                kind: String(
+                                                                    "sample",
                                                                 ),
-                                                                source: 121..143,
+                                                                source: 121..129,
                                                             },
-                                                        ],
-                                                    ),
-                                                    source: 121..143,
-                                                },
+                                                        ),
+                                                        source: 121..143,
+                                                    },
+                                                ],
+                                                source: 107..143,
                                             },
-                                            source: 107..143,
                                         },
-                                    ],
-                                ),
-                                source: 89..144,
+                                        source: 107..143,
+                                    },
+                                ],
+                                source: 74..144,
                             },
                         },
                         source: 74..145,
                     },
                 ],
+                source: 0..145,
             }"#]],
     );
 }
@@ -3090,6 +3105,7 @@ fn match_with_primitives() {
                         source: 0..146,
                     },
                 ],
+                source: 0..146,
             }"#]],
     );
 }
@@ -3234,6 +3250,7 @@ fn match_with_ranges() {
                         source: 0..119,
                     },
                 ],
+                source: 0..119,
             }"#]],
     );
 }
@@ -3414,6 +3431,7 @@ fn match_with_if_guards() {
                         source: 0..163,
                     },
                 ],
+                source: 0..163,
             }"#]],
     );
 }
@@ -3577,6 +3595,7 @@ fn match_with_list_destructing() {
                         source: 0..168,
                     },
                 ],
+                source: 0..168,
             }"#]],
     );
 }

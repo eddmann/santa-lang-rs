@@ -66,8 +66,11 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse(&mut self) -> Result<Program, ParserErr> {
+        let start = self.current_token;
+
         Ok(Program {
             statements: self.parse_statements()?,
+            source: start.source_range(&self.current_token),
         })
     }
 
@@ -161,7 +164,17 @@ impl<'a> Parser<'a> {
         let token = self.expect(T![ID])?;
         let name = self.lexer.get_source(&token).to_string();
         self.expect(T![:])?;
-        let body = Box::new(self.parse_block_statement()?);
+        let statements = if self.consume_if(T!['{']) {
+            let statements = self.parse_statements()?;
+            self.expect(T!['}'])?;
+            statements
+        } else {
+            vec![self.parse_expression_statement()?]
+        };
+        let body = Box::new(Section {
+            statements,
+            source: token.source_range(&self.current_token),
+        });
         self.consume_if(T![;]);
 
         Ok(Statement {
