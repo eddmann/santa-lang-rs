@@ -84,6 +84,7 @@ macro_rules! builtin {
         }
     };
     ( $name: ident ($( $parameter: ident ),*) [$evaluator: ident, $source: ident] match { $( $pattern: pat_param => $body: block )* }) => {
+        #[allow(dead_code)]
         pub mod $name {
             use super::*;
 
