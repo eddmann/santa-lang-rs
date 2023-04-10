@@ -1,11 +1,11 @@
 mod builtins;
-mod environment;
-mod function;
+pub mod environment;
+pub mod function;
 mod index;
 mod infix;
 mod lazy_sequence;
 mod matcher;
-mod object;
+pub mod object;
 
 #[cfg(test)]
 mod tests;
