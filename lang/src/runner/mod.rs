@@ -86,7 +86,7 @@ impl<T: Time> Runner<T> {
         }
     }
 
-    pub fn new_with_external_functions(time: T, external_functions: Vec<ExternalFnDef>) -> Self {
+    pub fn new_with_external_functions(time: T, external_functions: &[ExternalFnDef]) -> Self {
         Self {
             evaluator: Evaluator::new_with_external_functions(external_functions),
             time,

@@ -160,7 +160,7 @@ fn external_function() {
     let source = "hello(\"world\");";
     let mut parser = crate::parser::Parser::new(crate::lexer::Lexer::new(source));
     let program = parser.parse().unwrap();
-    let mut evaluator = crate::evaluator::Evaluator::new_with_external_functions(vec![hello_function]);
+    let mut evaluator = crate::evaluator::Evaluator::new_with_external_functions(&[hello_function]);
     let actual = match evaluator.evaluate(&program) {
         Ok(value) => value.to_string(),
         Err(error) => error.message,

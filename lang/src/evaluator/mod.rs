@@ -68,7 +68,7 @@ impl Evaluator {
         }
     }
 
-    pub fn new_with_external_functions(external_function_defs: Vec<ExternalFnDef>) -> Self {
+    pub fn new_with_external_functions(external_function_defs: &[ExternalFnDef]) -> Self {
         let external_functions: ExternalFnLookup = external_function_defs
             .iter()
             .map(|(name, parameters, body)| {
