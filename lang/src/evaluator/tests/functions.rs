@@ -1,5 +1,6 @@
 use crate::evaluator::function::{Arguments, ExternalFnDef};
 use crate::evaluator::Object;
+use crate::lexer::Location;
 use crate::parser::ast::ExpressionKind;
 use std::rc::Rc;
 
@@ -148,10 +149,12 @@ fn external_function() {
     let hello_function: ExternalFnDef = (
         "hello".to_owned(),
         vec![ExpressionKind::Identifier("name".to_owned())],
-        Rc::new(move |arguments: Arguments| match &**arguments.get("name").unwrap() {
-            Object::String(name) => Ok(Rc::new(Object::String(hello_template.replace("{}", name)))),
-            _ => Ok(Rc::new(Object::Nil)),
-        }),
+        Rc::new(
+            move |arguments: Arguments, _location: Location| match &**arguments.get("name").unwrap() {
+                Object::String(name) => Ok(Rc::new(Object::String(hello_template.replace("{}", name)))),
+                _ => Ok(Rc::new(Object::Nil)),
+            },
+        ),
     );
 
     let source = "hello(\"world\");";
