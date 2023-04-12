@@ -234,6 +234,16 @@ impl<T: Time> Runner<T> {
         Ok(results)
     }
 
+    pub fn evaluate(&mut self, expression: &str, environment: EnvironmentRef) -> Result<Rc<Object>, RunErr> {
+        let lexer = Lexer::new(expression);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse()?;
+        let result = self
+            .evaluator
+            .evaluate_with_environment(&program, Rc::clone(&environment))?;
+        Ok(result)
+    }
+
     fn elapsed_millis(&self, start: u128) -> u128 {
         self.time.now() - start
     }
