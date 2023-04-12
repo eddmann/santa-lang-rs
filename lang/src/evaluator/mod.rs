@@ -59,6 +59,7 @@ pub enum Frame {
 }
 
 impl Evaluator {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Evaluator {
             frames: vec![],
