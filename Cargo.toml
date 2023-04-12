@@ -1,2 +1,8 @@
 [workspace]
-members = ["lang"]
+members = ["lang", "cli"]
+
+[profile.release]
+strip = true
+#codegen-units = 1
+#lto = true
+#debug = 1
