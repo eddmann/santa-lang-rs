@@ -33,8 +33,6 @@ type ExternalFnLookup = std::collections::HashMap<String, Rc<Object>>;
 pub struct Evaluator {
     frames: Vec<Frame>,
     external_functions: Option<ExternalFnLookup>,
-    nil: Rc<Object>,
-    placeholder: Rc<Object>,
 }
 
 #[derive(Debug)]
@@ -64,8 +62,6 @@ impl Evaluator {
         Evaluator {
             frames: vec![],
             external_functions: None,
-            nil: Rc::new(Object::Nil),
-            placeholder: Rc::new(Object::Placeholder),
         }
     }
 
@@ -87,8 +83,6 @@ impl Evaluator {
         Evaluator {
             frames: vec![],
             external_functions: Some(external_functions),
-            nil: Rc::new(Object::Nil),
-            placeholder: Rc::new(Object::Placeholder),
         }
     }
 
@@ -126,7 +120,7 @@ impl Evaluator {
     }
 
     fn eval_statement_block(&mut self, block: &[Statement]) -> Evaluation {
-        let mut result = Rc::clone(&self.nil);
+        let mut result = Rc::new(Object::Nil);
 
         for (index, statement) in block.iter().enumerate() {
             if let StatementKind::Comment(_) = statement.kind {
@@ -177,12 +171,12 @@ impl Evaluator {
         match &statement.kind {
             StatementKind::Return(value) => Ok(Rc::new(Object::Return(self.eval_expression(value)?))),
             StatementKind::Break(value) => Ok(Rc::new(Object::Break(self.eval_expression(value)?))),
-            StatementKind::Comment(_) => Ok(Rc::clone(&self.nil)),
+            StatementKind::Comment(_) => Ok(Rc::new(Object::Nil)),
             StatementKind::Section { name, body } => {
                 self.enviornment()
                     .borrow_mut()
                     .add_section(name, Rc::new(*body.clone()));
-                Ok(Rc::clone(&self.nil))
+                Ok(Rc::new(Object::Nil))
             }
             StatementKind::Expression(expression) => self.eval_expression(expression),
             StatementKind::Block(statements) => {
@@ -376,8 +370,8 @@ impl Evaluator {
                     source: right.source,
                 }),
             },
-            ExpressionKind::Nil => Ok(Rc::clone(&self.nil)),
-            ExpressionKind::Placeholder => Ok(Rc::clone(&self.placeholder)),
+            ExpressionKind::Nil => Ok(Rc::new(Object::Nil)),
+            ExpressionKind::Placeholder => Ok(Rc::new(Object::Placeholder)),
             ExpressionKind::Spread(_) => Err(RuntimeErr {
                 message: "Unable to spread within this context".to_owned(),
                 source: expression.source,
@@ -460,7 +454,7 @@ impl Evaluator {
                     }),
                 }
             }
-            _ => Ok(Rc::clone(&self.nil)),
+            _ => Ok(Rc::new(Object::Nil)),
         }
     }
 
@@ -477,7 +471,7 @@ impl Evaluator {
         } else if let Some(alternative) = alternative {
             self.eval_statement(alternative)
         } else {
-            Ok(Rc::clone(&self.nil))
+            Ok(Rc::new(Object::Nil))
         }
     }
 
