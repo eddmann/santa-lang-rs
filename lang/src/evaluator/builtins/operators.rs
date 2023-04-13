@@ -295,3 +295,22 @@ builtin! {
         }
     }
 }
+
+builtin! {
+    evaluate(source) [evaluator, source_location] match {
+        Object::String(source) => {
+            let environment = crate::Environment::new();
+            let lexer = crate::lexer::Lexer::new(source);
+            let mut parser = crate::parser::Parser::new(lexer);
+            let program = match parser.parse() {
+                Ok(program) => program,
+                Err(error) => return Err(RuntimeErr {
+                    message: format!("{:?}", error),
+                    source: source_location,
+                    trace: vec![],
+                })
+            };
+            evaluator.evaluate_with_environment(&program, Rc::clone(&environment))
+        }
+    }
+}

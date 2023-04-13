@@ -33,7 +33,8 @@ builtins! {
     collection::get,
     operators::or,
     operators::and,
-    operators::memoize
+    operators::memoize,
+    operators::evaluate
 }
 
 builtin_aliases! {
