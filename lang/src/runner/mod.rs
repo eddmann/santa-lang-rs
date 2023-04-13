@@ -266,6 +266,7 @@ impl<T: Time> Runner<T> {
                     return Err(RuntimeErr {
                         message,
                         source: section.source,
+                        trace: vec![],
                     })
                 }
             };

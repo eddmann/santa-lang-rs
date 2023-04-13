@@ -266,6 +266,7 @@ impl Function {
                     return Err(RuntimeErr {
                         message: format!("Unexpected parameter, found: {}", parameter.kind),
                         source: parameter.source,
+                        trace: vec![],
                     })
                 }
             }
@@ -327,6 +328,7 @@ impl Function {
                 return Err(RuntimeErr {
                     message: format!("Expected a List argument to destructure, found: {}", argument.name()),
                     source,
+                    trace: vec![],
                 })
             }
         };
@@ -344,6 +346,7 @@ impl Function {
                             return Err(RuntimeErr {
                                 message,
                                 source: parameter.source,
+                                trace: vec![],
                             })
                         }
                     }
@@ -359,6 +362,7 @@ impl Function {
                             return Err(RuntimeErr {
                                 message,
                                 source: parameter.source,
+                                trace: vec![],
                             })
                         }
                     }
@@ -383,6 +387,7 @@ impl Function {
                     return Err(RuntimeErr {
                         message: format!("Unexpected List destructing pattern, found: {}", parameter.kind),
                         source: parameter.source,
+                        trace: vec![],
                     })
                 }
             }

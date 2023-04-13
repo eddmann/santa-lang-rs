@@ -26,6 +26,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: &Expression, index: &Expression) 
                     return Err(RuntimeErr {
                         message: format!("Expected Integer List index, found: {}", step.name()),
                         source: index.source,
+                        trace: evaluator.get_trace(),
                     });
                 }
             }
@@ -68,6 +69,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: &Expression, index: &Expression) 
                     return Err(RuntimeErr {
                         message: format!("Expected Integer String index, found: {}", step.name()),
                         source: index.source,
+                        trace: evaluator.get_trace(),
                     });
                 }
             }
@@ -81,6 +83,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: &Expression, index: &Expression) 
                 evaluated_index.name()
             ),
             source: left.source,
+            trace: evaluator.get_trace(),
         }),
     }
 }

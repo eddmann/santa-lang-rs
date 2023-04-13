@@ -37,7 +37,7 @@ macro_rules! builtin {
                             message.push_str(&format!("{}({})", stringify!($name), pattern));
                         }
 
-                        Err($crate::evaluator::RuntimeErr { message, source })
+                        Err($crate::evaluator::RuntimeErr { message, source, trace: $evaluator.get_trace() })
                     }
                 }
             }
@@ -77,7 +77,7 @@ macro_rules! builtin {
                             message.push_str(&format!("{}({})", stringify!($name), pattern));
                         }
 
-                        Err($crate::evaluator::RuntimeErr { message, source })
+                        Err($crate::evaluator::RuntimeErr { message, source, trace: evaluator.get_trace() })
                     }
                 }
             }
@@ -120,7 +120,7 @@ macro_rules! builtin {
                             message.push_str(&format!("{}({})", stringify!($name), pattern));
                         }
 
-                        Err($crate::evaluator::RuntimeErr { message, source })
+                        Err($crate::evaluator::RuntimeErr { message, source, trace: $evaluator.get_trace() })
                     }
                 }
             }

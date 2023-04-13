@@ -52,6 +52,7 @@ fn read(arguments: Arguments, source: Location) -> Evaluation {
                         return Err(RuntimeErr {
                             message: "Missing SANTA_CLI_SESSION_TOKEN environment variable".to_owned(),
                             source,
+                            trace: vec![],
                         })
                     }
                 };
@@ -72,6 +73,7 @@ fn read(arguments: Arguments, source: Location) -> Evaluation {
                 Err(RuntimeErr {
                     message: format!("Failed to read AoC input: {}", path),
                     source,
+                    trace: vec![],
                 })
             }
             Ok(_) => {
@@ -84,6 +86,7 @@ fn read(arguments: Arguments, source: Location) -> Evaluation {
                 Err(RuntimeErr {
                     message: format!("Failed to read URL: {}", path),
                     source,
+                    trace: vec![],
                 })
             }
             Err(_) => {
@@ -94,15 +97,17 @@ fn read(arguments: Arguments, source: Location) -> Evaluation {
                 Err(RuntimeErr {
                     message: format!("Failed to read file: {}", path),
                     source,
+                    trace: vec![],
                 })
             }
         },
         object => Err(RuntimeErr {
             message: format!(
                 "Invalid arguments: read(path: {})\nExpected arguments:\nread(path: String)",
-                object.name()
+                object.name(),
             ),
             source,
+            trace: vec![],
         }),
     }
 }

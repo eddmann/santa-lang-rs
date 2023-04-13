@@ -59,6 +59,7 @@ pub fn plus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, so
         _ => Err(RuntimeErr {
             message: format!("Unsupported operation: {} + {}", left.name(), right.name()),
             source,
+            trace: vec![],
         }),
     }
 }
@@ -115,6 +116,7 @@ pub fn minus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, s
         _ => Err(RuntimeErr {
             message: format!("Unsupported operation: {} - {}", left.name(), right.name()),
             source,
+            trace: vec![],
         }),
     }
 }
@@ -143,6 +145,7 @@ pub fn asterisk(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Eval
         _ => Err(RuntimeErr {
             message: format!("Unsupported operation: {} * {}", left.name(), right.name()),
             source,
+            trace: vec![],
         }),
     }
 }
@@ -163,6 +166,7 @@ pub fn slash(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluat
         _ => Err(RuntimeErr {
             message: format!("Unsupported operation: {} / {}", left.name(), right.name()),
             source,
+            trace: vec![],
         }),
     }
 }
@@ -189,6 +193,7 @@ pub fn modulo(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evalua
         _ => Err(RuntimeErr {
             message: format!("Unsupported operation: {} % {}", left.name(), right.name()),
             source,
+            trace: vec![],
         }),
     }
 }

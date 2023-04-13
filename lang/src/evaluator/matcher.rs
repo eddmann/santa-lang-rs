@@ -28,6 +28,7 @@ pub fn matcher(evaluator: &mut Evaluator, subject: &Expression, cases: &[MatchCa
                         return Err(RuntimeErr {
                             message,
                             source: case.pattern.source,
+                            trace: evaluator.get_trace(),
                         })
                     }
                 };
@@ -162,6 +163,7 @@ fn destructure_match_list_pattern(
                         return Err(RuntimeErr {
                             message,
                             source: sub_pattern.source,
+                            trace: evaluator.get_trace(),
                         })
                     }
                 }
@@ -184,6 +186,7 @@ fn destructure_match_list_pattern(
                         return Err(RuntimeErr {
                             message,
                             source: sub_pattern.source,
+                            trace: evaluator.get_trace(),
                         })
                     }
                 }

@@ -24,6 +24,7 @@ use std::rc::Rc;
 pub struct RuntimeErr {
     pub message: String,
     pub source: Location,
+    pub trace: Vec<Location>,
 }
 
 pub type Evaluation = Result<Rc<Object>, RuntimeErr>;
@@ -218,6 +219,7 @@ impl Evaluator {
                 Err(RuntimeErr {
                     message: format!("Identifier can not be found: {}", name),
                     source: expression.source,
+                    trace: self.get_trace(),
                 })
             }
             ExpressionKind::Integer(value) => {
@@ -250,6 +252,7 @@ impl Evaluator {
                 Err(RuntimeErr {
                     message: format!("Expected a Function, found: {}", evaluated_function.name()),
                     source: function.source,
+                    trace: self.get_trace(),
                 })
             }
             ExpressionKind::List(list) => Ok(Rc::new(Object::List(Vector::from(self.eval_expressions(list)?)))),
@@ -260,6 +263,7 @@ impl Evaluator {
                         return Err(RuntimeErr {
                             message: format!("Unable to include a {} within an Set", element.name()),
                             source: expression.source,
+                            trace: self.get_trace(),
                         });
                     }
                     elements.insert(element);
@@ -274,6 +278,7 @@ impl Evaluator {
                         return Err(RuntimeErr {
                             message: format!("Unable to use a {} as a Hash key", evaluated_key.name()),
                             source: key.source,
+                            trace: self.get_trace(),
                         });
                     }
                     elements.insert(evaluated_key, self.eval_expression(value)?);
@@ -295,6 +300,7 @@ impl Evaluator {
                     return Err(RuntimeErr {
                         message: format!("Expected a Function, found: {}", evaluated_function.name()),
                         source: function.source,
+                        trace: self.get_trace(),
                     });
                 }
 
@@ -314,6 +320,7 @@ impl Evaluator {
                     return Err(RuntimeErr {
                         message: format!("Expected a Function, found: {}", evaluated_function.name()),
                         source: function.source,
+                        trace: self.get_trace(),
                     });
                 }
 
@@ -333,6 +340,7 @@ impl Evaluator {
                             to.name()
                         ),
                         source: expression.source,
+                        trace: self.get_trace(),
                     }),
                 }
             }
@@ -348,6 +356,7 @@ impl Evaluator {
                             until.name()
                         ),
                         source: expression.source,
+                        trace: self.get_trace(),
                     }),
                 }
             }
@@ -356,6 +365,7 @@ impl Evaluator {
                 from => Err(RuntimeErr {
                     message: format!("Expected Integer unbounded range, found: {}..", from.name()),
                     source: expression.source,
+                    trace: self.get_trace(),
                 }),
             },
             ExpressionKind::Infix { left, operator, right } => {
@@ -368,6 +378,7 @@ impl Evaluator {
                 (Prefix::Minus, object) => Err(RuntimeErr {
                     message: format!("Unexpected prefix operation: -{}", object.name()),
                     source: right.source,
+                    trace: self.get_trace(),
                 }),
             },
             ExpressionKind::Nil => Ok(Rc::new(Object::Nil)),
@@ -375,10 +386,12 @@ impl Evaluator {
             ExpressionKind::Spread(_) => Err(RuntimeErr {
                 message: "Unable to spread within this context".to_owned(),
                 source: expression.source,
+                trace: self.get_trace(),
             }),
             _ => Err(RuntimeErr {
                 message: format!("Unimplemented expression: {}", expression),
                 source: expression.source,
+                trace: self.get_trace(),
             }),
         }
     }
@@ -397,6 +410,7 @@ impl Evaluator {
                     Err(EnvironmentErr { message }) => Err(RuntimeErr {
                         message,
                         source: name.source,
+                        trace: self.get_trace(),
                     }),
                 }
             }
@@ -406,6 +420,7 @@ impl Evaluator {
             _ => Err(RuntimeErr {
                 message: format!("Unexpected Let identifier, found: {}", name.kind),
                 source: name.source,
+                trace: self.get_trace(),
             }),
         }
     }
@@ -424,6 +439,7 @@ impl Evaluator {
                     Err(EnvironmentErr { message }) => Err(RuntimeErr {
                         message,
                         source: name.source,
+                        trace: self.get_trace(),
                     }),
                 }
             }
@@ -433,6 +449,7 @@ impl Evaluator {
             _ => Err(RuntimeErr {
                 message: format!("Unexpected Let identifier, found: {}", name.kind),
                 source: name.source,
+                trace: self.get_trace(),
             }),
         }
     }
@@ -451,6 +468,7 @@ impl Evaluator {
                     Err(EnvironmentErr { message }) => Err(RuntimeErr {
                         message,
                         source: name.source,
+                        trace: self.get_trace(),
                     }),
                 }
             }
@@ -490,6 +508,7 @@ impl Evaluator {
                 return Err(RuntimeErr {
                     message: format!("Expected a List to spread, found: {}", expression),
                     source: expression.source,
+                    trace: self.get_trace(),
                 });
             }
 
@@ -512,6 +531,7 @@ impl Evaluator {
                 return Err(RuntimeErr {
                     message: format!("Expected a List to destructure, found: {}", subject.name()),
                     source,
+                    trace: self.get_trace(),
                 })
             }
         };
@@ -529,6 +549,7 @@ impl Evaluator {
                             return Err(RuntimeErr {
                                 message,
                                 source: pattern.source,
+                                trace: self.get_trace(),
                             })
                         }
                     }
@@ -544,6 +565,7 @@ impl Evaluator {
                             return Err(RuntimeErr {
                                 message,
                                 source: pattern.source,
+                                trace: self.get_trace(),
                             })
                         }
                     }
@@ -568,11 +590,25 @@ impl Evaluator {
                     return Err(RuntimeErr {
                         message: format!("Unexpected List destructing pattern, found: {}", pattern.kind),
                         source: pattern.source,
+                        trace: self.get_trace(),
                     })
                 }
             }
         }
 
         Ok(subject)
+    }
+
+    pub fn get_trace(&self) -> Vec<Location> {
+        self.frames
+            .iter()
+            .rev()
+            .filter_map(|frame| match frame {
+                Frame::ClosureCall { source, .. } | Frame::BuiltinCall { source } | Frame::ExternalCall { source } => {
+                    Some(*source)
+                }
+                _ => None,
+            })
+            .collect()
     }
 }

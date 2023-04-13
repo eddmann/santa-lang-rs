@@ -118,6 +118,7 @@ pub fn apply(
             return Err(RuntimeErr {
                 message: format!("Expected a Function, found: {}", evaluated_function.name()),
                 source: function.source,
+                trace: evaluator.get_trace(),
             });
         }
         _ => {}

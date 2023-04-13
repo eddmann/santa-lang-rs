@@ -221,7 +221,8 @@ builtin! {
                 Some(element) => Rc::clone(element),
                 None => return Err(RuntimeErr {
                     message: "Unable to reduce an empty List".to_owned(),
-                    source
+                    source,
+                    trace: evaluator.get_trace()
                 })
             };
             for element in list.iter().skip(1) {
@@ -238,7 +239,8 @@ builtin! {
                 Some(character) => Rc::new(Object::String(character.to_string())),
                 None => return Err(RuntimeErr {
                     message: "Unable to reduce an empty String".to_owned(),
-                    source
+                    source,
+                    trace: evaluator.get_trace()
                 })
             };
             for character in characters {
@@ -364,7 +366,8 @@ builtin! {
                 if !element.is_hashable() {
                     return Err(RuntimeErr {
                         message: format!("Unable to include a {} within an Set", element.name()),
-                        source
+                        source,
+                        trace: evaluator.get_trace()
                     });
                 }
                 elements.insert(Rc::clone(element));
@@ -380,7 +383,8 @@ builtin! {
                 if !element.is_hashable() {
                     return Err(RuntimeErr {
                         message: format!("Unable to include a {} within an Set", element.name()),
-                        source
+                        source,
+                        trace: evaluator.get_trace()
                     });
                 }
                 elements.insert(Rc::clone(&element));
@@ -404,7 +408,8 @@ builtin! {
                         if !pair[0].is_hashable() {
                             return Err(RuntimeErr {
                                 message: format!("Unable to use a {} as a Hash key", pair[0].name()),
-                                source
+                                source,
+                                trace: evaluator.get_trace()
                             });
                         }
                         elements.insert(Rc::clone(&pair[0]), Rc::clone(&pair[1]));
@@ -418,6 +423,7 @@ builtin! {
                         element.name()
                     ),
                     source,
+                    trace: evaluator.get_trace()
                 })
             }
 
@@ -432,7 +438,8 @@ builtin! {
                         if !pair[0].is_hashable() {
                             return Err(RuntimeErr {
                                 message: format!("Unable to use a {} as a Hash key", pair[0].name()),
-                                source
+                                source,
+                                trace: evaluator.get_trace()
                             });
                         }
                         elements.insert(Rc::clone(&pair[0]), Rc::clone(&pair[1]));
@@ -446,6 +453,7 @@ builtin! {
                         element.name()
                     ),
                     source,
+                    trace: evaluator.get_trace()
                 })
             }
 
@@ -520,6 +528,7 @@ fn eager_zipper(sequences: Vector<Rc<Object>>, evaluator: &mut Evaluator, source
                         sequence.name()
                     ),
                     source,
+                    trace: shared_evaluator.borrow().get_trace(),
                 })
             }
         }
