@@ -41,6 +41,15 @@ test_eval! {
 }
 
 test_eval! {
+    suite lazy_sequences;
+
+    sut "let sequence = 1..5;";
+
+    ("sequence[1]", "2", positive_integer),
+    ("sequence[5]", "nil", out_of_range_integer)
+}
+
+test_eval! {
     suite strings;
 
     sut "let string = \"hello\";";

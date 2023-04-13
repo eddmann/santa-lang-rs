@@ -9,9 +9,14 @@ builtins! {
     collection::map,
     collection::filter,
     collection::fold,
+    collection::each,
     collection::reduce,
     collection::flat_map,
-    collection::each,
+    collection::find,
+    collection::count,
+    collection::sum,
+    collection::max,
+    collection::min,
     collection::zip,
     collection::skip,
     collection::take,
@@ -21,6 +26,11 @@ builtins! {
     collection::repeat,
     collection::cycle,
     collection::iterate,
+    collection::keys,
+    collection::values,
+    collection::first,
+    collection::rest,
+    collection::get,
     operators::or,
     operators::and,
     operators::memoize
@@ -37,5 +47,9 @@ builtin_aliases! {
     "<" => operators::less_than,
     "<=" => operators::less_than_equal,
     ">" => operators::greater_than,
-    ">=" => operators::greater_than_equal
+    ">=" => operators::greater_than_equal,
+    "includes?" => collection::includes,
+    "excludes?" => collection::excludes,
+    "any?" => collection::any,
+    "all?" => collection::all
 }

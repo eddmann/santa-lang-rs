@@ -37,6 +37,7 @@ macro_rules! test_eval {
 }
 
 mod assignment;
+mod builtins;
 mod errors;
 mod functions;
 mod indexing;

@@ -285,7 +285,11 @@ impl Evaluator {
                 }
                 Ok(Rc::new(Object::Hash(elements)))
             }
-            ExpressionKind::Index { left, index } => crate::evaluator::index::lookup(self, left, index),
+            ExpressionKind::Index { left, index } => {
+                let evaluated_left = self.eval_expression(left)?;
+                let evaluated_index = self.eval_expression(index)?;
+                crate::evaluator::index::lookup(self, evaluated_left, evaluated_index, index.source)
+            }
             ExpressionKind::FunctionThread { initial, functions } => {
                 let mut result = self.eval_expression(initial)?;
 

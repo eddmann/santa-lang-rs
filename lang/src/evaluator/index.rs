@@ -1,19 +1,19 @@
 use crate::evaluator::object::Object;
 use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
-use crate::parser::ast::Expression;
+use crate::lexer::Location;
 use im_rc::Vector;
 use std::cell::RefCell;
 use std::rc::Rc;
 
 #[inline]
-pub fn lookup(evaluator: &mut Evaluator, left: &Expression, index: &Expression) -> Evaluation {
-    match (&*evaluator.eval_expression(left)?, &*evaluator.eval_expression(index)?) {
+pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, source: Location) -> Evaluation {
+    match (&*left, &*index) {
         (Object::List(list), Object::Integer(index)) => Ok(list_lookup(list, *index).unwrap_or(Rc::new(Object::Nil))),
         (Object::List(list), Object::LazySequence(sequence)) => {
             let is_unbounded_negative_range = sequence.is_unbounded_negative_range();
 
             let mut result = Vector::new();
-            for step in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), index.source) {
+            for step in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
                 if let Object::Integer(index) = &*step {
                     if *index == 0 && is_unbounded_negative_range {
                         break;
@@ -25,7 +25,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: &Expression, index: &Expression) 
                 } else {
                     return Err(RuntimeErr {
                         message: format!("Expected Integer List index, found: {}", step.name()),
-                        source: index.source,
+                        source,
                         trace: evaluator.get_trace(),
                     });
                 }
@@ -52,11 +52,19 @@ pub fn lookup(evaluator: &mut Evaluator, left: &Expression, index: &Expression) 
                 Ok(Rc::new(Object::Nil))
             }
         }
+        (Object::LazySequence(sequence), Object::Integer(index)) => {
+            let mut iterator = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source);
+            if let Some(element) = iterator.nth(*index as usize) {
+                Ok(Rc::clone(&element))
+            } else {
+                Ok(Rc::new(Object::Nil))
+            }
+        }
         (Object::String(string), Object::LazySequence(sequence)) => {
             let is_unbounded_negative_range = sequence.is_unbounded_negative_range();
 
             let mut result = String::new();
-            for step in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), index.source) {
+            for step in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
                 if let Object::Integer(index) = &*step {
                     if *index == 0 && is_unbounded_negative_range {
                         break;
@@ -68,7 +76,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: &Expression, index: &Expression) 
                 } else {
                     return Err(RuntimeErr {
                         message: format!("Expected Integer String index, found: {}", step.name()),
-                        source: index.source,
+                        source,
                         trace: evaluator.get_trace(),
                     });
                 }
@@ -76,13 +84,13 @@ pub fn lookup(evaluator: &mut Evaluator, left: &Expression, index: &Expression) 
 
             Ok(Rc::new(Object::String(result)))
         }
-        (evaluated_left, evaluated_index) => Err(RuntimeErr {
+        (_, _) => Err(RuntimeErr {
             message: format!(
                 "Unable to perform index operation, found: {}[{}]",
-                evaluated_left.name(),
-                evaluated_index.name()
+                left.name(),
+                index.name()
             ),
-            source: left.source,
+            source,
             trace: evaluator.get_trace(),
         }),
     }

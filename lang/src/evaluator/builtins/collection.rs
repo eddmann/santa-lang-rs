@@ -182,32 +182,47 @@ builtin! {
     each(side_effect, collection) [evaluator, source] match {
         (Object::Function(side_effect), Object::List(list)) => {
             for element in list {
-                side_effect.apply(evaluator, vec![Rc::clone(element)], source)?;
+                let result = side_effect.apply(evaluator, vec![Rc::clone(element)], source)?;
+                if let Object::Break(_) = &*result {
+                    break;
+                }
             }
             Ok(Rc::new(Object::Nil))
         }
         (Object::Function(side_effect), Object::Set(set)) => {
             for element in set {
-                side_effect.apply(evaluator, vec![Rc::clone(element)], source)?;
+                let result = side_effect.apply(evaluator, vec![Rc::clone(element)], source)?;
+                if let Object::Break(_) = &*result {
+                    break;
+                }
             }
             Ok(Rc::new(Object::Nil))
         }
         (Object::Function(side_effect), Object::Hash(map)) => {
             for (key, value) in map {
-                side_effect.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
+                let result = side_effect.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
+                if let Object::Break(_) = &*result {
+                    break;
+                }
             }
             Ok(Rc::new(Object::Nil))
         }
         (Object::Function(side_effect), Object::LazySequence(sequence)) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                side_effect.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?;
+                let result = side_effect.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?;
+                if let Object::Break(_) = &*result {
+                    break;
+                }
             }
             Ok(Rc::new(Object::Nil))
         }
         (Object::Function(side_effect), Object::String(string)) => {
             for character in string.chars() {
-                side_effect.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+                let result = side_effect.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+                if let Object::Break(_) = &*result {
+                    break;
+                }
             }
             Ok(Rc::new(Object::Nil))
         }
@@ -217,7 +232,8 @@ builtin! {
 builtin! {
     reduce(reducer, collection) [evaluator, source] match {
         (Object::Function(reducer), Object::List(list)) => {
-            let mut accumulator = match list.get(0) {
+            let mut elements = list.iter();
+            let mut accumulator = match elements.next() {
                 Some(element) => Rc::clone(element),
                 None => return Err(RuntimeErr {
                     message: "Unable to reduce an empty List".to_owned(),
@@ -225,8 +241,63 @@ builtin! {
                     trace: evaluator.get_trace()
                 })
             };
-            for element in list.iter().skip(1) {
+            for element in elements {
                 accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            Ok(Rc::clone(&accumulator))
+        }
+        (Object::Function(reducer), Object::Set(set)) => {
+            let mut elements = set.iter();
+            let mut accumulator = match elements.next() {
+                Some(element) => Rc::clone(element),
+                None => return Err(RuntimeErr {
+                    message: "Unable to reduce an empty Set".to_owned(),
+                    source,
+                    trace: evaluator.get_trace()
+                })
+            };
+            for element in elements {
+                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            Ok(Rc::clone(&accumulator))
+        }
+        (Object::Function(reducer), Object::Hash(map)) => {
+            let mut elements = map.iter();
+            let mut accumulator = match elements.next() {
+                Some((key, value)) => Rc::clone(value),
+                None => return Err(RuntimeErr {
+                    message: "Unable to reduce an empty Hash".to_owned(),
+                    source,
+                    trace: evaluator.get_trace()
+                })
+            };
+            for (key, value) in elements {
+                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(value), Rc::clone(key)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            Ok(Rc::clone(&accumulator))
+        }
+        (Object::Function(reducer), Object::LazySequence(sequence)) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            let mut elements = sequence.resolve_iter(Rc::clone(&shared_evaluator), source);
+            let mut accumulator = match elements.next() {
+                Some(element) => Rc::clone(&element),
+                None => return Err(RuntimeErr {
+                    message: "Unable to reduce an empty LazySequence".to_owned(),
+                    source,
+                    trace: shared_evaluator.borrow().get_trace()
+                })
+            };
+            for element in elements {
+                accumulator = reducer.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&accumulator), Rc::clone(&element)], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -310,6 +381,165 @@ builtin! {
                     return Ok(Rc::clone(&object))
                 }
             }
+            Ok(Rc::new(Object::Nil))
+        }
+    }
+}
+
+builtin! {
+    count(predicate, collection) [evaluator, source] match {
+        (Object::Function(predicate), Object::List(list)) => {
+            let mut count = 0;
+            for element in list {
+                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                    count += 1;
+                }
+            }
+            Ok(Rc::new(Object::Integer(count)))
+        }
+        (Object::Function(predicate), Object::Set(set)) => {
+            let mut count = 0;
+            for element in set {
+                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                    count += 1;
+                }
+            }
+            Ok(Rc::new(Object::Integer(count)))
+        }
+        (Object::Function(predicate), Object::Hash(map)) => {
+            let mut count = 0;
+            for (key, value) in map {
+                if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
+                    count += 1;
+                }
+            }
+            Ok(Rc::new(Object::Integer(count)))
+        }
+        (Object::Function(predicate), Object::LazySequence(sequence)) => {
+            let mut count = 0;
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
+                if predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
+                    count += 1;
+                }
+            }
+            Ok(Rc::new(Object::Integer(count)))
+        }
+        (Object::Function(predicate), Object::String(string)) => {
+            let mut count = 0;
+            for character in string.chars() {
+                let object = Rc::new(Object::String(character.to_string()));
+                if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
+                    count += 1;
+                }
+            }
+            Ok(Rc::new(Object::Integer(count)))
+        }
+    }
+}
+
+builtin! {
+    sum(collection) [evaluator, source] match {
+        Object::List(list) => {
+            let mut sum = 0;
+            for element in list {
+                if let Object::Integer(value) = &**element {
+                    sum += value;
+                }
+            }
+            Ok(Rc::new(Object::Integer(sum)))
+        }
+        Object::Set(set) => {
+            let mut sum = 0;
+            for element in set {
+                if let Object::Integer(value) = &**element {
+                    sum += value;
+                }
+            }
+            Ok(Rc::new(Object::Integer(sum)))
+        }
+        Object::Hash(map) => {
+            let mut sum = 0;
+            for (key, value) in map {
+                if let Object::Integer(value) = &**value {
+                    sum += value;
+                }
+            }
+            Ok(Rc::new(Object::Integer(sum)))
+        }
+        Object::LazySequence(sequence) => {
+            let mut sum = 0;
+            for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+                if let Object::Integer(value) = &*element {
+                    sum += value;
+                }
+            }
+            Ok(Rc::new(Object::Integer(sum)))
+        }
+    }
+}
+
+builtin! {
+    max(collection) [evaluator, source] match {
+        Object::List(list) => {
+            if let Some(max) = list.iter().max() {
+                return Ok(Rc::clone(max));
+            }
+
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::Set(set) => {
+            if let Some(max) = set.iter().max() {
+                return Ok(Rc::clone(max));
+            }
+
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::Hash(map) => {
+            if let Some((key, value)) = map.iter().max() {
+                return Ok(Rc::clone(value));
+            }
+
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::LazySequence(sequence) => {
+            if let Some(max) = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).max() {
+                return Ok(Rc::clone(&max));
+            }
+
+            Ok(Rc::new(Object::Nil))
+        }
+    }
+}
+
+builtin! {
+    min(collection) [evaluator, source] match {
+        Object::List(list) => {
+            if let Some(min) = list.iter().min() {
+                return Ok(Rc::clone(min));
+            }
+
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::Set(set) => {
+            if let Some(min) = set.iter().min() {
+                return Ok(Rc::clone(min));
+            }
+
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::Hash(map) => {
+            if let Some((key, value)) = map.iter().min() {
+                return Ok(Rc::clone(value));
+            }
+
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::LazySequence(sequence) => {
+            if let Some(min) = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).min() {
+                return Ok(Rc::clone(&min));
+            }
+
             Ok(Rc::new(Object::Nil))
         }
     }
@@ -428,6 +658,9 @@ builtin! {
             }
 
             Ok(Rc::new(Object::Hash(elements)))
+        }
+        Object::Hash(map) => {
+            Ok(Rc::new(Object::Hash(map.clone())))
         }
         Object::LazySequence(sequence) => {
             let mut elements = HashMap::default();
@@ -560,6 +793,225 @@ builtin! {
             }
 
             eager_zipper(collections, evaluator, source)
+        }
+    }
+}
+
+builtin! {
+    keys(hash_map) [evaluator, source] match {
+        Object::Hash(map) => {
+            Ok(Rc::new(Object::List(map.iter().map(|(key, _)| Rc::clone(key)).collect::<Vector<_>>())))
+        }
+    }
+}
+
+builtin! {
+    values(hash_map) [evaluator, source] match {
+        Object::Hash(map) => {
+            Ok(Rc::new(Object::List(map.iter().map(|(_, value)| Rc::clone(value)).collect::<Vector<_>>())))
+        }
+    }
+}
+
+builtin! {
+    first(collection) [evaluator, source] match {
+        Object::List(list) => {
+            if let Some(first) = list.front() {
+                return Ok(Rc::clone(first));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::Set(set) => {
+            if let Some(first) = set.iter().next() {
+                return Ok(Rc::clone(first));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::LazySequence(sequence) => {
+            let mut iterator = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source);
+            if let Some(first) = iterator.next() {
+                return Ok(Rc::clone(&first));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::String(string) => {
+            if let Some(first) = string.chars().next() {
+                return Ok(Rc::new(Object::String(first.to_string())));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+    }
+}
+
+builtin! {
+    rest(collection) [evaluator, source] match {
+        Object::List(list) => {
+            let mut rest = list.clone();
+            rest.pop_front();
+            Ok(Rc::new(Object::List(rest)))
+        }
+        Object::Set(set) => {
+            Ok(Rc::new(Object::Set(set.clone().into_iter().skip(1).collect())))
+        }
+        Object::LazySequence(sequence) => {
+            Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Skip(1)))))
+        }
+        Object::String(string) => {
+            Ok(Rc::new(Object::String(string.chars().skip(1).collect())))
+        }
+    }
+}
+
+builtin! {
+    get(index, collection) [evaluator, source] {
+        crate::evaluator::index::lookup(evaluator, Rc::clone(collection), Rc::clone(index), source)
+    }
+}
+
+builtin! {
+    includes(value, collection) [evaluator, source] match {
+        (_, Object::List(list)) => {
+            Ok(Rc::new(Object::Boolean(list.contains(value))))
+        }
+        (_, Object::Set(set)) => {
+            Ok(Rc::new(Object::Boolean(set.contains(value))))
+        }
+        (_, Object::Hash(map)) => {
+            Ok(Rc::new(Object::Boolean(map.contains_key(value))))
+        }
+        (_, Object::LazySequence(sequence)) => {
+            for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+                if element == *value {
+                    return Ok(Rc::new(Object::Boolean(true)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(false)))
+        }
+        (_, Object::String(string)) => {
+            if let Object::String(subject) = &**value {
+                return Ok(Rc::new(Object::Boolean(string.contains(subject))));
+            }
+            Ok(Rc::new(Object::Boolean(false)))
+        }
+    }
+}
+
+builtin! {
+    excludes(value, collection) [evaluator, source] match {
+        (_, Object::List(list)) => {
+            Ok(Rc::new(Object::Boolean(!list.contains(value))))
+        }
+        (_, Object::Set(set)) => {
+            Ok(Rc::new(Object::Boolean(!set.contains(value))))
+        }
+        (_, Object::Hash(map)) => {
+            Ok(Rc::new(Object::Boolean(!map.contains_key(value))))
+        }
+        (_, Object::LazySequence(sequence)) => {
+            for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+                if element == *value {
+                    return Ok(Rc::new(Object::Boolean(false)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(true)))
+        }
+        (_, Object::String(string)) => {
+            if let Object::String(subject) = &**value {
+                return Ok(Rc::new(Object::Boolean(!string.contains(subject))));
+            }
+            Ok(Rc::new(Object::Boolean(true)))
+        }
+    }
+}
+
+builtin! {
+    any(predicate, collection) [evaluator, source] match {
+        (Object::Function(predicate), Object::List(list)) => {
+            for element in list.iter() {
+                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                    return Ok(Rc::new(Object::Boolean(true)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(false)))
+        }
+        (Object::Function(predicate), Object::Set(set)) => {
+            for element in set.iter() {
+                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                    return Ok(Rc::new(Object::Boolean(true)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(false)))
+        }
+        (Object::Function(predicate), Object::Hash(map)) => {
+            for (key, value) in map.iter() {
+                if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
+                    return Ok(Rc::new(Object::Boolean(true)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(false)))
+        }
+        (Object::Function(predicate), Object::LazySequence(sequence)) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
+                if predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
+                    return Ok(Rc::new(Object::Boolean(true)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(false)))
+        }
+        (Object::Function(predicate), Object::String(string)) => {
+            for character in string.chars() {
+                if predicate.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?.is_truthy() {
+                    return Ok(Rc::new(Object::Boolean(true)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(false)))
+        }
+    }
+}
+
+builtin! {
+    all(predicate, collection) [evaluator, source] match {
+        (Object::Function(predicate), Object::List(list)) => {
+            for element in list.iter() {
+                if !predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                    return Ok(Rc::new(Object::Boolean(false)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(true)))
+        }
+        (Object::Function(predicate), Object::Set(set)) => {
+            for element in set.iter() {
+                if !predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                    return Ok(Rc::new(Object::Boolean(false)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(true)))
+        }
+        (Object::Function(predicate), Object::Hash(map)) => {
+            for (key, value) in map.iter() {
+                if !predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
+                    return Ok(Rc::new(Object::Boolean(false)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(true)))
+        }
+        (Object::Function(predicate), Object::LazySequence(sequence)) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
+                if !predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
+                    return Ok(Rc::new(Object::Boolean(false)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(true)))
+        }
+        (Object::Function(predicate), Object::String(string)) => {
+            for character in string.chars() {
+                if !predicate.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?.is_truthy() {
+                    return Ok(Rc::new(Object::Boolean(false)))
+                }
+            }
+            Ok(Rc::new(Object::Boolean(true)))
         }
     }
 }

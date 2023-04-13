@@ -208,7 +208,7 @@ impl Iterator for LazySequenceIter<'_> {
                             .ok()?;
                     }
                     LazyFn::Filter(predicate) => {
-                        if predicate
+                        if !predicate
                             .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
                             .ok()?
                             .is_truthy()
