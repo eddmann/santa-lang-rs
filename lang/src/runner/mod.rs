@@ -14,6 +14,7 @@ mod tests;
 pub struct RunErr {
     pub message: String,
     pub source: Location,
+    pub trace: Vec<Location>,
 }
 
 impl From<RuntimeErr> for RunErr {
@@ -21,6 +22,7 @@ impl From<RuntimeErr> for RunErr {
         RunErr {
             message: error.message,
             source: error.source,
+            trace: error.trace,
         }
     }
 }
@@ -30,6 +32,7 @@ impl From<ParserErr> for RunErr {
         RunErr {
             message: error.message,
             source: error.source,
+            trace: vec![],
         }
     }
 }
@@ -110,6 +113,7 @@ impl<T: Time> Runner<T> {
             return Err(RunErr {
                 message: "Expected a single 'input' section".to_owned(),
                 source: input[1].source,
+                trace: vec![],
             });
         }
         let evaluated_input: Option<Rc<Object>> = if input.len() == 1 {
@@ -169,6 +173,7 @@ impl<T: Time> Runner<T> {
                 return Err(RunErr {
                     message: "Expected a single 'part_one' assertion".to_owned(),
                     source: expected_part_one[1].source,
+                    trace: vec![],
                 });
             }
 
@@ -176,6 +181,7 @@ impl<T: Time> Runner<T> {
                 return Err(RunErr {
                     message: "Expected a single 'part_two' assertion".to_owned(),
                     source: expected_part_two[1].source,
+                    trace: vec![],
                 });
             }
 
@@ -184,6 +190,7 @@ impl<T: Time> Runner<T> {
                 return Err(RunErr {
                     message: "Expected a single 'input' fixture".to_owned(),
                     source: input[1].source,
+                    trace: vec![],
                 });
             }
             let evaluated_input: Option<Rc<Object>> = if input.len() == 1 {
@@ -292,6 +299,7 @@ impl<T: Time> Runner<T> {
             return Err(RunErr {
                 message: "Expected single 'part_one' solution".to_owned(),
                 source: part_one[1].source,
+                trace: vec![],
             });
         }
 
@@ -299,6 +307,7 @@ impl<T: Time> Runner<T> {
             return Err(RunErr {
                 message: "Expected single 'part_two' solution".to_owned(),
                 source: part_two[1].source,
+                trace: vec![],
             });
         }
 

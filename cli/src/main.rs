@@ -189,10 +189,10 @@ fn test(source_path: &str) -> Result<()> {
 fn print_error(source_path: &str, source: &str, error: RunErr) {
     let (line, column) = calculate_line_column(source, error.source);
 
-    println!("\x1b[32m{}:{}:{}\x1b[0m\n", source_path, line + 1, column + 1);
+    println!("\x1b[31m{}\x1b[0m\n", error.message);
 
     for (position, source_line) in source.split('\n').enumerate() {
-        if position < line - 2 || position > line + 2 {
+        if line > 1 && (position < line - 2 || position > line + 2) {
             continue;
         }
 
@@ -207,7 +207,19 @@ fn print_error(source_path: &str, source: &str, error: RunErr) {
         }
     }
 
-    println!("\n\x1b[31m{}\x1b[0m", error.message);
+    println!("\n{}:\x1b[32m{}:{}\x1b[0m", source_path, line + 1, column + 1);
+
+    if !error.trace.is_empty() {
+        for location in error.trace {
+            let (line, column) = calculate_line_column(source, location);
+            println!(
+                "  - {}():\x1b[32m{}:{}\x1b[0m",
+                &source[location.start..location.end],
+                line + 1,
+                column + 1
+            );
+        }
+    }
 }
 
 fn calculate_line_column(source: &str, location: Location) -> (usize, usize) {

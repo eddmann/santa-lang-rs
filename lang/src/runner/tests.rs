@@ -286,6 +286,7 @@ fn script_with_runtime_error() {
                 RunErr {
                     message: "Unsupported operation: Integer * String",
                     source: 2..7,
+                    trace: [],
                 },
             )"#]],
     )
@@ -300,6 +301,7 @@ fn script_with_parser_error() {
                 RunErr {
                     message: "Illegal token",
                     source: 2..3,
+                    trace: [],
                 },
             )"#]],
     )
@@ -314,6 +316,7 @@ fn solution_with_runtime_error() {
                 RunErr {
                     message: "Unsupported operation: Integer * String",
                     source: 12..17,
+                    trace: [],
                 },
             )"#]],
     )
@@ -328,6 +331,7 @@ fn solution_with_parser_error() {
                 RunErr {
                     message: "Illegal token",
                     source: 12..13,
+                    trace: [],
                 },
             )"#]],
     )
@@ -347,6 +351,7 @@ fn solution_with_multiple_input_sections() {
                 RunErr {
                     message: "Expected a single 'input' section",
                     source: 35..57,
+                    trace: [],
                 },
             )"#]],
     )
@@ -366,6 +371,7 @@ fn solution_with_multiple_part_one_sections() {
                 RunErr {
                     message: "Expected single 'part_one' solution",
                     source: 60..85,
+                    trace: [],
                 },
             )"#]],
     )
@@ -385,6 +391,7 @@ fn solution_with_multiple_part_two_sections() {
                 RunErr {
                     message: "Expected single 'part_two' solution",
                     source: 85..106,
+                    trace: [],
                 },
             )"#]],
     )
@@ -409,6 +416,7 @@ fn test_with_multiple_input_sections() {
                 RunErr {
                     message: "Expected a single 'input' fixture",
                     source: 135..161,
+                    trace: [],
                 },
             )"#]],
     )
@@ -433,6 +441,7 @@ fn test_with_multiple_part_one_sections() {
                 RunErr {
                     message: "Expected a single 'part_one' assertion",
                     source: 164..193,
+                    trace: [],
                 },
             )"#]],
     )
@@ -457,6 +466,7 @@ fn test_with_multiple_part_two_sections() {
                 RunErr {
                     message: "Expected a single 'part_two' assertion",
                     source: 193..218,
+                    trace: [],
                 },
             )"#]],
     )
