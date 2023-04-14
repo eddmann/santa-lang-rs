@@ -399,3 +399,84 @@ test_eval! {
     ("sort(-, [3, 2, 1])", "[1, 2, 3]", unsorted_list_using_integer_comparison),
     ("sort(-, [1, 2, 3])", "[1, 2, 3]", sorted_list_using_integer_comparison)
 }
+
+test_eval! {
+    suite union;
+
+    ("union({1, 2}, {2, 3})", "{1, 2, 3}", sets),
+    ("union({1, 2}, [2, 3])", "{1, 2, 3}", set_and_list),
+    ("union({1, 2}, 2..=3)", "{1, 2, 3}", set_and_lazy_sequence)
+}
+
+test_eval! {
+    suite intersection;
+
+    ("intersection({1, 2}, {2, 3})", "{2}", sets),
+    ("intersection({1, 2}, [2, 3])", "{2}", set_and_list),
+    ("intersection({1, 2}, 2..=3)", "{2}", set_and_lazy_sequence)
+}
+
+test_eval! {
+    suite scan;
+
+    ("scan(0, +, [])", "[0]", empty_list),
+    ("scan(0, +, [1, 2])", "[0, 1, 3]", list_with_elements),
+    ("scan(0, +, {})", "[0]", empty_set),
+    ("scan(0, +, {1, 2})", "[0, 1, 3]", set_with_elements),
+    ("scan(0, +, #{})", "[0]", empty_hash),
+    ("scan(0, +, #{1: 2, 3: 4})", "[0, 2, 6]", hash_with_elements),
+    ("scan(\"\", +, \"\")", "[\"\"]", empty_string),
+    ("scan(\"\", +, \"ab\")", "[\"\", \"a\", \"ab\"]", string_with_characters),
+    ("scan(0, +, 0..0)", "[0]", empty_lazy_sequence),
+    ("scan(0, +, 0..2)", "[0, 0, 1]", finite_lazy_sequence)
+}
+
+test_eval! {
+    suite reverse;
+
+    ("reverse([])", "[]", empty_list),
+    ("reverse([1, 2])", "[2, 1]", list_with_elements),
+    ("reverse(\"\")", "\"\"", empty_string),
+    ("reverse(\"ab\")", "\"ba\"", string_with_characters),
+    ("reverse(0..0)", "[]", empty_lazy_sequence),
+    ("reverse(0..2)", "[1, 0]", finite_lazy_sequence)
+}
+
+test_eval! {
+    suite filter_map;
+
+    ("filter_map(|a| if a != 1 { a + 1 }, [])", "[]", empty_list),
+    ("filter_map(|a| if a != 1 { a + 1 }, [1, 2])", "[3]", list_with_elements),
+    ("filter_map(|a| if a != 1 { a + 1 }, {})", "{}", empty_set),
+    ("filter_map(|a| if a != 1 { a + 1 }, {1, 2})", "{3}", set_with_elements),
+    ("filter_map(|a| if a != 1 { a + 1 }, #{})", "#{}", empty_hash),
+    ("filter_map(|a| if a != 2 { a + 1 }, #{1: 2, 3: 4})", "#{3: 5}", hash_with_elements),
+    ("filter_map(|a| if a != \"a\" { a * 2 }, \"\")", "[]", empty_string),
+    ("filter_map(|a| if a != \"a\" { a * 2 }, \"ab\")", "[\"bb\"]", string_with_characters),
+    ("filter_map(|a| if a != 1 { a + 1 }, 0..0) |> list", "[]", empty_lazy_sequence),
+    ("filter_map(|a| if a != 1 { a + 1 }, 0..2) |> list", "[1]", lazy_sequence_with_elements)
+}
+
+test_eval! {
+    suite find_map;
+
+    ("find_map(|a| if a != 1 { a + 1 }, [])", "nil", empty_list),
+    ("find_map(|a| if a != 1 { a + 1 }, [1, 2])", "3", list_with_elements),
+    ("find_map(|a| if a != 1 { a + 1 }, {})", "nil", empty_set),
+    ("find_map(|a| if a != 1 { a + 1 }, {1, 2})", "3", set_with_elements),
+    ("find_map(|a| if a != 1 { a + 1 }, #{})", "nil", empty_hash),
+    ("find_map(|a| if a != 2 { a + 1 }, #{1: 2, 3: 4})", "5", hash_with_elements),
+    ("find_map(|a| if a != \"a\" { a * 2 }, \"\")", "nil", empty_string),
+    ("find_map(|a| if a != \"a\" { a * 2 }, \"ab\")", "\"bb\"", string_with_characters),
+    ("find_map(|a| if a != 1 { a + 1 }, 0..0)", "nil", empty_lazy_sequence),
+    ("find_map(|a| if a != 1 { a + 1 }, 0..2)", "1", lazy_sequence_with_elements)
+}
+
+test_eval! {
+    suite assoc;
+
+    ("assoc(0, 1, [])", "List index out of bounds", empty_list),
+    ("assoc(0, 3, [1, 2])", "[3, 2]", list_with_elements),
+    ("assoc(0, 1, #{})", "#{0: 1}", empty_hash),
+    ("assoc(0, 1, #{1: 2, 3: 4})", "#{1: 2, 3: 4, 0: 1}", hash_with_elements)
+}

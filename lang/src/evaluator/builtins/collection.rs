@@ -53,6 +53,14 @@ builtin! {
         (Object::Function(mapper), Object::Set(set)) => {
             let mut elements = HashSet::default();
             for element in set {
+                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                if !mapped.is_hashable() {
+                    return Err(RuntimeErr {
+                        message: format!("Unable to include a {} within an Set", element.name()),
+                        source,
+                        trace: evaluator.get_trace()
+                    });
+                }
                 elements.insert(mapper.apply(evaluator, vec![Rc::clone(element)], source)?);
             }
             Ok(Rc::new(Object::Set(elements)))
@@ -1034,6 +1042,245 @@ builtin! {
             });
 
             Ok(Rc::new(Object::List(sorted_list)))
+        }
+    }
+}
+
+builtin! {
+    union(a, b) [evaluator, source] match {
+        (Object::Set(_), _) => {
+            crate::evaluator::builtins::operators::plus(evaluator, a, b, source)
+        }
+    }
+}
+
+builtin! {
+    intersection(a, b) [evaluator, source] match {
+        (Object::Set(a), Object::Set(b)) => {
+            Ok(Rc::new(Object::Set(a.clone().intersection(b.clone()))))
+        }
+        (Object::Set(a), Object::List(b)) => {
+            let mut b_set = HashSet::default();
+            for element in b {
+                if !element.is_hashable() {
+                    return Err(RuntimeErr {
+                        message: format!("Unable to include a {} within an Set", element.name()),
+                        source,
+                        trace: evaluator.get_trace()
+                    });
+                }
+                b_set.insert(Rc::clone(element));
+            }
+            Ok(Rc::new(Object::Set(a.clone().intersection(b_set))))
+        }
+        (Object::Set(a), Object::LazySequence(b)) => {
+            let mut b_set = HashSet::default();
+            for element in b.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+                if !element.is_hashable() {
+                    return Err(RuntimeErr {
+                        message: format!("Unable to include a {} within an Set", element.name()),
+                        source,
+                        trace: evaluator.get_trace()
+                    });
+                }
+                b_set.insert(Rc::clone(&element));
+            }
+            Ok(Rc::new(Object::Set(a.clone().intersection(b_set))))
+        }
+    }
+}
+
+builtin! {
+    scan(initial, mapper, collection) [evaluator, source] match {
+        (_, Object::Function(mapper), Object::List(list)) => {
+            let mut elements = Vector::new();
+            elements.push_back(Rc::clone(initial));
+            let mut previous = Rc::clone(initial);
+            for element in list {
+                previous = mapper.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(element)], source)?;
+                elements.push_back(Rc::clone(&previous));
+            }
+            Ok(Rc::new(Object::List(elements)))
+        }
+        (_, Object::Function(mapper), Object::Set(set)) => {
+            let mut elements = Vector::new();
+            elements.push_back(Rc::clone(initial));
+            let mut previous = Rc::clone(initial);
+            for element in set {
+                previous = mapper.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(element)], source)?;
+                elements.push_back(Rc::clone(&previous));
+            }
+            Ok(Rc::new(Object::List(elements)))
+        }
+        (_, Object::Function(mapper), Object::Hash(map)) => {
+            let mut elements = Vector::new();
+            elements.push_back(Rc::clone(initial));
+            let mut previous = Rc::clone(initial);
+            for (key, value) in map {
+                previous = mapper.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(value), Rc::clone(key)], source)?;
+                elements.push_back(Rc::clone(&previous));
+            }
+            Ok(Rc::new(Object::List(elements)))
+        }
+        (_, Object::Function(mapper), Object::LazySequence(sequence)) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            let mut elements = Vector::new();
+            elements.push_back(Rc::clone(initial));
+            let mut previous = Rc::clone(initial);
+            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
+                previous = mapper.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&previous), Rc::clone(&element)], source)?;
+                elements.push_back(Rc::clone(&previous));
+            }
+            Ok(Rc::new(Object::List(elements)))
+        }
+        (_, Object::Function(mapper), Object::String(string)) => {
+            let mut elements = Vector::new();
+            elements.push_back(Rc::clone(initial));
+            let mut previous = Rc::clone(initial);
+            for character in string.chars() {
+                previous = mapper.apply(evaluator, vec![Rc::clone(&previous), Rc::new(Object::String(character.to_string()))], source)?;
+                elements.push_back(Rc::clone(&previous));
+            }
+            Ok(Rc::new(Object::List(elements)))
+        }
+    }
+}
+
+builtin! {
+    reverse(collection) [evaluator, source] match {
+        Object::List(list) => {
+            Ok(Rc::new(Object::List(list.clone().into_iter().rev().collect())))
+        }
+        Object::LazySequence(sequence) => {
+            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).collect::<Vector<Rc<Object>>>().into_iter().rev().collect())))
+        }
+        Object::String(string) => {
+            Ok(Rc::new(Object::String(string.chars().rev().collect())))
+        }
+    }
+}
+
+builtin! {
+    filter_map(mapper, collection) [evaluator, source] match {
+        (Object::Function(mapper), Object::List(list)) => {
+            let mut elements = Vector::new();
+            for element in list {
+                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                if mapped.is_truthy() {
+                    elements.push_back(mapped);
+                }
+            }
+            Ok(Rc::new(Object::List(elements)))
+        }
+        (Object::Function(mapper), Object::Set(set)) => {
+            let mut elements = HashSet::default();
+            for element in set {
+                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                if !mapped.is_hashable() {
+                    return Err(RuntimeErr {
+                        message: format!("Unable to include a {} within an Set", element.name()),
+                        source,
+                        trace: evaluator.get_trace()
+                    });
+                }
+                if mapped.is_truthy() {
+                    elements.insert(mapped);
+                }
+            }
+            Ok(Rc::new(Object::Set(elements)))
+        }
+        (Object::Function(mapper), Object::Hash(map)) => {
+            let mut elements = HashMap::default();
+            for (key, value) in map {
+                let mapped = mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
+                if mapped.is_truthy() {
+                    elements.insert(Rc::clone(key), mapped);
+                }
+            }
+            Ok(Rc::new(Object::Hash(elements)))
+        }
+        (Object::Function(mapper), Object::LazySequence(sequence)) => {
+            Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::FilterMap(mapper.clone())))))
+        }
+        (Object::Function(mapper), Object::String(string)) => {
+            let mut elements = Vector::new();
+            for character in string.chars() {
+                let mapped = mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+                if mapped.is_truthy() {
+                    elements.push_back(mapped);
+                }
+            }
+            Ok(Rc::new(Object::List(elements)))
+        }
+    }
+}
+
+builtin! {
+    find_map(mapper, collection) [evaluator, source] match {
+        (Object::Function(mapper), Object::List(list)) => {
+            for element in list {
+                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                if mapped.is_truthy() {
+                    return Ok(mapped);
+                }
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(mapper), Object::Set(set)) => {
+            for element in set {
+                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                if mapped.is_truthy() {
+                    return Ok(mapped);
+                }
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(mapper), Object::Hash(map)) => {
+            for (key, value) in map {
+                let mapped = mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
+                if mapped.is_truthy() {
+                    return Ok(mapped);
+                }
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(mapper), Object::LazySequence(sequence)) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
+                let mapped = mapper.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?;
+                if mapped.is_truthy() {
+                    return Ok(mapped);
+                }
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        (Object::Function(mapper), Object::String(string)) => {
+            for character in string.chars() {
+                let mapped = mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+                if mapped.is_truthy() {
+                    return Ok(mapped);
+                }
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+    }
+}
+
+builtin! {
+    assoc(key, value, collection) [evaluator, source] match {
+        (Object::Integer(index), _, Object::List(list)) => {
+            if *index as usize >= list.len()  {
+                return Err(RuntimeErr {
+                    message: "List index out of bounds".to_owned(),
+                    source,
+                    trace: evaluator.get_trace()
+                });
+            }
+
+            Ok(Rc::new(Object::List(list.clone().update(*index as usize, Rc::clone(value)))))
+        }
+        (_, _, Object::Hash(map)) => {
+            Ok(Rc::new(Object::Hash(map.update(Rc::clone(key), Rc::clone(value)))))
         }
     }
 }
