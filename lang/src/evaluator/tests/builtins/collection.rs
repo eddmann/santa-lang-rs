@@ -388,3 +388,14 @@ test_eval! {
     ("all?(_ >= 0, 0..0)", "true", empty_lazy_sequence),
     ("all?(_ >= 0, 0..2)", "true", finite_lazy_sequence)
 }
+
+test_eval! {
+    suite sort;
+
+    ("sort(>, [])", "[]", empty_list_using_predicate_comparison),
+    ("sort(>, [3, 2, 1])", "[1, 2, 3]", unsorted_list_using_predicate_comparison),
+    ("sort(>, [1, 2, 3])", "[1, 2, 3]", sorted_list_using_predicate_comparison),
+    ("sort(>, [])", "[]", empty_list_using_integer_comparison),
+    ("sort(-, [3, 2, 1])", "[1, 2, 3]", unsorted_list_using_integer_comparison),
+    ("sort(-, [1, 2, 3])", "[1, 2, 3]", sorted_list_using_integer_comparison)
+}

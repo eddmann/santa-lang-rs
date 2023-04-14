@@ -1015,3 +1015,25 @@ builtin! {
         }
     }
 }
+
+builtin! {
+    sort(comparator, collection) [evaluator, source] match {
+        (Object::Function(comparator), Object::List(list)) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+
+            let mut sorted_list = list.clone();
+            sorted_list.sort_by(|a, b| {
+                match &*comparator.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(a), Rc::clone(b)], source).unwrap() {
+                    Object::Integer(comparison) => comparison.cmp(&0),
+                    comparison => if comparison.is_truthy() {
+                        std::cmp::Ordering::Greater
+                    } else {
+                        std::cmp::Ordering::Less
+                    }
+                }
+            });
+
+            Ok(Rc::new(Object::List(sorted_list)))
+        }
+    }
+}

@@ -31,6 +31,7 @@ builtins! {
     collection::first,
     collection::rest,
     collection::get,
+    collection::sort,
     operators::or,
     operators::and,
     operators::memoize,
