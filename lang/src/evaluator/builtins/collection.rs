@@ -1269,18 +1269,192 @@ builtin! {
 builtin! {
     assoc(key, value, collection) [evaluator, source] match {
         (Object::Integer(index), _, Object::List(list)) => {
+            let mut associated = list.clone();
             if *index as usize >= list.len()  {
-                return Err(RuntimeErr {
-                    message: "List index out of bounds".to_owned(),
-                    source,
-                    trace: evaluator.get_trace()
-                });
+                for _ in 0..=*index as usize-list.len() {
+                    associated.push_back(Rc::new(Object::Nil));
+                }
             }
-
-            Ok(Rc::new(Object::List(list.clone().update(*index as usize, Rc::clone(value)))))
+            Ok(Rc::new(Object::List(associated.update(*index as usize, Rc::clone(value)))))
         }
         (_, _, Object::Hash(map)) => {
             Ok(Rc::new(Object::Hash(map.update(Rc::clone(key), Rc::clone(value)))))
+        }
+    }
+}
+
+builtin! {
+    update(key, updater, collection) [evaluator, source] match {
+        (Object::Integer(index), Object::Function(updater), Object::List(list)) => {
+            let mut updated = list.clone();
+            let index = *index as usize;
+            if index >= list.len()  {
+                for _ in 0..=index-list.len() {
+                    updated.push_back(Rc::new(Object::Nil));
+                }
+            }
+            let previous = match updated.get(index) {
+                Some(value) => Rc::clone(value),
+                None => Rc::new(Object::Nil),
+            };
+            Ok(Rc::new(Object::List(updated.update(index, updater.apply(evaluator, vec![Rc::clone(&previous)], source)?))))
+        }
+        (_, Object::Function(updater), Object::Hash(map)) => {
+            let previous = match map.get(key) {
+                Some(value) => Rc::clone(value),
+                None => Rc::new(Object::Nil),
+            };
+            Ok(Rc::new(Object::Hash(map.update(Rc::clone(key), updater.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(key)], source)?))))
+        }
+    }
+}
+
+builtin! {
+    update_d(key, default, updater, collection) [evaluator, source] match {
+        (Object::Integer(index), _, Object::Function(updater), Object::List(list)) => {
+            let mut updated = list.clone();
+            let index = *index as usize;
+            let previous = match updated.get(index) {
+                Some(value) => Rc::clone(value),
+                None => Rc::clone(default),
+            };
+            if index >= list.len()  {
+                for _ in 0..=index-list.len() {
+                    updated.push_back(Rc::new(Object::Nil));
+                }
+            }
+            Ok(Rc::new(Object::List(updated.update(index, updater.apply(evaluator, vec![Rc::clone(&previous)], source)?))))
+        }
+        (_, _,Object::Function(updater), Object::Hash(map)) => {
+            let previous = match map.get(key) {
+                Some(value) => Rc::clone(value),
+                None => Rc::clone(default),
+            };
+            Ok(Rc::new(Object::Hash(map.update(Rc::clone(key), updater.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(key)], source)?))))
+        }
+    }
+}
+
+builtin! {
+    fold_s(initial, folder, collection) [evaluator, source] match {
+        (_, Object::Function(folder), Object::List(list)) => {
+            let mut accumulator = Rc::clone(initial);
+            for element in list {
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            if let Object::List(accumulated) = &*accumulator {
+                if let Some(value) = accumulated.get(0) {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            Err(RuntimeErr {
+                message: "Expected a List with an accumulated value at 0 index".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
+        }
+        (_, Object::Function(folder), Object::Set(set)) => {
+            let mut accumulator = Rc::clone(initial);
+            for element in set {
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            if let Object::List(accumulated) = &*accumulator {
+                if let Some(value) = accumulated.get(0) {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            Err(RuntimeErr {
+                message: "Expected a List with an accumulated value at 0 index".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
+        }
+        (_, Object::Function(folder), Object::Hash(map)) => {
+            let mut accumulator = Rc::clone(initial);
+            for (key, value) in map {
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(value), Rc::clone(key)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            if let Object::List(accumulated) = &*accumulator {
+                if let Some(value) = accumulated.get(0) {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            Err(RuntimeErr {
+                message: "Expected a List with an accumulated value at 0 index".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
+        }
+        (_, Object::Function(folder), Object::LazySequence(sequence)) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            let mut accumulator = Rc::clone(initial);
+            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
+                accumulator = folder.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&accumulator), Rc::clone(&element)], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            if let Object::List(accumulated) = &*accumulator {
+                if let Some(value) = accumulated.get(0) {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            let trace = shared_evaluator.borrow().get_trace();
+            Err(RuntimeErr {
+                message: "Expected a List with an accumulated value at 0 index".to_owned(),
+                source,
+                trace
+            })
+        }
+        (_, Object::Function(folder), Object::String(string)) => {
+            let mut accumulator = Rc::clone(initial);
+            for character in string.chars() {
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+                if let Object::Break(value) = &*accumulator {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            if let Object::List(accumulated) = &*accumulator {
+                if let Some(value) = accumulated.get(0) {
+                    return Ok(Rc::clone(value));
+                }
+            }
+            Err(RuntimeErr {
+                message: "Expected a List with an accumulated value at 0 index".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
+        }
+    }
+}
+
+builtin! {
+    rotate(steps, collection) [evaluator, source] match {
+        (Object::Integer(steps), Object::List(list)) => {
+            if list.len() < 2 {
+                return Ok(Rc::clone(collection));
+            }
+            let mut rotated = list.clone();
+            let backwards = *steps < 0;
+            for _ in 0..steps.abs() {
+                if backwards {
+                    let front = rotated.pop_front().unwrap();
+                    rotated.push_back(front);
+                } else {
+                    let back = rotated.pop_back().unwrap();
+                    rotated.push_front(back);
+                }
+            }
+            Ok(Rc::new(Object::List(rotated)))
         }
     }
 }

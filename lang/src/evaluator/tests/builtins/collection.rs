@@ -475,8 +475,57 @@ test_eval! {
 test_eval! {
     suite assoc;
 
-    ("assoc(0, 1, [])", "List index out of bounds", empty_list),
-    ("assoc(0, 3, [1, 2])", "[3, 2]", list_with_elements),
+    ("assoc(0, 1, [])", "[1]", empty_list),
+    ("assoc(1, 1, [])", "[nil, 1]", empty_list_second_index),
+    ("assoc(0, 3, [1, 2])", "[3, 2]", list_with_existing_element),
     ("assoc(0, 1, #{})", "#{0: 1}", empty_hash),
-    ("assoc(0, 1, #{1: 2, 3: 4})", "#{1: 2, 3: 4, 0: 1}", hash_with_elements)
+    ("assoc(1, 1, #{1: 2, 3: 4})", "#{1: 1, 3: 4}", hash_with_existing_entry),
+    ("assoc(0, 1, #{1: 2, 3: 4})", "#{1: 2, 3: 4, 0: 1}", hash_with_new_entry)
+}
+
+test_eval! {
+    suite update;
+
+    ("update(0, || 1, [])", "[1]", empty_list),
+    ("update(1, || 1, [])", "[nil, 1]", empty_list_non_zero_index),
+    ("update(0, _ + 1, [1, 2])", "[2, 2]", list_with_existing_element),
+    ("update(0, || 1, #{})", "#{0: 1}", empty_hash),
+    ("update(1, _ + 1, #{1: 2, 3: 4})", "#{1: 3, 3: 4}", hash_with_existing_entry)
+}
+
+test_eval! {
+    suite update_d;
+
+    ("update_d(0, 0, _ + 1, [])", "[1]", empty_list),
+    ("update_d(1, 0, _ + 1, [])", "[nil, 1]", empty_list_non_zero_index),
+    ("update_d(0, 0, _ + 1, [1, 2])", "[2, 2]", list_with_existing_element),
+    ("update_d(0, 0, _ + 1, #{})", "#{0: 1}", empty_hash),
+    ("update_d(1, 0, _ + 1, #{1: 2, 3: 4})", "#{1: 3, 3: 4}", hash_with_existing_entry)
+}
+
+test_eval! {
+    suite fold_s;
+
+    sut "let folder = |[acc, prev], val| [acc + prev * val, val]";
+
+    ("fold_s([0, 1], folder, [])", "0", empty_list),
+    ("fold_s([0, 1], folder, [1, 4, 3, 2])", "23", list_with_elements),
+    ("fold_s([0, 1], folder, {})", "0", empty_set),
+    ("fold_s([0, 1], folder, {1, 4, 3, 2})", "23", set_with_elements),
+    ("fold_s([0, 1], folder, #{})", "0", empty_hash),
+    ("fold_s([0, 1], folder, #{1: 2, 3: 4})", "10", hash_with_elements),
+    ("fold_s([\"\", \"\"], |[acc, prev], val| [acc + prev + val, val], \"\")", "\"\"", empty_string),
+    ("fold_s([\"\", \"a\"], |[acc, prev], val| [acc + prev + val, val], \"ab\")", "\"aaab\"", string_with_characters),
+    ("fold_s([0, 1], folder, 0..0)", "0", empty_lazy_sequence),
+    ("fold_s([0, 1], folder, 0..=10)", "330", lazy_sequence_with_elements),
+    ("fold_s([0, 0, 0], |[acc, x, y], val| [acc + x * y * val, val, val / 2], 1..=10)", "1060", multi_state)
+}
+
+test_eval! {
+    suite rotate;
+
+    ("rotate(2, [1, 2, 3])", "[2, 3, 1]", positive_step_in_bounds),
+    ("rotate(6, [1, 2, 3])", "[1, 2, 3]", positive_step_out_of_bounds),
+    ("rotate(-2, [1, 2, 3])", "[3, 1, 2]", negative_step_in_bounds),
+    ("rotate(-6, [1, 2, 3])", "[1, 2, 3]", negative_step_out_of_bounds)
 }
