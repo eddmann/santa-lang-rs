@@ -1458,3 +1458,32 @@ builtin! {
         }
     }
 }
+
+builtin! {
+    chunk(size, collection) [evaluator, source] match {
+        (Object::Integer(size), Object::List(list)) => {
+            let mut chunked: Vector<Rc<Object>> = Vector::new();
+            let mut remaining_elements = list.clone().into_iter().peekable();
+            while remaining_elements.peek().is_some() {
+                chunked.push_back(Rc::new(Object::List(remaining_elements.by_ref().take(*size as usize).collect())));
+            }
+            Ok(Rc::new(Object::List(chunked)))
+        }
+        (Object::Integer(size), Object::String(string)) => {
+            let mut chunked: Vector<Rc<Object>> = Vector::new();
+            let mut remaining_elements = string.chars().map(|character| Rc::new(Object::String(character.to_string()))).peekable();
+            while remaining_elements.peek().is_some() {
+                chunked.push_back(Rc::new(Object::List(remaining_elements.by_ref().take(*size as usize).collect())));
+            }
+            Ok(Rc::new(Object::List(chunked)))
+        }
+    }
+}
+
+builtin! {
+    combinations(size, collection) [evaluator, source] match {
+        (Object::Integer(size), Object::List(list)) => {
+            Ok(Rc::new(Object::LazySequence(LazySequence::combinations(*size as u32, list.clone()))))
+        }
+    }
+}

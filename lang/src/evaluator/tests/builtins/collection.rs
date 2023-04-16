@@ -529,3 +529,23 @@ test_eval! {
     ("rotate(-2, [1, 2, 3])", "[3, 1, 2]", negative_step_in_bounds),
     ("rotate(-6, [1, 2, 3])", "[1, 2, 3]", negative_step_out_of_bounds)
 }
+
+test_eval! {
+    suite chunk;
+
+    ("chunk(2, [])", "[]", empty_list),
+    ("chunk(2, [1, 2, 3])", "[[1, 2], [3]]", list_with_odd_amount_of_times),
+    ("chunk(2, [1, 2, 3, 4])", "[[1, 2], [3, 4]]", list_with_even_amount_of_times),
+    ("chunk(5, [1, 2, 3, 4])", "[[1, 2, 3, 4]]", list_with_less_items_than_the_chunk),
+    ("chunk(2, \"hello\")", "[[\"h\", \"e\"], [\"l\", \"l\"], [\"o\"]]", string)
+}
+
+test_eval! {
+    suite combinations;
+
+    ("combinations(1, []) |> list", "[]", empty_list),
+    ("combinations(1, [1, 2, 3, 4, 5]) |> list", "[[1], [2], [3], [4], [5]]", one_element),
+    ("combinations(2, [1, 2, 3, 4, 5]) |> list", "[[1, 2], [1, 3], [1, 4], [1, 5], [2, 3], [2, 4], [2, 5], [3, 4], [3, 5], [4, 5]]", two_elements),
+    ("combinations(5, [1, 2, 3, 4, 5]) |> list", "[[1, 2, 3, 4, 5]]", one_combination),
+    ("combinations(6, [1, 2, 3, 4, 5]) |> list", "[]", exhausted_elements)
+}

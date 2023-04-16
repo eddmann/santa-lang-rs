@@ -9,12 +9,37 @@ use std::rc::Rc;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 enum LazyValue {
-    InclusiveRange { current: i64, to: i64, step: i64 },
-    ExclusiveRange { current: i64, until: i64, step: i64 },
-    UnboundedRange { current: i64, step: i64 },
-    Repeat { value: Rc<Object> },
-    Cycle { index: usize, list: Vector<Rc<Object>> },
-    Iterate { current: Rc<Object>, generator: Function },
+    InclusiveRange {
+        current: i64,
+        to: i64,
+        step: i64,
+    },
+    ExclusiveRange {
+        current: i64,
+        until: i64,
+        step: i64,
+    },
+    UnboundedRange {
+        current: i64,
+        step: i64,
+    },
+    Repeat {
+        value: Rc<Object>,
+    },
+    Cycle {
+        index: usize,
+        list: Vector<Rc<Object>>,
+    },
+    Iterate {
+        current: Rc<Object>,
+        generator: Function,
+    },
+    Combinations {
+        size: u32,
+        min: usize,
+        mask: usize,
+        collection: Vector<Rc<Object>>,
+    },
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -41,6 +66,7 @@ impl fmt::Display for LazySequence {
             LazyValue::Repeat { value } => format!("[{}, ∞]", value),
             LazyValue::Cycle { .. } => "[cycle ∞]".to_owned(),
             LazyValue::Iterate { .. } => "[iterate ∞]".to_owned(),
+            LazyValue::Combinations { .. } => "[combinations]".to_owned(),
         };
         write!(f, "{}", s)
     }
@@ -95,6 +121,26 @@ impl LazySequence {
             value: LazyValue::Iterate {
                 current: initial,
                 generator,
+            },
+            functions: vec![],
+        }
+    }
+
+    pub fn combinations(size: u32, collection: Vector<Rc<Object>>) -> Self {
+        let collection_len = collection.len();
+        let min = 2_usize.pow(size) - 1;
+        let max = if collection_len >= size as usize {
+            2_usize.pow(collection_len as u32) - 2_usize.pow((collection_len - size as usize) as u32)
+        } else {
+            0
+        };
+
+        Self {
+            value: LazyValue::Combinations {
+                size,
+                min,
+                mask: max,
+                collection,
             },
             functions: vec![],
         }
@@ -188,6 +234,28 @@ impl LazySequenceIter<'_> {
                     .ok()?;
 
                 Some(next)
+            }
+            LazyValue::Combinations {
+                size,
+                min,
+                ref mut mask,
+                ref collection,
+            } => {
+                while *mask >= min {
+                    if mask.count_ones() == size {
+                        let b = format!("{:01$b}", mask, collection.len());
+                        let res = b
+                            .chars()
+                            .enumerate()
+                            .filter(|&(_, e)| e == '1')
+                            .map(|(i, _)| Rc::clone(&collection[i]))
+                            .collect::<Vector<Rc<Object>>>();
+                        *mask -= 1;
+                        return Some(Rc::new(Object::List(res)));
+                    }
+                    *mask -= 1;
+                }
+                None
             }
         }
     }

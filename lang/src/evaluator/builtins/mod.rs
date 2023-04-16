@@ -43,6 +43,8 @@ builtins! {
     collection::update_d,
     collection::fold_s,
     collection::rotate,
+    collection::chunk,
+    collection::combinations,
     operators::or,
     operators::and,
     operators::memoize,
