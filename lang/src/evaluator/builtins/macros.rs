@@ -28,14 +28,12 @@ macro_rules! builtin {
                             .join(", ");
                         message.push_str(&format!("Invalid arguments: {}({})\n", stringify!($name), arguments));
 
-                        message.push_str("Expected arguments:\n");
                         let patterns = vec![$( stringify!($pattern) ),*]
                             .iter()
-                            .map(|pattern| pattern.replace("Object::", "").trim_matches(|c| c == '(' || c == ')').to_owned())
-                            .collect::<Vec<_>>();
-                        for pattern in patterns {
-                            message.push_str(&format!("{}({})", stringify!($name), pattern));
-                        }
+                            .map(|pattern| format!("{}({})", stringify!($name), pattern.replace("Object::", "")))
+                            .collect::<Vec<_>>()
+                            .join(", ");
+                        message.push_str(&format!("Expected usage: {}", patterns));
 
                         Err($crate::evaluator::RuntimeErr { message, source, trace: $evaluator.get_trace() })
                     }
@@ -68,14 +66,12 @@ macro_rules! builtin {
                             .join(", ");
                         message.push_str(&format!("Invalid arguments: {}({})\n", stringify!($name), arguments));
 
-                        message.push_str("Expected arguments:\n");
                         let patterns = vec![$( stringify!($pattern) ),*]
                             .iter()
-                            .map(|pattern| pattern.replace("Object::", "").trim_matches(|c| c == '(' || c == ')').to_owned())
-                            .collect::<Vec<_>>();
-                        for pattern in patterns {
-                            message.push_str(&format!("{}({})", stringify!($name), pattern));
-                        }
+                            .map(|pattern| format!("{}({})", stringify!($name), pattern.replace("Object::", "")))
+                            .collect::<Vec<_>>()
+                            .join(", ");
+                        message.push_str(&format!("Expected usage: {}", patterns));
 
                         Err($crate::evaluator::RuntimeErr { message, source, trace: evaluator.get_trace() })
                     }
@@ -111,14 +107,12 @@ macro_rules! builtin {
                             .join(", ");
                         message.push_str(&format!("Invalid arguments: {}({})\n", stringify!($name), arguments));
 
-                        message.push_str("Expected arguments:\n");
                         let patterns = vec![$( stringify!($pattern) ),*]
                             .iter()
-                            .map(|pattern| pattern.replace("Object::", "").trim_matches(|c| c == '(' || c == ')').to_owned())
-                            .collect::<Vec<_>>();
-                        for pattern in patterns {
-                            message.push_str(&format!("{}({})", stringify!($name), pattern));
-                        }
+                            .map(|pattern| format!("{}({})", stringify!($name), pattern.replace("Object::", "")))
+                            .collect::<Vec<_>>()
+                            .join(", ");
+                        message.push_str(&format!("Expected usage: {}", patterns));
 
                         Err($crate::evaluator::RuntimeErr { message, source, trace: $evaluator.get_trace() })
                     }
