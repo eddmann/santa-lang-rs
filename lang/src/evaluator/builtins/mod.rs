@@ -1,5 +1,6 @@
 #[macro_use]
 mod macros;
+mod basic;
 mod collection;
 pub mod operators;
 
@@ -45,6 +46,22 @@ builtins! {
     collection::rotate,
     collection::chunk,
     collection::combinations,
+    basic::abs,
+    basic::vec_add,
+    basic::signum,
+    basic::bit_and,
+    basic::bit_or,
+    basic::bit_xor,
+    basic::bit_shift_left,
+    basic::bit_shift_right,
+    basic::int,
+    basic::ints,
+    basic::lines,
+    basic::split,
+    basic::regex_match,
+    basic::regex_match_all,
+    basic::range,
+    basic::id,
     operators::or,
     operators::and,
     operators::memoize,
@@ -66,5 +83,6 @@ builtin_aliases! {
     "includes?" => collection::includes,
     "excludes?" => collection::excludes,
     "any?" => collection::any,
-    "all?" => collection::all
+    "all?" => collection::all,
+    "type" => basic::type_name
 }

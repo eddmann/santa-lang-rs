@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 im-rc = { git = "https://github.com/eddmann/im-rs.git" }
 ordered-float = "3.6.0"
+regex = "1.7.3"
 
 [dev-dependencies]
 expect-test = "1.0"

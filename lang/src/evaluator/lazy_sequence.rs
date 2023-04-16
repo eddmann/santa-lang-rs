@@ -84,6 +84,17 @@ impl LazySequence {
         }
     }
 
+    pub fn inclusive_range_with_step(from: i64, to: i64, step: i64) -> Self {
+        Self {
+            value: LazyValue::InclusiveRange {
+                current: from,
+                to,
+                step,
+            },
+            functions: vec![],
+        }
+    }
+
     pub fn exclusive_range(from: i64, until: i64) -> Self {
         Self {
             value: LazyValue::ExclusiveRange {
