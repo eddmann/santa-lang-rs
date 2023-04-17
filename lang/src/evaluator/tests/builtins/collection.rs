@@ -162,7 +162,8 @@ test_eval! {
     ("max(#{})", "nil", empty_hash),
     ("max(#{1: 2, 3: 4})", "4", hash_with_elements),
     ("max(0..0)", "nil", empty_lazy_sequence),
-    ("max(0..2)", "1", lazy_sequence_with_elements)
+    ("max(0..2)", "1", lazy_sequence_with_elements),
+    ("max(1, 2)", "2", multi_argument)
 }
 
 test_eval! {
@@ -175,7 +176,8 @@ test_eval! {
     ("min(#{})", "nil", empty_hash),
     ("min(#{1: 2, 3: 4})", "2", hash_with_elements),
     ("min(0..0)", "nil", empty_lazy_sequence),
-    ("min(0..2)", "0", lazy_sequence_with_elements)
+    ("min(0..2)", "0", lazy_sequence_with_elements),
+    ("min(1, 2)", "1", multi_argument)
 }
 
 test_eval! {
@@ -300,6 +302,19 @@ test_eval! {
 }
 
 test_eval! {
+    suite second;
+
+    ("second([])", "nil", empty_list),
+    ("second([1, 2])", "2", list_with_elements),
+    ("second({})", "nil", empty_set),
+    ("second({1, 2})", "2", set_with_elements),
+    ("second(\"\")", "nil", empty_string),
+    ("second(\"ab\")", "\"b\"", string_with_characters),
+    ("second(0..0)", "nil", empty_lazy_sequence),
+    ("second(0..2)", "1", lazy_sequence_with_elements)
+}
+
+test_eval! {
     suite rest;
 
     ("rest([])", "[]", empty_list),
@@ -331,32 +346,32 @@ test_eval! {
 test_eval! {
     suite includes;
 
-    ("includes?(1, [])", "false", empty_list),
-    ("includes?(1, [1, 2])", "true", list_with_elements),
-    ("includes?(1, {})", "false", empty_set),
-    ("includes?(1, {2, 1})", "true", set_with_elements),
-    ("includes?(1, #{})", "false", empty_hash),
-    ("includes?(1, #{1: 2, 3: 4})", "true", hash_with_elements),
-    ("includes?(\"a\", \"\")", "false", empty_string),
-    ("includes?(\"a\", \"ab\")", "true", string_with_characters),
-    ("includes?(1, 0..0)", "false", empty_lazy_sequence),
-    ("includes?(1, 0..2)", "true", finite_lazy_sequence),
-    ("includes?(1, 0..)", "true", infinite_lazy_sequence)
+    ("includes?([], 1)", "false", empty_list),
+    ("includes?([1, 2], 1)", "true", list_with_elements),
+    ("includes?({}, 1)", "false", empty_set),
+    ("includes?({2, 1}, 1)", "true", set_with_elements),
+    ("includes?(#{}, 1)", "false", empty_hash),
+    ("includes?(#{1: 2, 3: 4}, 1)", "true", hash_with_elements),
+    ("includes?(\"\", \"a\")", "false", empty_string),
+    ("includes?(\"ab\", \"a\")", "true", string_with_characters),
+    ("includes?(0..0, 1)", "false", empty_lazy_sequence),
+    ("includes?(0..2, 1)", "true", finite_lazy_sequence),
+    ("includes?(0.., 1)", "true", infinite_lazy_sequence)
 }
 
 test_eval! {
     suite excludes;
 
-    ("excludes?(1, [])", "true", empty_list),
-    ("excludes?(1, [1, 2])", "false", list_with_elements),
-    ("excludes?(1, {})", "true", empty_set),
-    ("excludes?(1, {2, 1})", "false", set_with_elements),
-    ("excludes?(1, #{})", "true", empty_hash),
-    ("excludes?(1, #{1: 2, 3: 4})", "false", hash_with_elements),
-    ("excludes?(\"a\", \"\")", "true", empty_string),
-    ("excludes?(\"a\", \"ab\")", "false", string_with_characters),
-    ("excludes?(1, 0..0)", "true", empty_lazy_sequence),
-    ("excludes?(1, 0..2)", "false", finite_lazy_sequence)
+    ("excludes?([], 1)", "true", empty_list),
+    ("excludes?([1, 2], 1)", "false", list_with_elements),
+    ("excludes?({}, 1)", "true", empty_set),
+    ("excludes?({2, 1}, 1)", "false", set_with_elements),
+    ("excludes?(#{}, 1)", "true", empty_hash),
+    ("excludes?(#{1: 2, 3: 4}, 1)", "false", hash_with_elements),
+    ("excludes?(\"\", \"a\")", "true", empty_string),
+    ("excludes?(\"ab\", \"a\")", "false", string_with_characters),
+    ("excludes?(0..0, 1)", "true", empty_lazy_sequence),
+    ("excludes?(0..2, 1)", "false", finite_lazy_sequence)
 }
 
 test_eval! {
@@ -403,17 +418,27 @@ test_eval! {
 test_eval! {
     suite union;
 
-    ("union({1, 2}, {2, 3})", "{1, 2, 3}", sets),
-    ("union({1, 2}, [2, 3])", "{1, 2, 3}", set_and_list),
-    ("union({1, 2}, 2..=3)", "{1, 2, 3}", set_and_lazy_sequence)
+    ("union([{1, 2}, {2, 3}])", "{1, 2, 3}", single_argument_sets),
+    ("union([{1, 2}, [2, 3]])", "{1, 2, 3}", single_argument_set_and_list),
+    ("union([{1, 2}, 2..=3])", "{1, 2, 3}", single_argument_set_and_lazy_sequence),
+    ("union({1, 2}, {2, 3})", "{1, 2, 3}", multi_argument_sets),
+    ("union({1, 2}, [2, 3])", "{1, 2, 3}", multi_argument_set_and_list),
+    ("union({1, 2}, 2..=3)", "{1, 2, 3}", multi_argument_set_and_lazy_sequence),
+    ("union(true, {1, 2})", "Unable to convert a Boolean into an Set", fails_to_convert_argument_into_set),
+    ("union({1, 2}, [|| 1])", "Unable to include a Function within an Set", fails_to_convert_unhashable_list_element_into_set)
 }
 
 test_eval! {
     suite intersection;
 
-    ("intersection({1, 2}, {2, 3})", "{2}", sets),
-    ("intersection({1, 2}, [2, 3])", "{2}", set_and_list),
-    ("intersection({1, 2}, 2..=3)", "{2}", set_and_lazy_sequence)
+    ("intersection([{1, 2}, {2, 3}])", "{2}", single_argument_sets),
+    ("intersection([{1, 2}, [2, 3]])", "{2}", single_argument_set_and_list),
+    ("intersection([{1, 2}, 2..=3])", "{2}", single_argument_set_and_lazy_sequence),
+    ("intersection({1, 2}, {2, 3})", "{2}", multi_argument_sets),
+    ("intersection({1, 2}, [2, 3])", "{2}", multi_argument_set_and_list),
+    ("intersection({1, 2}, 2..=3)", "{2}", multi_argument_set_and_lazy_sequence),
+    ("intersection(true, {1, 2})", "Unable to convert a Boolean into an Set", fails_to_convert_argument_into_set),
+    ("intersection({1, 2}, [|| 1])", "Unable to include a Function within an Set", fails_to_convert_unhashable_list_element_into_set)
 }
 
 test_eval! {

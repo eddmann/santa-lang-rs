@@ -30,6 +30,7 @@ builtins! {
     collection::keys,
     collection::values,
     collection::first,
+    collection::second,
     collection::rest,
     collection::get,
     collection::sort,

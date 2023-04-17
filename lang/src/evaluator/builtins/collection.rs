@@ -488,67 +488,109 @@ builtin! {
 }
 
 builtin! {
-    max(collection) [evaluator, source] match {
-        Object::List(list) => {
-            if let Some(max) = list.iter().max() {
-                return Ok(Rc::clone(max));
+    max(..values) [evaluator, source] {
+        let list = if let Object::List(list) = &**values {
+            if list.len() == 1 {
+                Rc::clone(&list[0])
+            } else {
+                Rc::clone(values)
             }
+        } else {
+            return Err(RuntimeErr {
+                message: "".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
+        };
 
-            Ok(Rc::new(Object::Nil))
-        }
-        Object::Set(set) => {
-            if let Some(max) = set.iter().max() {
-                return Ok(Rc::clone(max));
+        match &*list {
+            Object::List(list) => {
+                if let Some(max) = list.iter().max() {
+                    return Ok(Rc::clone(max));
+                }
+
+                Ok(Rc::new(Object::Nil))
             }
+            Object::Set(set) => {
+                if let Some(max) = set.iter().max() {
+                    return Ok(Rc::clone(max));
+                }
 
-            Ok(Rc::new(Object::Nil))
-        }
-        Object::Hash(map) => {
-            if let Some((key, value)) = map.iter().max() {
-                return Ok(Rc::clone(value));
+                Ok(Rc::new(Object::Nil))
             }
+            Object::Hash(map) => {
+                if let Some(max) = map.values().max() {
+                    return Ok(Rc::clone(max));
+                }
 
-            Ok(Rc::new(Object::Nil))
-        }
-        Object::LazySequence(sequence) => {
-            if let Some(max) = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).max() {
-                return Ok(Rc::clone(&max));
+                Ok(Rc::new(Object::Nil))
             }
+            Object::LazySequence(sequence) => {
+                if let Some(max) = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).max() {
+                    return Ok(Rc::clone(&max));
+                }
 
-            Ok(Rc::new(Object::Nil))
+                Ok(Rc::new(Object::Nil))
+            }
+            _ => Err(RuntimeErr {
+                message: "".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
         }
     }
 }
 
 builtin! {
-    min(collection) [evaluator, source] match {
-        Object::List(list) => {
-            if let Some(min) = list.iter().min() {
-                return Ok(Rc::clone(min));
+    min(..values) [evaluator, source] {
+        let list = if let Object::List(list) = &**values {
+            if list.len() == 1 {
+                Rc::clone(&list[0])
+            } else {
+                Rc::clone(values)
             }
+        } else {
+            return Err(RuntimeErr {
+                message: "".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
+        };
 
-            Ok(Rc::new(Object::Nil))
-        }
-        Object::Set(set) => {
-            if let Some(min) = set.iter().min() {
-                return Ok(Rc::clone(min));
+        match &*list {
+            Object::List(list) => {
+                if let Some(min) = list.iter().min() {
+                    return Ok(Rc::clone(min));
+                }
+
+                Ok(Rc::new(Object::Nil))
             }
+            Object::Set(set) => {
+                if let Some(min) = set.iter().min() {
+                    return Ok(Rc::clone(min));
+                }
 
-            Ok(Rc::new(Object::Nil))
-        }
-        Object::Hash(map) => {
-            if let Some((key, value)) = map.iter().min() {
-                return Ok(Rc::clone(value));
+                Ok(Rc::new(Object::Nil))
             }
+            Object::Hash(map) => {
+                if let Some(min) = map.values().min() {
+                    return Ok(Rc::clone(min));
+                }
 
-            Ok(Rc::new(Object::Nil))
-        }
-        Object::LazySequence(sequence) => {
-            if let Some(min) = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).min() {
-                return Ok(Rc::clone(&min));
+                Ok(Rc::new(Object::Nil))
             }
+            Object::LazySequence(sequence) => {
+                if let Some(min) = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).min() {
+                    return Ok(Rc::clone(&min));
+                }
 
-            Ok(Rc::new(Object::Nil))
+                Ok(Rc::new(Object::Nil))
+            }
+            _ => Err(RuntimeErr {
+                message: "".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
         }
     }
 }
@@ -852,6 +894,41 @@ builtin! {
 }
 
 builtin! {
+    second(collection) [evaluator, source] match {
+        Object::List(list) => {
+            if let Some(second) = list.get(1) {
+                return Ok(Rc::clone(second));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::Set(set) => {
+            let mut iterator = set.iter();
+            iterator.next();
+            if let Some(second) = iterator.next() {
+                return Ok(Rc::clone(second));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::LazySequence(sequence) => {
+            let mut iterator = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source);
+            iterator.next();
+            if let Some(second) = iterator.next() {
+                return Ok(Rc::clone(&second));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::String(string) => {
+            let mut iterator = string.chars();
+            iterator.next();
+            if let Some(second) = iterator.next() {
+                return Ok(Rc::new(Object::String(second.to_string())));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+    }
+}
+
+builtin! {
     rest(collection) [evaluator, source] match {
         Object::List(list) => {
             let mut rest = list.clone();
@@ -877,17 +954,17 @@ builtin! {
 }
 
 builtin! {
-    includes(value, collection) [evaluator, source] match {
-        (_, Object::List(list)) => {
+    includes(collection, value) [evaluator, source] match {
+        (Object::List(list), _) => {
             Ok(Rc::new(Object::Boolean(list.contains(value))))
         }
-        (_, Object::Set(set)) => {
+        (Object::Set(set), _) => {
             Ok(Rc::new(Object::Boolean(set.contains(value))))
         }
-        (_, Object::Hash(map)) => {
+        (Object::Hash(map), _) => {
             Ok(Rc::new(Object::Boolean(map.contains_key(value))))
         }
-        (_, Object::LazySequence(sequence)) => {
+        (Object::LazySequence(sequence), _) => {
             for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
                 if element == *value {
                     return Ok(Rc::new(Object::Boolean(true)))
@@ -895,7 +972,7 @@ builtin! {
             }
             Ok(Rc::new(Object::Boolean(false)))
         }
-        (_, Object::String(string)) => {
+        (Object::String(string), _) => {
             if let Object::String(subject) = &**value {
                 return Ok(Rc::new(Object::Boolean(string.contains(subject))));
             }
@@ -905,17 +982,17 @@ builtin! {
 }
 
 builtin! {
-    excludes(value, collection) [evaluator, source] match {
-        (_, Object::List(list)) => {
+    excludes(collection, value) [evaluator, source] match {
+        (Object::List(list), _) => {
             Ok(Rc::new(Object::Boolean(!list.contains(value))))
         }
-        (_, Object::Set(set)) => {
+        (Object::Set(set), _) => {
             Ok(Rc::new(Object::Boolean(!set.contains(value))))
         }
-        (_, Object::Hash(map)) => {
+        (Object::Hash(map), _) => {
             Ok(Rc::new(Object::Boolean(!map.contains_key(value))))
         }
-        (_, Object::LazySequence(sequence)) => {
+        (Object::LazySequence(sequence), _) => {
             for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
                 if element == *value {
                     return Ok(Rc::new(Object::Boolean(false)))
@@ -923,7 +1000,7 @@ builtin! {
             }
             Ok(Rc::new(Object::Boolean(true)))
         }
-        (_, Object::String(string)) => {
+        (Object::String(string), _) => {
             if let Object::String(subject) = &**value {
                 return Ok(Rc::new(Object::Boolean(!string.contains(subject))));
             }
@@ -1047,46 +1124,256 @@ builtin! {
 }
 
 builtin! {
-    union(a, b) [evaluator, source] match {
-        (Object::Set(_), _) => {
-            crate::evaluator::builtins::operators::plus(evaluator, a, b, source)
+    union(..values) [evaluator, source] {
+        let list = if let Object::List(list) = &**values {
+            if list.len() == 1 {
+                if let Object::List(list) = &*list[0] {
+                    list.clone()
+                } else {
+                    return Err(RuntimeErr {
+                        message: "".to_owned(),
+                        source,
+                        trace: evaluator.get_trace()
+                    })
+                }
+            } else {
+                list.clone()
+            }
+        } else {
+            return Err(RuntimeErr {
+                message: "".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
+        };
+
+        let mut elements = list.iter();
+        let mut accumulator = match elements.next() {
+            Some(element) => {
+                match &**element {
+                    Object::List(list) => {
+                        let mut elements = HashSet::default();
+                        for element in list {
+                            if !element.is_hashable() {
+                                return Err(RuntimeErr {
+                                    message: format!("Unable to include a {} within an Set", element.name()),
+                                    source,
+                                    trace: evaluator.get_trace()
+                                });
+                            }
+                            elements.insert(Rc::clone(element));
+                        }
+                        elements
+                    }
+                    Object::Set(set) => {
+                        set.clone()
+                    }
+                    Object::LazySequence(sequence) => {
+                        let mut elements = HashSet::default();
+                        for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+                            if !element.is_hashable() {
+                                return Err(RuntimeErr {
+                                    message: format!("Unable to include a {} within an Set", element.name()),
+                                    source,
+                                    trace: evaluator.get_trace()
+                                });
+                            }
+                            elements.insert(Rc::clone(&element));
+                        }
+                        elements
+                    }
+                    Object::String(string) => {
+                        string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>()
+                    }
+                    _ => {
+                        return Err(RuntimeErr {
+                            message: format!("Unable to convert a {} into an Set", element.name()),
+                            source,
+                            trace: evaluator.get_trace()
+                        });
+                    }
+                }
+            }
+            None => return Err(RuntimeErr {
+                message: "Unable to reduce an empty List".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
+        };
+        for element in elements {
+            let element = match &**element {
+                Object::List(list) => {
+                    let mut elements = HashSet::default();
+                    for element in list {
+                        if !element.is_hashable() {
+                            return Err(RuntimeErr {
+                                message: format!("Unable to include a {} within an Set", element.name()),
+                                source,
+                                trace: evaluator.get_trace()
+                            });
+                        }
+                        elements.insert(Rc::clone(element));
+                    }
+                    elements
+                }
+                Object::Set(set) => {
+                    set.clone()
+                }
+                Object::LazySequence(sequence) => {
+                    let mut elements = HashSet::default();
+                    for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+                        if !element.is_hashable() {
+                            return Err(RuntimeErr {
+                                message: format!("Unable to include a {} within an Set", element.name()),
+                                source,
+                                trace: evaluator.get_trace()
+                            });
+                        }
+                        elements.insert(Rc::clone(&element));
+                    }
+                    elements
+                }
+                Object::String(string) => {
+                    string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>()
+                }
+                _ => {
+                    return Err(RuntimeErr {
+                        message: format!("Unable to convert a {} into an Set", element.name()),
+                        source,
+                        trace: evaluator.get_trace()
+                    });
+                }
+            };
+            accumulator = accumulator.union(element);
         }
+        Ok(Rc::new(Object::Set(accumulator)))
     }
 }
 
 builtin! {
-    intersection(a, b) [evaluator, source] match {
-        (Object::Set(a), Object::Set(b)) => {
-            Ok(Rc::new(Object::Set(a.clone().intersection(b.clone()))))
-        }
-        (Object::Set(a), Object::List(b)) => {
-            let mut b_set = HashSet::default();
-            for element in b {
-                if !element.is_hashable() {
+    intersection(..values) [evaluator, source] {
+        let list = if let Object::List(list) = &**values {
+            if list.len() == 1 {
+                if let Object::List(list) = &*list[0] {
+                    list.clone()
+                } else {
                     return Err(RuntimeErr {
-                        message: format!("Unable to include a {} within an Set", element.name()),
+                        message: "".to_owned(),
+                        source,
+                        trace: evaluator.get_trace()
+                    })
+                }
+            } else {
+                list.clone()
+            }
+        } else {
+            return Err(RuntimeErr {
+                message: "".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
+        };
+
+        let mut elements = list.iter();
+        let mut accumulator = match elements.next() {
+            Some(element) => {
+                match &**element {
+                    Object::List(list) => {
+                        let mut elements = HashSet::default();
+                        for element in list {
+                            if !element.is_hashable() {
+                                return Err(RuntimeErr {
+                                    message: format!("Unable to include a {} within an Set", element.name()),
+                                    source,
+                                    trace: evaluator.get_trace()
+                                });
+                            }
+                            elements.insert(Rc::clone(element));
+                        }
+                        elements
+                    }
+                    Object::Set(set) => {
+                        set.clone()
+                    }
+                    Object::LazySequence(sequence) => {
+                        let mut elements = HashSet::default();
+                        for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+                            if !element.is_hashable() {
+                                return Err(RuntimeErr {
+                                    message: format!("Unable to include a {} within an Set", element.name()),
+                                    source,
+                                    trace: evaluator.get_trace()
+                                });
+                            }
+                            elements.insert(Rc::clone(&element));
+                        }
+                        elements
+                    }
+                    Object::String(string) => {
+                        string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>()
+                    }
+                    _ => {
+                        return Err(RuntimeErr {
+                            message: format!("Unable to convert a {} into an Set", element.name()),
+                            source,
+                            trace: evaluator.get_trace()
+                        });
+                    }
+                }
+            }
+            None => return Err(RuntimeErr {
+                message: "Unable to reduce an empty List".to_owned(),
+                source,
+                trace: evaluator.get_trace()
+            })
+        };
+        for element in elements {
+            let element = match &**element {
+                Object::List(list) => {
+                    let mut elements = HashSet::default();
+                    for element in list {
+                        if !element.is_hashable() {
+                            return Err(RuntimeErr {
+                                message: format!("Unable to include a {} within an Set", element.name()),
+                                source,
+                                trace: evaluator.get_trace()
+                            });
+                        }
+                        elements.insert(Rc::clone(element));
+                    }
+                    elements
+                }
+                Object::Set(set) => {
+                    set.clone()
+                }
+                Object::LazySequence(sequence) => {
+                    let mut elements = HashSet::default();
+                    for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+                        if !element.is_hashable() {
+                            return Err(RuntimeErr {
+                                message: format!("Unable to include a {} within an Set", element.name()),
+                                source,
+                                trace: evaluator.get_trace()
+                            });
+                        }
+                        elements.insert(Rc::clone(&element));
+                    }
+                    elements
+                }
+                Object::String(string) => {
+                    string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>()
+                }
+                _ => {
+                    return Err(RuntimeErr {
+                        message: format!("Unable to convert a {} into an Set", element.name()),
                         source,
                         trace: evaluator.get_trace()
                     });
                 }
-                b_set.insert(Rc::clone(element));
-            }
-            Ok(Rc::new(Object::Set(a.clone().intersection(b_set))))
+            };
+            accumulator = accumulator.intersection(element);
         }
-        (Object::Set(a), Object::LazySequence(b)) => {
-            let mut b_set = HashSet::default();
-            for element in b.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
-                if !element.is_hashable() {
-                    return Err(RuntimeErr {
-                        message: format!("Unable to include a {} within an Set", element.name()),
-                        source,
-                        trace: evaluator.get_trace()
-                    });
-                }
-                b_set.insert(Rc::clone(&element));
-            }
-            Ok(Rc::new(Object::Set(a.clone().intersection(b_set))))
-        }
+        Ok(Rc::new(Object::Set(accumulator)))
     }
 }
 

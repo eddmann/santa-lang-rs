@@ -97,7 +97,11 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
 }
 
 fn list_lookup(list: &Vector<Rc<Object>>, index: i64) -> Option<Rc<Object>> {
-    if index.unsigned_abs() as usize >= list.len() {
+    if index > 0 && index as usize >= list.len() {
+        return None;
+    }
+
+    if index < 0 && list.len() as i64 + index < 0 {
         return None;
     }
 
