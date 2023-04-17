@@ -23,17 +23,43 @@ macro_rules! builtin {
 
                         let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).unwrap().name()) ),*]
                             .iter()
-                            .map(|(parameter, argument)| format!("{}: {}", parameter, argument))
+                            .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
                             .join(", ");
-                        message.push_str(&format!("Invalid arguments: {}({})\n", stringify!($name), arguments));
+                        message.push_str(&format!("Unexpected argument: {}({})", stringify!($name), arguments));
 
-                        let patterns = vec![$( stringify!($pattern) ),*]
+                        Err($crate::evaluator::RuntimeErr { message, source, trace: $evaluator.get_trace() })
+                    }
+                }
+            }
+        }
+    };
+    ( $name: ident (..$rest: ident) [$evaluator: ident, $source: ident] match { $( $pattern: pat_param => $body: block )* }) => {
+        pub mod $name {
+            use super::*;
+
+            #[inline]
+            pub fn parameters() -> Vec<$crate::parser::ast::ExpressionKind> {
+                vec![$crate::parser::ast::ExpressionKind::RestIdentifier(stringify!($rest).to_owned())]
+            }
+
+            #[inline]
+            #[allow(unused_variables)]
+            pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
+                let $evaluator = evaluator;
+                let $source = source;
+                let $rest = arguments.get(stringify!($rest)).unwrap();
+                match (&**arguments.get(stringify!($rest)).unwrap()) {
+                    $( $pattern => $body ),*
+                    _ => {
+                        let mut message = String::new();
+
+                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).unwrap().name()) ),*]
                             .iter()
-                            .map(|pattern| format!("{}({})", stringify!($name), pattern.replace("Object::", "")))
+                            .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
                             .join(", ");
-                        message.push_str(&format!("Expected usage: {}", patterns));
+                        message.push_str(&format!("Unexpected argument: {}({})", stringify!($name), arguments));
 
                         Err($crate::evaluator::RuntimeErr { message, source, trace: $evaluator.get_trace() })
                     }
@@ -61,17 +87,10 @@ macro_rules! builtin {
 
                         let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).unwrap().name()) ),*]
                             .iter()
-                            .map(|(parameter, argument)| format!("{}: {}", parameter, argument))
+                            .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
                             .join(", ");
-                        message.push_str(&format!("Invalid arguments: {}({})\n", stringify!($name), arguments));
-
-                        let patterns = vec![$( stringify!($pattern) ),*]
-                            .iter()
-                            .map(|pattern| format!("{}({})", stringify!($name), pattern.replace("Object::", "")))
-                            .collect::<Vec<_>>()
-                            .join(", ");
-                        message.push_str(&format!("Expected usage: {}", patterns));
+                        message.push_str(&format!("Unexpected argument: {}({})", stringify!($name), arguments));
 
                         Err($crate::evaluator::RuntimeErr { message, source, trace: evaluator.get_trace() })
                     }
@@ -102,17 +121,10 @@ macro_rules! builtin {
 
                         let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).unwrap().name()) ),*]
                             .iter()
-                            .map(|(parameter, argument)| format!("{}: {}", parameter, argument))
+                            .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
                             .join(", ");
-                        message.push_str(&format!("Invalid arguments: {}({})\n", stringify!($name), arguments));
-
-                        let patterns = vec![$( stringify!($pattern) ),*]
-                            .iter()
-                            .map(|pattern| format!("{}({})", stringify!($name), pattern.replace("Object::", "")))
-                            .collect::<Vec<_>>()
-                            .join(", ");
-                        message.push_str(&format!("Expected usage: {}", patterns));
+                        message.push_str(&format!("Unexpected argument: {}({})", stringify!($name), arguments));
 
                         Err($crate::evaluator::RuntimeErr { message, source, trace: $evaluator.get_trace() })
                     }
@@ -139,7 +151,7 @@ macro_rules! builtin {
             }
         }
     };
-    ( $name: ident ($( $parameter: ident ),*, ..$rest: ident) $body: block ) => {
+    ( $name: ident ($( $parameter: ident ),*, ..$rest: ident) [$evaluator: ident, $source: ident] $body: block ) => {
         pub mod $name {
             use super::*;
 
@@ -151,7 +163,28 @@ macro_rules! builtin {
             #[inline]
             #[allow(unused_variables)]
             pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
+                let $evaluator = evaluator;
+                let $source = source;
                 $( let $parameter = arguments.get(stringify!($parameter)).unwrap(); )*
+                let $rest = arguments.get(stringify!($rest)).unwrap();
+                $body
+            }
+        }
+    };
+    ( $name: ident (..$rest: ident) [$evaluator: ident, $source: ident] $body: block ) => {
+        pub mod $name {
+            use super::*;
+
+            #[inline]
+            pub fn parameters() -> Vec<$crate::parser::ast::ExpressionKind> {
+                vec![$crate::parser::ast::ExpressionKind::RestIdentifier(stringify!($rest).to_owned())]
+            }
+
+            #[inline]
+            #[allow(unused_variables)]
+            pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
+                let $evaluator = evaluator;
+                let $source = source;
                 let $rest = arguments.get(stringify!($rest)).unwrap();
                 $body
             }
