@@ -23,7 +23,7 @@ fn puts(arguments: Arguments, _location: Location) -> Evaluation {
     match &**arguments.get("values").unwrap() {
         Object::List(values) => {
             for value in values {
-                print!("{}", value);
+                print!("{} ", value);
             }
             println!();
             Ok(Rc::new(Object::Nil))
