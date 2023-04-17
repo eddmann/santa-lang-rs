@@ -97,7 +97,13 @@ impl Function {
 
                 evaluator.pop_frame();
 
-                Ok(result)
+                let returned_result = if let Object::Return(value) = &*result {
+                    Rc::clone(value)
+                } else {
+                    result
+                };
+
+                Ok(returned_result)
             }
             Self::MemoizedClosure {
                 parameters,
@@ -151,9 +157,15 @@ impl Function {
 
                 evaluator.pop_frame();
 
-                cache.borrow_mut().insert(arguments, Rc::clone(&result));
+                let returned_result = if let Object::Return(value) = &*result {
+                    Rc::clone(value)
+                } else {
+                    result
+                };
 
-                Ok(result)
+                cache.borrow_mut().insert(arguments, Rc::clone(&returned_result));
+
+                Ok(returned_result)
             }
             Self::Builtin {
                 parameters,
@@ -182,7 +194,13 @@ impl Function {
 
                 evaluator.pop_frame();
 
-                Ok(result)
+                let returned_result = if let Object::Return(value) = &*result {
+                    Rc::clone(value)
+                } else {
+                    result
+                };
+
+                Ok(returned_result)
             }
             Self::External {
                 parameters,
@@ -211,13 +229,22 @@ impl Function {
 
                 evaluator.pop_frame();
 
-                Ok(result)
+                let returned_result = if let Object::Return(value) = &*result {
+                    Rc::clone(value)
+                } else {
+                    result
+                };
+
+                Ok(returned_result)
             }
             Self::Composition { functions } => {
                 let mut result = Rc::clone(&arguments[0]);
 
                 for function in functions {
                     result = function.apply(evaluator, vec![result], source)?;
+                    if let Object::Return(value) = &*result {
+                        result = Rc::clone(value)
+                    }
                 }
 
                 Ok(result)
