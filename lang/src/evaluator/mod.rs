@@ -137,6 +137,7 @@ impl Evaluator {
                                     arguments: self.eval_expressions(arguments)?,
                                 })));
                             }
+                            break;
                         }
                     }
                 }
@@ -152,6 +153,7 @@ impl Evaluator {
                                         arguments: self.eval_expressions(arguments)?,
                                     })));
                                 }
+                                break;
                             }
                         }
                     }
