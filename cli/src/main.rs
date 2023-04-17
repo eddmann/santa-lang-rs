@@ -213,7 +213,7 @@ fn print_error(source_path: &str, source: &str, error: RunErr) {
         for location in error.trace {
             let (line, column) = calculate_line_column(source, location);
             println!(
-                "  - {}():\x1b[32m{}:{}\x1b[0m",
+                "  \x1b[2m{}:\x1b[0m\x1b[32m{}:{}\x1b[0m",
                 &source[location.start..location.end]
                     .split_whitespace()
                     .collect::<Vec<_>>()
