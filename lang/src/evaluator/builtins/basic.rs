@@ -133,6 +133,9 @@ builtin! {
 builtin! {
     split(seperator, value) match {
         (Object::String(seperator), Object::String(value)) => {
+            if seperator.is_empty() {
+                return Ok(Rc::new(Object::List(value.chars().map(|seperated| Rc::new(Object::String(seperated.to_string()))).collect())))
+            }
             Ok(Rc::new(Object::List(value.split(seperator).map(|seperated| Rc::new(Object::String(seperated.to_owned()))).collect())))
         }
     }
