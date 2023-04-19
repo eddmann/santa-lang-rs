@@ -581,16 +581,12 @@ impl Evaluator {
                     continue;
                 }
                 ExpressionKind::IdentifierListPattern(next_pattern) => {
-                    self.destructure_let_list_pattern(
-                        next_pattern,
-                        Rc::clone(
-                            list.iter()
-                                .nth(position)
-                                .unwrap_or(&Rc::new(Object::List(Vector::new()))),
-                        ),
-                        is_mutable,
-                        pattern.source,
-                    )?;
+                    let object = if let Some(value) = list.iter().nth(position) {
+                        Rc::clone(value)
+                    } else {
+                        Rc::new(Object::List(Vector::new()))
+                    };
+                    self.destructure_let_list_pattern(next_pattern, object, is_mutable, pattern.source)?;
                 }
                 _ => {
                     return Err(RuntimeErr {

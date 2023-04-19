@@ -8,7 +8,9 @@ use std::rc::Rc;
 #[inline]
 pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, source: Location) -> Evaluation {
     match (&*left, &*index) {
-        (Object::List(list), Object::Integer(index)) => Ok(list_lookup(list, *index).unwrap_or(Rc::new(Object::Nil))),
+        (Object::List(list), Object::Integer(index)) => {
+            Ok(list_lookup(list, *index).unwrap_or_else(|| Rc::new(Object::Nil)))
+        }
         (Object::List(list), Object::LazySequence(sequence)) => {
             let is_unbounded_negative_range = sequence.is_unbounded_negative_range();
 

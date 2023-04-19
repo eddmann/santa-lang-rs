@@ -1,5 +1,5 @@
 use super::environment::{Environment, EnvironmentRef};
-use crate::evaluator::{EnvironmentErr, Evaluation, Evaluator, Frame, Object, RuntimeErr};
+use crate::evaluator::{Evaluation, Evaluator, Frame, Object, RuntimeErr};
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Statement};
 use im_rc::Vector;
@@ -363,50 +363,33 @@ impl Function {
         for (position, parameter) in parameter.iter().enumerate() {
             match &parameter.kind {
                 ExpressionKind::Identifier(name) => {
-                    match environment.borrow_mut().declare_variable(
-                        name,
-                        Rc::clone(list.iter().nth(position).unwrap_or(&Rc::new(Object::Nil))),
-                        false,
-                    ) {
-                        Ok(_) => {}
-                        Err(EnvironmentErr { message }) => {
-                            return Err(RuntimeErr {
-                                message,
-                                source: parameter.source,
-                                trace: vec![],
-                            })
-                        }
-                    }
+                    let object = if let Some(value) = list.iter().nth(position) {
+                        Rc::clone(value)
+                    } else {
+                        Rc::new(Object::Nil)
+                    };
+                    environment.borrow_mut().set_variable(name, object);
                 }
                 ExpressionKind::RestIdentifier(name) => {
-                    match environment.borrow_mut().declare_variable(
+                    environment.borrow_mut().set_variable(
                         name,
                         Rc::new(Object::List(list.clone().into_iter().skip(position).collect())),
-                        false,
-                    ) {
-                        Ok(_) => {}
-                        Err(EnvironmentErr { message }) => {
-                            return Err(RuntimeErr {
-                                message,
-                                source: parameter.source,
-                                trace: vec![],
-                            })
-                        }
-                    }
+                    );
                     break;
                 }
                 ExpressionKind::Placeholder => {
                     continue;
                 }
                 ExpressionKind::IdentifierListPattern(next_parameter) => {
+                    let object = if let Some(value) = list.iter().nth(position) {
+                        Rc::clone(value)
+                    } else {
+                        Rc::new(Object::List(Vector::new()))
+                    };
                     Self::destructure_list_pattern_parameter(
                         Rc::clone(&environment),
                         next_parameter,
-                        Rc::clone(
-                            list.iter()
-                                .nth(position)
-                                .unwrap_or(&Rc::new(Object::List(Vector::new()))),
-                        ),
+                        object,
                         parameter.source,
                     )?;
                 }
