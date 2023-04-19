@@ -1,5 +1,8 @@
 mod external_functions;
 
+#[global_allocator]
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
+
 use getopts::Options;
 use rustyline::DefaultEditor;
 use santa_lang::{Environment, Location, Object, RunErr, RunEvaluation, Runner, Time};
