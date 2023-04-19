@@ -144,6 +144,9 @@ fn test(source_path: &str) -> Result<()> {
             let mut exit_code = 0;
 
             for (number, test_case) in test_cases.iter().enumerate() {
+                if number > 0 {
+                    println!()
+                }
                 println!("\x1b[4mTestcase #{}\x1b[0m", number + 1);
 
                 if test_case.part_one.is_none() && test_case.part_two.is_none() {
