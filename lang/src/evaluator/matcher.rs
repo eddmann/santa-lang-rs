@@ -195,9 +195,9 @@ fn destructure_match_list_pattern(
             }
             ExpressionKind::InclusiveRange { from, to } => {
                 if let (ExpressionKind::Integer(from), ExpressionKind::Integer(to), Object::Integer(index)) =
-                    (&from.kind, &to.kind, &*subject)
+                    (&from.kind, &to.kind, &*list[position])
                 {
-                    if (!from.replace('_', "").parse::<i64>().unwrap()..=to.replace('_', "").parse::<i64>().unwrap())
+                    if !(from.replace('_', "").parse::<i64>().unwrap()..=to.replace('_', "").parse::<i64>().unwrap())
                         .contains(index)
                     {
                         return Ok(false);
@@ -206,9 +206,9 @@ fn destructure_match_list_pattern(
             }
             ExpressionKind::ExclusiveRange { from, until } => {
                 if let (ExpressionKind::Integer(from), ExpressionKind::Integer(until), Object::Integer(index)) =
-                    (&from.kind, &until.kind, &*subject)
+                    (&from.kind, &until.kind, &*list[position])
                 {
-                    if (!from.replace('_', "").parse::<i64>().unwrap()..until.replace('_', "").parse::<i64>().unwrap())
+                    if !(from.replace('_', "").parse::<i64>().unwrap()..until.replace('_', "").parse::<i64>().unwrap())
                         .contains(index)
                     {
                         return Ok(false);
@@ -216,8 +216,8 @@ fn destructure_match_list_pattern(
                 }
             }
             ExpressionKind::UnboundedRange { from } => {
-                if let (ExpressionKind::Integer(from), Object::Integer(index)) = (&from.kind, &*subject) {
-                    if (!from.replace('_', "").parse::<i64>().unwrap()..).contains(index) {
+                if let (ExpressionKind::Integer(from), Object::Integer(index)) = (&from.kind, &*list[position]) {
+                    if !(from.replace('_', "").parse::<i64>().unwrap()..).contains(index) {
                         return Ok(false);
                     }
                 }
