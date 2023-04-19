@@ -939,7 +939,9 @@ builtin! {
             Ok(Rc::new(Object::Set(set.clone().into_iter().skip(1).collect())))
         }
         Object::LazySequence(sequence) => {
-            Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Skip(1)))))
+            let mut iterator = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source);
+            iterator.next();
+            Ok(Rc::new(Object::LazySequence(iterator.to_sequence())))
         }
         Object::String(string) => {
             Ok(Rc::new(Object::String(string.chars().skip(1).collect())))

@@ -270,6 +270,13 @@ impl LazySequenceIter<'_> {
             }
         }
     }
+
+    pub fn to_sequence(&self) -> LazySequence {
+        LazySequence {
+            value: self.value.clone(),
+            functions: self.functions.clone(),
+        }
+    }
 }
 
 impl Iterator for LazySequenceIter<'_> {
