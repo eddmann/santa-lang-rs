@@ -92,11 +92,11 @@ builtin! {
             Ok(Rc::new(Object::Integer(value.round() as i64)))
         }
         Object::String(value) => {
-            if let Ok(parsed) = value.parse::<i64>() {
+            if let Ok(parsed) = value.trim().parse::<i64>() {
                 return Ok(Rc::new(Object::Integer(parsed)));
             }
 
-            if let Ok(parsed) = value.parse::<f64>() {
+            if let Ok(parsed) = value.trim().parse::<f64>() {
                 return Ok(Rc::new(Object::Integer(parsed.round() as i64)))
             }
 
