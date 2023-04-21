@@ -1,4 +1,3 @@
-use crate::evaluator::function::Function;
 use crate::evaluator::object::Object;
 use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
 use crate::lexer::Location;
@@ -279,38 +278,5 @@ builtin! {
 builtin! {
     or(a, b) {
         Ok(Rc::new(Object::Boolean(a.is_truthy() || b.is_truthy())))
-    }
-}
-
-builtin! {
-    memoize(function) [evaluator, source] match {
-        Object::Function(Function::Closure { parameters, body, environment, }) => {
-            let function = Function::MemoizedClosure {
-                parameters: parameters.clone(),
-                body: body.clone(),
-                environment: Rc::clone(environment),
-                cache: Rc::new(RefCell::new(std::collections::HashMap::default()))
-            };
-            Ok(Rc::new(Object::Function(function)))
-        }
-    }
-}
-
-builtin! {
-    evaluate(source) [evaluator, source_location] match {
-        Object::String(source) => {
-            let environment = crate::Environment::new();
-            let lexer = crate::lexer::Lexer::new(source);
-            let mut parser = crate::parser::Parser::new(lexer);
-            let program = match parser.parse() {
-                Ok(program) => program,
-                Err(error) => return Err(RuntimeErr {
-                    message: format!("{:?}", error),
-                    source: source_location,
-                    trace: vec![],
-                })
-            };
-            evaluator.evaluate_with_environment(&program, Rc::clone(&environment))
-        }
     }
 }

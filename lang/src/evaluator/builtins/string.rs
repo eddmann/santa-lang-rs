@@ -1,84 +1,9 @@
 use crate::evaluator::object::Object;
-use crate::evaluator::LazySequence;
 use crate::evaluator::RuntimeErr;
 use im_rc::Vector;
 use ordered_float::OrderedFloat;
 use regex::Regex;
 use std::rc::Rc;
-
-builtin! {
-    abs(value) match {
-        Object::Integer(value) => {
-            Ok(Rc::new(Object::Integer(value.abs())))
-        }
-        Object::Decimal(OrderedFloat(value)) => {
-            Ok(Rc::new(Object::Decimal(OrderedFloat(value.abs()))))
-        }
-    }
-}
-
-builtin! {
-    vec_add(a, b) [evaluator, source] match {
-        (Object::List(a), Object::List(b)) => {
-            let mut added = Vector::new();
-            for (v1, v2) in a.iter().zip(b.iter()) {
-                added.push_back(crate::evaluator::builtins::operators::plus(evaluator, v1, v2, source)?);
-            }
-            Ok(Rc::new(Object::List(added)))
-        }
-    }
-}
-
-builtin! {
-    signum(value) match {
-        Object::Integer(value) => {
-            Ok(Rc::new(Object::Integer(value.signum())))
-        }
-        Object::Decimal(OrderedFloat(value)) => {
-            Ok(Rc::new(Object::Decimal(OrderedFloat(value.signum()))))
-        }
-    }
-}
-
-builtin! {
-    bit_and(a, b) match {
-        (Object::Integer(a), Object::Integer(b)) => {
-            Ok(Rc::new(Object::Integer(a & b)))
-        }
-    }
-}
-
-builtin! {
-    bit_or(a, b) match {
-        (Object::Integer(a), Object::Integer(b)) => {
-            Ok(Rc::new(Object::Integer(a | b)))
-        }
-    }
-}
-
-builtin! {
-    bit_xor(a, b) match {
-        (Object::Integer(a), Object::Integer(b)) => {
-            Ok(Rc::new(Object::Integer(a ^ b)))
-        }
-    }
-}
-
-builtin! {
-    bit_shift_left(a, b) match {
-        (Object::Integer(a), Object::Integer(b)) => {
-            Ok(Rc::new(Object::Integer(a << b)))
-        }
-    }
-}
-
-builtin! {
-    bit_shift_right(a, b) match {
-        (Object::Integer(a), Object::Integer(b)) => {
-            Ok(Rc::new(Object::Integer(a >> b)))
-        }
-    }
-}
 
 builtin! {
     int(value) match {
@@ -191,25 +116,5 @@ builtin! {
                 }
             }
         }
-    }
-}
-
-builtin! {
-    range(from, to, step) match {
-        (Object::Integer(from), Object::Integer(to), Object::Integer(step)) => {
-            Ok(Rc::new(Object::LazySequence(LazySequence::inclusive_range_with_step(*from, *to, *step))))
-        }
-    }
-}
-
-builtin! {
-    type_name(value) {
-        Ok(Rc::new(Object::String(value.name().to_owned())))
-    }
-}
-
-builtin! {
-    id(value) {
-        Ok(Rc::clone(value))
     }
 }
