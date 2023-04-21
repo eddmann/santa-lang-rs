@@ -24,3 +24,11 @@ test_eval! {
     ("id(1.5)", "1.5", decimal),
     ("id(\"\")", "\"\"", string)
 }
+
+test_eval! {
+    suite evaluate;
+
+    ("evaluate(\"\")", "nil", empty_source),
+    ("evaluate(\"[1, 2, 3]\")", "[1, 2, 3]", collection),
+    ("evaluate(\"[1, 2, 3] |> map(_ + 1)\")", "[2, 3, 4]", expression)
+}
