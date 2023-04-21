@@ -1,4 +1,4 @@
-IMAGE = rust:1.68.0-bullseye
+IMAGE = rust:1.68.2-bullseye
 DOCKER = docker run --rm -e CARGO_HOME=/app/.cargo -v $(PWD):/app -w /app
 
 .PHONY: shell
@@ -23,4 +23,6 @@ test:
 fmt:
 	@$(DOCKER) -it $(IMAGE) bash -c "rustup component add rustfmt && cargo fmt"
 
-# https://dmitryfrank.com/articles/js_closures
+cli/build/%:
+	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.68.2 \
+		sh -c "cargo build --release --bin santa-cli --target $*"

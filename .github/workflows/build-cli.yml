@@ -1,0 +1,60 @@
+name: Build CLI
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: build-cli
+
+jobs:
+  docker:
+    name: Docker
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: |
+          docker build -f cli/Dockerfile -t ghcr.io/eddmann/santa-lang-rs:cli-latest .
+      - name: Push
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/eddmann/santa-lang-rs:cli-latest
+
+  binary:
+    name: Binary
+    runs-on: ${{ matrix.os }}
+    env:
+      CARGO_TERM_COLOR: always
+    strategy:
+      matrix:
+        build:
+          - x86_64-linux-gnu
+          - x86_64-macos
+        include:
+          - build: x86_64-linux-gnu
+            target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+          - build: x86_64-macos
+            target: x86_64-apple-darwin
+            os: macos-12
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.68.2
+          target: ${{ matrix.target }}
+          override: true
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --bin santa-cli --target ${{ matrix.target }}
+      - name: "Upload"
+        uses: actions/upload-artifact@v3
+        with:
+          name: "santa-cli-${{ matrix.target }}"
+          path: "target/${{ matrix.target }}/release/santa-cli"
