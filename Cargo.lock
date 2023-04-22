@@ -495,7 +495,7 @@ dependencies = [
 
 [[package]]
 name = "santa-cli"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "getopts",
  "rustyline",
@@ -507,7 +507,7 @@ dependencies = [
 
 [[package]]
 name = "santa-lang"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "expect-test",
  "im-rc",
@@ -517,7 +517,7 @@ dependencies = [
 
 [[package]]
 name = "santa-web"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "js-sys",
  "santa-lang",

@@ -12,7 +12,8 @@ jobs:
     name: Docker
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Build
         run: |
           docker build -f cli/Dockerfile -t ghcr.io/eddmann/santa-lang-rs:cli-latest .
@@ -39,7 +40,8 @@ jobs:
             target: x86_64-apple-darwin
             os: macos-12
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -47,14 +49,15 @@ jobs:
           toolchain: 1.68.2
           target: ${{ matrix.target }}
           override: true
-      - uses: Swatinem/rust-cache@v2
+      - name: Load Cache
+        uses: Swatinem/rust-cache@v2
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release --bin santa-cli --target ${{ matrix.target }}
-      - name: "Upload"
+      - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: "santa-cli-${{ matrix.target }}"
-          path: "target/${{ matrix.target }}/release/santa-cli"
+          name: santa-cli-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/santa-cli
