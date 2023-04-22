@@ -19,7 +19,7 @@ pub fn definitions() -> Vec<ExternalFnDef> {
     ]
 }
 
-fn puts(arguments: Arguments, _location: Location) -> Evaluation {
+fn puts(arguments: Arguments, _source: Location) -> Evaluation {
     match &**arguments.get("values").unwrap() {
         Object::List(values) => {
             for value in values {

@@ -150,7 +150,7 @@ fn external_function() {
         "hello".to_owned(),
         vec![ExpressionKind::Identifier("name".to_owned())],
         Rc::new(
-            move |arguments: Arguments, _location: Location| match &**arguments.get("name").unwrap() {
+            move |arguments: Arguments, _source: Location| match &**arguments.get("name").unwrap() {
                 Object::String(name) => Ok(Rc::new(Object::String(hello_template.replace("{}", name)))),
                 _ => Ok(Rc::new(Object::Nil)),
             },
