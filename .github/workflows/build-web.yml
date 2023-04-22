@@ -1,0 +1,42 @@
+name: Build Web
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: build-web
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.68.2
+          target: wasm32-unknown-unknown
+          override: true
+      - uses: Swatinem/rust-cache@v2
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: "v0.11.0"
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.16.0
+      - name: Build WebAssembly
+        run: RUST_LOG=info wasm-pack build web
+      - name: Build Client
+        run: cd web/client && yarn && yarn build
+      - name: Publish
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        with:
+          branch: gh-pages
+          folder: web/client/out
