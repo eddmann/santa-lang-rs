@@ -1,5 +1,5 @@
 [workspace]
-members = ["lang", "cli"]
+members = ["lang", "cli", "web"]
 
 [profile.release]
 strip = true

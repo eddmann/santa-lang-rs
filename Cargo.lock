@@ -516,6 +516,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "santa-web"
+version = "0.0.0"
+dependencies = [
+ "js-sys",
+ "santa-lang",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

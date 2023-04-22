@@ -1,0 +1,18 @@
+[package]
+name = "santa-web"
+version = "0.0.0"
+edition = "2021"
+
+[lib]
+name = "santa_web"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2.63"
+js-sys = "0.3.61"
+santa-lang = { path = "../lang", version = "0.0.0" }
+
+[dependencies.web-sys]
+version = "0.3.61"
+features = ['Window', 'Performance', 'PerformanceTiming']
