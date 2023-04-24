@@ -181,7 +181,7 @@ const WorkspaceEditor = () => {
   };
 
   useEffect(() => {
-    const onKeyDown = e => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === 'Enter') {
         handleRun();
       }
