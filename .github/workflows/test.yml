@@ -11,6 +11,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Load Cache
-        uses: Swatinem/rust-cache@v2
+        uses: actions/cache@v3
+        with:
+          path: ./.cargo
+          key: test-cargo-${{ hashFiles('./Cargo.lock') }}
+          restore-keys: test-cargo-
       - name: Test
         run: make can-release
