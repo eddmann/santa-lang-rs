@@ -32,6 +32,8 @@ const calculateLineColumn = (
       column = 0;
     }
   }
+
+  throw new Error();
 };
 
 const generateErrorMessage = (
