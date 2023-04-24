@@ -12,18 +12,42 @@ function* range(start: number, end: number) {
   }
 }
 
+type SourceLocation = { start: number; end: number };
+
+const calculateLineColumn = (
+  source: string,
+  location: SourceLocation
+): { line: number; column: number } => {
+  let line = 0;
+  let column = 0;
+
+  for (let position = 0; position < source.length; position++) {
+    if (position === location.start) {
+      return { line, column };
+    }
+
+    column++;
+    if (source[position] === '\n') {
+      line++;
+      column = 0;
+    }
+  }
+};
+
 const generateErrorMessage = (
   source: string,
-  line: number,
-  column: number,
-  message: string
+  message: string,
+  location: SourceLocation,
+  trace: SourceLocation[]
 ): string => {
-  let output = `editor:${line + 1}:${column + 1}\n\n`;
+  let { line, column } = calculateLineColumn(source, location);
+
+  let output = `${message}\n\n`;
 
   const lines = source.split('\n');
   for (let i = 0; i < lines.length; i++) {
     if (i < line - 2 || i > line + 2) continue;
-    const lineNo = `${i + 1}`.padStart(2, ' ') + ': ';
+    const lineNo = `${i + 1}`.padStart(2, '0') + ': ';
 
     if (i === line) {
       output += `${lineNo}${lines[i]}\n`;
@@ -33,7 +57,14 @@ const generateErrorMessage = (
     }
   }
 
-  output += `\n` + message + `\n`;
+  output += `\neditor:${line + 1}:${column + 1}\n`;
+
+  for (const location of trace) {
+    let { line, column } = calculateLineColumn(source, location);
+    output += `  ${source.substring(location.start, location.end).split('\n')[0]}:${line + 1}:${
+      column + 1
+    }\n`;
+  }
 
   return output + '\n';
 };
@@ -58,9 +89,9 @@ const WorkspaceEditor = () => {
         setResult(
           generateErrorMessage(
             response.source,
-            response.error.line,
-            response.error.column,
-            response.error.message
+            response.error.message,
+            response.error.source,
+            response.error.trace
           )
         );
         return;

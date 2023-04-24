@@ -100,5 +100,17 @@ fn to_error_object(error: RunErr) -> JsValue {
     Reflect::set(&source, &"end".into(), &error.source.end.into()).unwrap();
     Reflect::set(&object, &"source".into(), &source.into()).unwrap();
 
+    let trace = error
+        .trace
+        .iter()
+        .map(|location| {
+            let source = Object::new();
+            Reflect::set(&source, &"start".into(), &location.start.into()).unwrap();
+            Reflect::set(&source, &"end".into(), &location.end.into()).unwrap();
+            JsValue::from(source)
+        })
+        .collect::<Array>();
+    Reflect::set(&object, &"trace".into(), &trace.into()).unwrap();
+
     JsValue::from(object)
 }

@@ -1730,8 +1730,8 @@ run-parallel@^1.1.9:
   dependencies:
     queue-microtask "^1.2.2"
 
-"santa-lang@file:../pkg":
-  version "0.0.0"
+"santa-lang@file:../library/pkg":
+  version "0.0.1"
 
 scheduler@^0.23.0:
   version "0.23.0"
