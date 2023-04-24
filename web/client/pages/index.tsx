@@ -69,9 +69,6 @@ const generateErrorMessage = (
   return output + '\n';
 };
 
-const toSeconds = (milliseconds: number): string =>
-  `${Math.floor(milliseconds / 1000)}.${milliseconds % 1000}`;
-
 const WorkspaceEditor = () => {
   const [source, setSource] = useState('');
   const [result, setResult] = useState('');
@@ -180,6 +177,20 @@ const WorkspaceEditor = () => {
       .then(response => response.text())
       .then(setSource);
   };
+
+  useEffect(() => {
+    const onKeyDown = e => {
+      if (e.ctrlKey && e.key === 'Enter') {
+        handleRun();
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [handleRun]);
 
   return (
     <div>
