@@ -1,6 +1,6 @@
-import * as React from "react";
-import CodeMirror from "@uiw/react-codemirror";
-import { rust } from "@codemirror/lang-rust";
+import * as React from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import { rust } from '@codemirror/lang-rust';
 
 export default function Editor({
   source,
@@ -11,7 +11,7 @@ export default function Editor({
 }): React.ReactElement {
   return (
     <CodeMirror
-      style={{ height: "100%" }}
+      style={{ height: '100%' }}
       value={source}
       autoFocus={false}
       height="100%"

@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import type { NextPage } from "next";
-import Head from "next/head";
-import dynamic from "next/dynamic";
-import Split from "react-split";
-import Navigation from "../components/Navigation";
-const Editor = dynamic(() => import("../components/Editor"), { ssr: false });
+import { useState, useCallback, useEffect, useRef } from 'react';
+import type { NextPage } from 'next';
+import Head from 'next/head';
+import dynamic from 'next/dynamic';
+import Split from 'react-split';
+import Navigation from '../components/Navigation';
+const Editor = dynamic(() => import('../components/Editor'), { ssr: false });
 
 function* range(start: number, end: number) {
   for (let i = start; i <= end; i++) {
@@ -20,14 +20,14 @@ const generateErrorMessage = (
 ): string => {
   let output = `editor:${line + 1}:${column + 1}\n\n`;
 
-  const lines = source.split("\n");
+  const lines = source.split('\n');
   for (let i = 0; i < lines.length; i++) {
     if (i < line - 2 || i > line + 2) continue;
-    const lineNo = `${i + 1}`.padStart(2, " ") + ": ";
+    const lineNo = `${i + 1}`.padStart(2, ' ') + ': ';
 
     if (i === line) {
       output += `${lineNo}${lines[i]}\n`;
-      output += " ".repeat(column + lineNo.length) + "^~~\n";
+      output += ' '.repeat(column + lineNo.length) + '^~~\n';
     } else {
       output += `${lineNo}${lines[i]}\n`;
     }
@@ -35,20 +35,20 @@ const generateErrorMessage = (
 
   output += `\n` + message + `\n`;
 
-  return output + "\n";
+  return output + '\n';
 };
 
 const toSeconds = (milliseconds: number): string =>
   `${Math.floor(milliseconds / 1000)}.${milliseconds % 1000}`;
 
 const WorkspaceEditor = () => {
-  const [source, setSource] = useState("");
-  const [result, setResult] = useState("");
+  const [source, setSource] = useState('');
+  const [result, setResult] = useState('');
   const [isRunning, setRunning] = useState(false);
   const worker = useRef<Worker>();
 
   useEffect(() => {
-    worker.current = new Worker(new URL("../worker.ts", import.meta.url));
+    worker.current = new Worker(new URL('../worker.ts', import.meta.url));
     worker.current.onmessage = event => {
       setRunning(false);
 
@@ -66,10 +66,10 @@ const WorkspaceEditor = () => {
         return;
       }
 
-      let output = "";
+      let output = '';
 
       switch (response.type) {
-        case "run":
+        case 'run':
           const { result } = response;
 
           if (result.value) {
@@ -87,7 +87,7 @@ const WorkspaceEditor = () => {
 
           setResult(output);
           return;
-        case "test":
+        case 'test':
           const { testCases } = response;
 
           for (const [idx, testCase] of Object.entries(testCases) as any) {
@@ -95,7 +95,7 @@ const WorkspaceEditor = () => {
             output += `Testcase ${+idx + 1}\n`;
 
             if (!testCase) {
-              output += "No expectations\n";
+              output += 'No expectations\n';
               continue;
             }
 
@@ -118,9 +118,9 @@ const WorkspaceEditor = () => {
 
           setResult(output);
           return;
-        case "tokenize":
+        case 'tokenize':
           return;
-        case "parse":
+        case 'parse':
           return;
       }
     };
@@ -133,15 +133,15 @@ const WorkspaceEditor = () => {
   const handleRun = useCallback(() => {
     if (isRunning) return;
     setRunning(true);
-    setResult("Running...");
-    worker.current && worker.current.postMessage({ type: "run", source });
+    setResult('Running...');
+    worker.current && worker.current.postMessage({ type: 'run', source });
   }, [source, isRunning]);
 
   const handleTest = useCallback(() => {
     if (isRunning) return;
     setRunning(true);
-    setResult("Testing...");
-    worker.current && worker.current.postMessage({ type: "test", source });
+    setResult('Testing...');
+    worker.current && worker.current.postMessage({ type: 'test', source });
   }, [source, isRunning]);
 
   const handleExample = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -154,13 +154,13 @@ const WorkspaceEditor = () => {
     <div>
       <div
         style={{
-          backgroundColor: "#efefef",
-          borderBottom: "1px solid #ddd",
+          backgroundColor: '#efefef',
+          borderBottom: '1px solid #ddd',
           height: 32,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 10px",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 10px',
         }}
       >
         <div>
@@ -170,7 +170,7 @@ const WorkspaceEditor = () => {
             </option>
             <optgroup label="2018">
               {[...range(1, 14)].map(day => {
-                const fileName = `aoc2018_day${("" + day).padStart(2, "0")}.santa`;
+                const fileName = `aoc2018_day${('' + day).padStart(2, '0')}.santa`;
 
                 return (
                   <option
@@ -184,7 +184,7 @@ const WorkspaceEditor = () => {
             </optgroup>
             <optgroup label="2022">
               {[...range(1, 25)].map(day => {
-                const fileName = `aoc2022_day${("" + day).padStart(2, "0")}.santa`;
+                const fileName = `aoc2022_day${('' + day).padStart(2, '0')}.santa`;
 
                 return (
                   <option
@@ -201,7 +201,7 @@ const WorkspaceEditor = () => {
         <div>
           <button onClick={handleTest} disabled={isRunning}>
             Test
-          </button>{" "}
+          </button>{' '}
           <button onClick={handleRun} disabled={isRunning}>
             Run
           </button>
@@ -219,9 +219,9 @@ const WorkspaceEditor = () => {
         <pre
           style={{
             margin: 0,
-            padding: "20px",
-            overflowY: "scroll",
-            fontFamily: "monospace",
+            padding: '20px',
+            overflowY: 'scroll',
+            fontFamily: 'monospace',
             fontSize: 16,
           }}
         >
