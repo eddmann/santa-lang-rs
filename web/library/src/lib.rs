@@ -1,6 +1,6 @@
 mod external_functions;
 
-use js_sys::{Array, Function, Object, Reflect};
+use js_sys::{Array, Object, Reflect};
 use santa_lang::{RunErr, RunEvaluation, Runner, Time};
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 
@@ -18,9 +18,11 @@ impl Time for WebTime {
 }
 
 #[wasm_bindgen]
-pub fn run(source: &str, puts: Function, read: Function) -> Result<JsValue, JsValue> {
-    let mut runner =
-        Runner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(puts, read));
+pub fn run(source: &str, external_function_defs: Object) -> Result<JsValue, JsValue> {
+    let mut runner = Runner::new_with_external_functions(
+        WebTime {},
+        &crate::external_functions::definitions(&external_function_defs),
+    );
 
     match runner.run(source) {
         Ok(RunEvaluation::Script(result)) => {
@@ -55,9 +57,11 @@ pub fn run(source: &str, puts: Function, read: Function) -> Result<JsValue, JsVa
 }
 
 #[wasm_bindgen]
-pub fn test(source: &str, puts: Function, read: Function) -> Result<JsValue, JsValue> {
-    let mut runner =
-        Runner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(puts, read));
+pub fn test(source: &str, external_function_defs: Object) -> Result<JsValue, JsValue> {
+    let mut runner = Runner::new_with_external_functions(
+        WebTime {},
+        &crate::external_functions::definitions(&external_function_defs),
+    );
 
     match runner.test(source) {
         Ok(test_cases) => Ok(JsValue::from(

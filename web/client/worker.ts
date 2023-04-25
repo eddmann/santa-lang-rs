@@ -17,7 +17,7 @@ type Response =
 
 let puts = (values: string[]) => console.log(...values);
 
-let read = (path: string) => {
+let read = ([path]: [string]): string => {
   const url = new URL(path);
 
   if (url.protocol === 'aoc:') {
@@ -44,10 +44,10 @@ addEventListener('message', event => {
   try {
     switch (request.type) {
       case 'run':
-        postMessage({ type: 'run', result: run(event.data.source, puts, read) });
+        postMessage({ type: 'run', result: run(event.data.source, { puts, read }) });
         return;
       case 'test':
-        postMessage({ type: 'test', testCases: test(event.data.source, puts, read) });
+        postMessage({ type: 'test', testCases: test(event.data.source, { puts, read }) });
         return;
       case 'tokenize':
         postMessage({ type: 'tokenize', tokens: [] });
