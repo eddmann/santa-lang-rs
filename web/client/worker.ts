@@ -1,5 +1,5 @@
 /* @ts-ignore */
-import { run, test } from 'santa-lang';
+import { run, test } from 'santa-lang-wasm';
 
 type RequestType = 'run' | 'test' | 'tokenize' | 'parse';
 
