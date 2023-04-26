@@ -42,7 +42,7 @@ jobs:
         working-directory: web/library/pkg
         run: |
           npm pkg set 'name'='@eddmann/santa-lang-wasm'
-          npm pkg set 'version'='0.0.1'
+          npm pkg set 'version'="0.0.1-${GITHUB_SHA::7}"
           npm pkg set 'repository'='https://github.com/eddmann/santa-lang-rs'
           npm pkg set 'publishConfig.registry'='https://npm.pkg.github.com'
           wasm-pack pack
