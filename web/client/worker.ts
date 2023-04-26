@@ -15,9 +15,9 @@ type Response =
   | { type: 'parse'; ast: {} }
   | { type: RequestType; source: string; error: {} };
 
-let puts = (values: string[]) => console.log(...values);
+const puts = (...values: string[]) => console.log(...values);
 
-let read = ([path]: [string]): string => {
+const read = (path: string): string => {
   const url = new URL(path);
 
   if (url.protocol === 'aoc:') {

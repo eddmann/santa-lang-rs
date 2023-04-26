@@ -13,7 +13,9 @@ pub fn definitions(external_function_defs: &JsObject) -> Vec<ExternalFnDef> {
                 vec![ExpressionKind::RestIdentifier("arguments".to_owned())],
                 Rc::new(move |arguments: Arguments, source: Location| -> Evaluation {
                     let argument = to_js_value(arguments.get("arguments").unwrap(), source)?;
-                    if let Ok(result) = Function::from(definition.get(1)).call1(&JsValue::null(), &argument) {
+                    if let Ok(result) =
+                        Function::from(definition.get(1)).apply(&JsValue::null(), &Array::from(&argument))
+                    {
                         Ok(Rc::new(to_object(&result, source)?))
                     } else {
                         Err(RuntimeErr {
@@ -34,11 +36,13 @@ fn to_js_value(value: &Object, source: Location) -> Result<JsValue, RuntimeErr> 
         Object::Integer(v) => Ok(JsValue::from(*v)),
         Object::Boolean(v) => Ok(JsValue::from(*v)),
         Object::String(v) => Ok(JsValue::from(v)),
-        Object::List(v) => Ok(v
-            .iter()
-            .map(|element| to_js_value(element, source).unwrap())
-            .collect::<Array>()
-            .into()),
+        Object::List(v) => {
+            let array = Array::new();
+            for element in v.iter() {
+                array.push(&to_js_value(element, source)?);
+            }
+            Ok(JsValue::from(array))
+        }
         _ => Err(RuntimeErr {
             message: format!(
                 "Unable to translate santa-lang {} into JavaScript equivalent",
@@ -51,7 +55,7 @@ fn to_js_value(value: &Object, source: Location) -> Result<JsValue, RuntimeErr> 
 }
 
 fn to_object(value: &JsValue, source: Location) -> Result<Object, RuntimeErr> {
-    if value.is_null() {
+    if value.is_null() || value.is_undefined() {
         return Ok(Object::Nil);
     }
 
@@ -68,7 +72,10 @@ fn to_object(value: &JsValue, source: Location) -> Result<Object, RuntimeErr> {
     }
 
     Err(RuntimeErr {
-        message: "Unable to translate JavaScript type into santa-lang equivalent".to_owned(),
+        message: format!(
+            "Unable to translate JavaScript {} into santa-lang equivalent",
+            value.js_typeof().as_string().unwrap()
+        ),
         source,
         trace: vec![],
     })
