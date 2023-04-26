@@ -1,7 +1,9 @@
 mod external_functions;
+mod translation;
 
+use crate::translation::to_js_value;
 use js_sys::{Array, Object, Reflect};
-use santa_lang::{RunErr, RunEvaluation, Runner, Time};
+use santa_lang::{Environment, Location, RunErr, RunEvaluation, Runner, Time};
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 
 #[wasm_bindgen]
@@ -18,11 +20,9 @@ impl Time for WebTime {
 }
 
 #[wasm_bindgen]
-pub fn run(source: &str, external_function_defs: Object) -> Result<JsValue, JsValue> {
-    let mut runner = Runner::new_with_external_functions(
-        WebTime {},
-        &crate::external_functions::definitions(&external_function_defs),
-    );
+pub fn run(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
+    let mut runner =
+        Runner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions));
 
     match runner.run(source) {
         Ok(RunEvaluation::Script(result)) => {
@@ -57,11 +57,9 @@ pub fn run(source: &str, external_function_defs: Object) -> Result<JsValue, JsVa
 }
 
 #[wasm_bindgen]
-pub fn test(source: &str, external_function_defs: Object) -> Result<JsValue, JsValue> {
-    let mut runner = Runner::new_with_external_functions(
-        WebTime {},
-        &crate::external_functions::definitions(&external_function_defs),
-    );
+pub fn test(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
+    let mut runner =
+        Runner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions));
 
     match runner.test(source) {
         Ok(test_cases) => Ok(JsValue::from(
@@ -90,6 +88,25 @@ pub fn test(source: &str, external_function_defs: Object) -> Result<JsValue, JsV
                 })
                 .collect::<Array>(),
         )),
+        Err(error) => Err(to_error_object(error)),
+    }
+}
+
+#[wasm_bindgen]
+pub fn evaluate(expression: &str, js_functions: Option<Object>) -> Result<JsValue, JsValue> {
+    let mut runner = if let Some(js_functions) = js_functions {
+        Runner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions))
+    } else {
+        Runner::new(WebTime {})
+    };
+
+    let enviornment = Environment::new();
+
+    match runner.evaluate(expression, enviornment) {
+        Ok(evaluated) => match to_js_value(&evaluated, Location { start: 0, end: 0 }) {
+            Ok(value) => Ok(value),
+            Err(error) => Err(to_error_object(error.into())),
+        },
         Err(error) => Err(to_error_object(error)),
     }
 }
