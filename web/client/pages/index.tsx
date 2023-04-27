@@ -131,7 +131,7 @@ const WorkspaceEditor = () => {
 
             if (testCase.part_one) {
               if (testCase.part_one.passed) {
-                output += `Part 1: ${testCase.part_one.actual} ✔️\n`;
+                output += `Part 1: ${testCase.part_one.actual} ✔\n`;
               } else {
                 output += `Part 1: ${testCase.part_one.actual} ✘ (Expected: ${testCase.part_one.expected})\n`;
               }
@@ -139,7 +139,7 @@ const WorkspaceEditor = () => {
 
             if (testCase.part_two) {
               if (testCase.part_two.passed) {
-                output += `Part 2: ${testCase.part_two.actual} ✔️\n`;
+                output += `Part 2: ${testCase.part_two.actual} ✔\n`;
               } else {
                 output += `Part 2: ${testCase.part_two.actual} ✘ (Expected: ${testCase.part_two.expected})\n`;
               }

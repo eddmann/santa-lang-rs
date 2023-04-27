@@ -156,7 +156,7 @@ fn test(source_path: &str) -> Result<()> {
 
                 if let Some(part_one) = &test_case.part_one {
                     if part_one.passed {
-                        println!("Part 1: {} \x1b[32m✔️\x1b[0m", part_one.actual);
+                        println!("Part 1: {} \x1b[32m✔\x1b[0m", part_one.actual);
                     } else {
                         println!(
                             "Part 1: {} \x1b[31m✘ (Expected: {})\x1b[0m",
@@ -168,7 +168,7 @@ fn test(source_path: &str) -> Result<()> {
 
                 if let Some(part_two) = &test_case.part_two {
                     if part_two.passed {
-                        println!("Part 2: {} \x1b[32m✔️\x1b[0m", part_two.actual);
+                        println!("Part 2: {} \x1b[32m✔\x1b[0m", part_two.actual);
                     } else {
                         println!(
                             "Part 2: {} \x1b[31m✘ (Expected: {})\x1b[0m",
