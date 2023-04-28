@@ -1,5 +1,5 @@
 <p align="center"><img src="docs/logo.png" alt="santa-lang" width="400px" /></p>
-<p align="center"><a href="cli/">Cli</a> - <a href="https://eddmann.com/santa-lang-rs/">Web</a> - Lambda</p>
+<p align="center"><a href="cli/">Cli</a> - <a href="wasm/">WebAssembly</a> - Lambda</p>
 
 # santa-lang
 
