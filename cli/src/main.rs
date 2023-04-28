@@ -20,6 +20,8 @@ fn main() -> Result<()> {
     opts.optflag("t", "test", "run the solution's test suite");
     opts.optflag("r", "repl", "begin an interactive REPL session");
     opts.optflag("h", "help", "list available commands");
+    #[cfg(feature = "profile")]
+    opts.optflag("p", "profile", "profile the execution");
 
     let matches = opts.parse(&args[1..])?;
 
@@ -47,7 +49,42 @@ fn main() -> Result<()> {
         return test(source_path);
     }
 
-    run(source_path)
+    #[cfg(feature = "profile")]
+    let profiler = if matches.opt_present("p") {
+        Some(
+            pprof::ProfilerGuardBuilder::default()
+                .frequency(1000)
+                .blocklist(&["libc", "libgcc", "pthread", "vdso"])
+                .build()
+                .unwrap(),
+        )
+    } else {
+        None
+    };
+
+    run(source_path)?;
+
+    #[cfg(feature = "profile")]
+    if let Some(guard) = profiler {
+        let report = guard.report().build().unwrap();
+
+        let flamegraph = std::fs::File::create("flamegraph.svg").unwrap();
+        report.flamegraph(flamegraph).unwrap();
+
+        use pprof::protos::Message;
+        use std::io::Write;
+        let mut protobuf = std::fs::File::create("profile.pb").unwrap();
+        let profile = report.pprof().unwrap();
+        let mut content = Vec::new();
+        profile.write_to_vec(&mut content).unwrap();
+        protobuf.write_all(&content).unwrap();
+
+        println!("\nProfile ⏱️");
+        println!("- Flamegraph: {}/flamegraph.svg", root.display());
+        println!("- Protobuf: {}/profile.pb", root.display());
+    }
+
+    Ok(())
 }
 
 struct CliTime {}
