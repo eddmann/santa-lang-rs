@@ -1,0 +1,10 @@
+site_name: '[WIP] santa-lang'
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - content.code.copy
+    - content.code.annotate
+extra_javascript:
+  - pkg/santa_lang.js
+  - runner.js
