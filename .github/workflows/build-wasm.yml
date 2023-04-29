@@ -37,7 +37,7 @@ jobs:
         with:
           node-version: 18.16.0
       - name: Build
-        run: RUST_LOG=info wasm-pack build wasm
+        run: RUST_LOG=info wasm-pack build wasm --release
       - name: Pack
         working-directory: wasm/pkg
         run: |
