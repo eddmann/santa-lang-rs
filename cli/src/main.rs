@@ -10,6 +10,9 @@ use std::fs;
 use std::rc::Rc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+#[cfg(test)]
+mod tests;
+
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 fn main() -> Result<()> {
