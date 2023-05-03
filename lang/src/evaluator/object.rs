@@ -53,8 +53,8 @@ impl Object {
     pub fn is_truthy(&self) -> bool {
         match self {
             Self::Nil => false,
-            Self::Integer(v) => *v > 0,
-            Self::Decimal(OrderedFloat(v)) => *v > 0.0,
+            Self::Integer(v) => *v != 0,
+            Self::Decimal(OrderedFloat(v)) => *v != 0.0,
             Self::Boolean(v) => *v,
             Self::String(v) => !v.is_empty(),
 
