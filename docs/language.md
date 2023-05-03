@@ -59,7 +59,7 @@ let desc_inc_range = 2..=-2;
 
 ```
 let to = 5;
-let inc_range_using_expr = (0 + 1)..to;
+let inc_range_using_expr = (0 + 1)..=to;
 ```
 
 #### Infinite Range
@@ -108,7 +108,7 @@ set; // {1, 2, 3}
 Most types can be stored within a Set, except for Lazy Sequences and Functions.
 
 ```
-let set = #{1, || 1}; // Error
+let set = {1, || 1}; // Error
 ```
 
 #### Map
@@ -159,7 +159,7 @@ Bindings are immutable by-default, and can not be reassigned after declaration.
 
 ```
 let x = 1;
-x = 2; // Variable x is not mutable
+x = 2; // Variable 'x' is not mutable
 ```
 
 Variables can be made mutable using the `mut` keyword, allowing for the binding to be reassigned after declaration.
@@ -177,7 +177,7 @@ The `..` rest symbol is used to collect all the remaining elements into a single
 
 ```
 let [x, y, _, ..z] = [1, 2, 3, 4, 5];
-[x, y, z]; // [1, 2, [4, 5]]
+[x, y, z];
 ```
 
 Similar to previous let-bindings, these are immutable by-default.
@@ -200,12 +200,12 @@ Expected arthritic operations on Integer and Decimal values are available, along
 "a" + "b"; // "ab"
 [1] + [2, 3]; // [1, 2, 3]
 {1} + {1, 2}; // {1, 2}
-#{1: "one"} + {2: "two"}; // #{1: "one", 2: "two}
+#{1: "one"} + #{2: "two"}; // #{1: "one", 2: "two}
 ```
 
 ```
 2 - 1; // 1
-2 - 1.5; // 0
+2 - 1.5; // 1
 1.5 - 1.25; // 0.25
 1.5 - 1; // 0.50
 {1, 2} - {1}; // {2}
@@ -213,7 +213,7 @@ Expected arthritic operations on Integer and Decimal values are available, along
 
 ```
 2 * 2; // 4
-2.2 * 2; // 4
+2.2 * 2; // 4.4
 "a" * 3; // "aaa"
 ["a"] * 2; // ["a", "a"]
 ```
@@ -279,9 +279,11 @@ list[-5]; // nil
 List slices can be achieved by-way of inclusive/exclusive range indexing.
 
 ```
+let list = [1, 2, 3, 4];
+
 list[1..2]; // [2]
 list[1..=2]; // [2, 3]
-list[1..=-1]; // [1, 4]
+list[1..=-1]; // [2, 1, 4]
 ```
 
 ### Map
@@ -306,16 +308,18 @@ let str = "hello";
 
 str[0]; // "h"
 str[-1]; // "o"
-str[4]; // nil
-str[-5]; // nil
+str[5]; // nil
+str[-6]; // nil
 ```
 
 String slices can be achieved by-way of inclusive/exclusive range indexing.
 
 ```
+let str = "hello";
+
 str[1..2]; // "e"
-str[1..=2]; // "ll"
-str[1..=-1]; // "ho"
+str[1..=2]; // "el"
+str[1..=-1]; // "eho"
 ```
 
 ## Control Structures
@@ -337,14 +341,14 @@ if 10 < 5 { 1 } // nil
 Expression with both a consequence and alternative `else` branch.
 
 ```
-if 10 < 5 { 1 } else { 2 } // 2
+if 10 < 5 { 1 } else { 2 }
 ```
 
 Let-bindings can be declared within the predicate expressions.
 If the binding is _truthy_ then the variables is bound and available with the consequence branch.
 
 ```
-if let x = 10 { x } else { 20 } // 10
+if let x = 10 { x } else { 20 }
 ```
 
 ### Return
@@ -368,7 +372,7 @@ In the example below the reduction will be terminated prematurely and the _break
 
 ```
 0.. |> reduce |acc, value| {
-  if acc == 10 {
+  if value == 10 {
     break acc
   } else {
     acc + value
@@ -408,8 +412,8 @@ Values within Integer ranges can be matched upon.
 ```
 let number = |n| match n {
   0..5 { "< 5" },
-  6..=7 { "6 or 7" }
-  8.. { ">= 8" }
+  5..=6 { "5 or 6" }
+  7.. { ">= 7" }
 };
 number(5);
 ```
@@ -456,15 +460,16 @@ inc(1);
 The placeholder `_` symbol can also be used to positional omit parameters in which you wish to leave open for the newly created function.
 
 ```
-let dec = -(_, 1);
+let minus = -;
+let dec = minus(_, 1);
 dec(2);
 ```
 
 Alternatively binary functions (functions which take two arguments) can be more succinctly written using the following placeholder syntax, borrowed from Scala.
 
 ```
-let inc = 1 + \_;
-let dec = \_ - 1;
+let inc = 1 + _;
+let dec = _ - 1;
 inc(1) == dec(3);
 ```
 
@@ -486,7 +491,7 @@ fibonacci_seq();
 Function arguments can be _spread_ from a List, as well as parameters be collected _rest_ into a List.
 
 ```
-let max = |xs..| xs |> sort(>) |> first;
+let max = |..xs| xs |> sort(<) |> first;
 max(..[1, 2, 3]);
 ```
 
@@ -518,7 +523,7 @@ factorial(10);
 Functions can be [composed](https://en.wikipedia.org/wiki/Function_composition) together using the `>>` syntax.
 
 ```
-let inc_dbl = \_ + 1 >> |x| x * x;
+let inc_dbl = _ + 1 >> |x| x * x;
 inc_dbl(15);
 ```
 
@@ -556,9 +561,9 @@ If the last parameter of a function is a function, then a lambda expression pass
 Inspired by [Kotlin](https://kotlinlang.org/docs/lambdas.html#passing-trailing-lambdas), this improves readability and enables rich DSLs to be built on-top of language constructs.
 
 ```
-let mut acc = 0;
+let mut acc = 1;
 [1, 2, 3] |> each |x| {
-  acc = acc + x;
+  acc = acc + x * x;
 }
 acc;
 ```
@@ -572,7 +577,9 @@ acc;
 This is syntactic sugar on top of the following expressions.
 
 ```
-each(|x| { puts(x) }, [1, 2, 3]);
+let mut acc = 1;
+each(|x| { acc = acc + x * x; }, [1, 2, 3]);
+acc;
 ```
 
 ```
