@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: |
           RUST_LOG=info wasm-pack build wasm --release --target no-modules
-          mv wasm/pkg docs/pkg
+          mv wasm/pkg/* docs/assets/
           make docs/build
       - name: Publish
         uses: JamesIves/github-pages-deploy-action@v4.4.1

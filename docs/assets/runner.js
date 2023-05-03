@@ -11,7 +11,7 @@ style.innerHTML = `
 document.head.appendChild(style);
 
 document.addEventListener('DOMContentLoaded', () => {
-  wasm_bindgen('/santa-lang-rs/pkg/santa_lang_bg.wasm').then(() => {
+  wasm_bindgen('/santa-lang-rs/assets/santa_lang_bg.wasm').then(() => {
     [].forEach.call(document.querySelectorAll('.md-clipboard.md-icon'), el => {
       const source = document.querySelector(el.dataset.clipboardTarget);
 

@@ -1,5 +1,5 @@
-<p align="center"><img src="logo.png" alt="santa-lang" width="400px" /></p>
-<p align="center"><a href="runtimes/cli/">Cli</a> - <a href="runtimes/wasm/">WebAssembly</a> - Lambda</p>
+<p align="center"><img src="assets/logo.png" alt="santa-lang" width="400px" /></p>
+<p align="center"><a href="cli/">CLI</a> - <a href="wasm/">WebAssembly</a> - <a href="lambda/">Lambda</a></p>
 
 # santa-lang
 
