@@ -1,5 +1,12 @@
 # Language
 
+- Everything is an expression.
+- Everything is an function (mostly).
+- Semicolons are optional.
+- Block expressions implicitly return the last statement as their result, unless an explicit `return` is used.
+
+There is a [write-up](https://eddmann.com/posts/designing-santa-lang-a-language-for-solving-advent-of-code-puzzles/) detailing the design decisions that went into creating the langauge.
+
 ## Types
 
 ### Integer
@@ -62,7 +69,7 @@ let to = 5;
 let inc_range_using_expr = (0 + 1)..=to;
 ```
 
-#### Infinite Range
+#### Unbounded Range
 
 Lazily evaluates an infinite Integer range from a given start value, using _+1_ step each iteration.
 
@@ -135,7 +142,43 @@ let hash_map = #{attempted_key: "one"}; // Error
 
 ### Lazy Sequence
 
-TODO
+The language supports the concept of Lazy Sequences, which among other benefits, unlock the ability to produce infinite sequences.
+Both bounded (inclusive, exclusive) and unbounded (infinite) [Ranges](#range) are examples of an Lazy Sequence.
+Functions (such as `filter` and `map`) are applied **only** when required, in the example below when we invoke `take`.
+
+```
+1.. |> filter(|n| n % 2 == 0) |> take(5);
+```
+
+The sequence is an immutable definition of desired computation and can be shared.
+
+```
+let lazy_seq = zip(1.., 2..) |> map(|[x, y]| x * y);
+[
+  lazy_seq |> skip(5) |> first,
+  lazy_seq |> first
+];
+```
+
+Their are several other means of generating a Lazy Sequence:
+
+Iterate takes a pure function and applies the previous result (starting with an initial value) upon each iteration.
+
+```
+iterate(|[a, b]| [b, a + b], [0, 1]) |> find(|[a]| a > 10);
+```
+
+Cycle iterates through a List indefinitely, looping back to the start once exhausted.
+
+```
+cycle([1, 2, 3]) |> skip(1) |> take(3);
+```
+
+Repeat iterates over the same value indefinitely.
+
+```
+repeat("a") |> take(3);
+```
 
 ## Truthy Semantics
 
