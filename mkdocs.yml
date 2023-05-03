@@ -1,4 +1,4 @@
-site_name: '[WIP] santa-lang'
+site_name: santa-lang
 repo_url: https://github.com/eddmann/santa-lang-rs
 site_description: An functional, C-like programming language for solving Advent of Code puzzles.
 site_author: Edd Mann
