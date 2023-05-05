@@ -16,8 +16,16 @@ lint:
 		cargo clippy -- -D warnings"
 
 .PHONY: test
-test:
-	@$(DOCKER) $(IMAGE) cargo test --verbose
+test: test/lang test/cli
+
+.PHONY: test/lang
+test/lang:
+	@$(DOCKER) $(IMAGE) cargo test --package santa-lang --verbose
+
+.PHONY: test/cli
+test/cli:
+	@$(DOCKER) $(IMAGE) cargo build --bin santa-cli --verbose
+	@$(DOCKER) $(IMAGE) cargo test --bin santa-cli --verbose
 
 .PHONY: fmt
 fmt:
