@@ -16,3 +16,6 @@ santa-lang = { path = "../lang", version = "0.0.1" }
 [dependencies.web-sys]
 version = "0.3.61"
 features = ['Window', 'Performance', 'PerformanceTiming']
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.34"

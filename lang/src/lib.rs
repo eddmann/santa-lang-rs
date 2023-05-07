@@ -9,4 +9,4 @@ pub use crate::evaluator::object::Object;
 pub use crate::evaluator::{Evaluation, RuntimeErr};
 pub use crate::lexer::Location;
 pub use crate::parser::ast::ExpressionKind;
-pub use crate::runner::{RunErr, RunEvaluation, Runner, Time};
+pub use crate::runner::{run, AoCRunner, RunErr, RunEvaluation, Time};

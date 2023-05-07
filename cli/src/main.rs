@@ -5,7 +5,7 @@ static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 use getopts::Options;
 use rustyline::DefaultEditor;
-use santa_lang::{Environment, Location, Object, RunErr, RunEvaluation, Runner, Time};
+use santa_lang::{run, AoCRunner, Environment, Location, Object, RunErr, RunEvaluation, Time};
 use std::fs;
 use std::rc::Rc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -49,7 +49,7 @@ fn main() -> Result<()> {
     std::env::set_current_dir(root)?;
 
     if matches.opt_present("t") {
-        return test(source_path);
+        return aoc_test(source_path);
     }
 
     #[cfg(feature = "profile")]
@@ -65,7 +65,7 @@ fn main() -> Result<()> {
         None
     };
 
-    run(source_path)?;
+    aoc_run(source_path)?;
 
     #[cfg(feature = "profile")]
     if let Some(guard) = profiler {
@@ -116,8 +116,6 @@ fn repl() -> Result<()> {
         Rc::new(move |_, _| Ok(Rc::new(Object::String(format!("{:?}", shared_enviornment.borrow()))))),
     ));
 
-    let mut runner = Runner::new_with_external_functions(CliTime {}, &functions);
-
     println!("   ,--.\n  ()   \\\n   /    \\\n _/______\\_\n(__________)\n(/  @  @  \\)\n(`._,()._,')  Santa REPL\n(  `-'`-'  )\n \\        /\n  \\,,,,,,/\n");
 
     let mut rl = DefaultEditor::new()?;
@@ -127,7 +125,7 @@ fn repl() -> Result<()> {
             Ok(line) => {
                 let expression = line.as_str();
                 rl.add_history_entry(expression)?;
-                match runner.evaluate(expression, Rc::clone(&enviornment)) {
+                match run(expression, Rc::clone(&enviornment), &functions) {
                     Ok(result) => println!("{}", result),
                     Err(error) => println!("{}", error.message),
                 };
@@ -142,10 +140,10 @@ fn repl() -> Result<()> {
     Ok(())
 }
 
-fn run(source_path: &str) -> Result<()> {
+fn aoc_run(source_path: &str) -> Result<()> {
     let source = std::fs::read_to_string(source_path)?;
 
-    let mut runner = Runner::new_with_external_functions(CliTime {}, &crate::external_functions::definitions());
+    let mut runner = AoCRunner::new_with_external_functions(CliTime {}, &crate::external_functions::definitions());
     match runner.run(&source) {
         Ok(RunEvaluation::Script(result)) => {
             println!("{}", result.value);
@@ -175,10 +173,10 @@ fn run(source_path: &str) -> Result<()> {
     }
 }
 
-fn test(source_path: &str) -> Result<()> {
+fn aoc_test(source_path: &str) -> Result<()> {
     let source = std::fs::read_to_string(source_path)?;
 
-    let mut runner = Runner::new_with_external_functions(CliTime {}, &crate::external_functions::definitions());
+    let mut runner = AoCRunner::new_with_external_functions(CliTime {}, &crate::external_functions::definitions());
     match runner.test(&source) {
         Ok(test_cases) => {
             let mut exit_code = 0;

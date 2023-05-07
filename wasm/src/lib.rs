@@ -1,14 +1,16 @@
 mod external_functions;
 mod translation;
 
-use crate::translation::to_js_value;
 use js_sys::{Array, Object, Reflect};
-use santa_lang::{Environment, Location, RunErr, RunEvaluation, Runner, Time};
+use santa_lang::{run, AoCRunner, Environment, RunErr, RunEvaluation, Time};
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
+
+#[cfg(test)]
+mod tests;
 
 #[wasm_bindgen]
 extern "C" {
-    #[wasm_bindgen(js_namespace = self, js_name = performance)]
+    #[wasm_bindgen(js_namespace = this, js_name = performance)]
     pub static JS_PERFORMANCE: web_sys::Performance;
 }
 
@@ -20,9 +22,9 @@ impl Time for WebTime {
 }
 
 #[wasm_bindgen]
-pub fn run(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
+pub fn aoc_run(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
     let mut runner =
-        Runner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions));
+        AoCRunner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions));
 
     match runner.run(source) {
         Ok(RunEvaluation::Script(result)) => {
@@ -57,9 +59,9 @@ pub fn run(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
 }
 
 #[wasm_bindgen]
-pub fn test(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
+pub fn aoc_test(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
     let mut runner =
-        Runner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions));
+        AoCRunner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions));
 
     match runner.test(source) {
         Ok(test_cases) => Ok(JsValue::from(
@@ -94,19 +96,15 @@ pub fn test(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
 
 #[wasm_bindgen]
 pub fn evaluate(expression: &str, js_functions: Option<Object>) -> Result<JsValue, JsValue> {
-    let mut runner = if let Some(js_functions) = js_functions {
-        Runner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions))
+    let enviornment = Environment::new();
+    let external_functions = if let Some(js_functions) = js_functions {
+        crate::external_functions::definitions(&js_functions)
     } else {
-        Runner::new(WebTime {})
+        vec![]
     };
 
-    let enviornment = Environment::new();
-
-    match runner.evaluate(expression, enviornment) {
-        Ok(evaluated) => match to_js_value(&evaluated, Location { start: 0, end: 0 }) {
-            Ok(value) => Ok(value),
-            Err(error) => Err(to_error_object(error.into())),
-        },
+    match run(expression, enviornment, &external_functions) {
+        Ok(evaluated) => Ok(JsValue::from(evaluated.to_string())),
         Err(error) => Err(to_error_object(error)),
     }
 }

@@ -480,13 +480,13 @@ impl Time for StubTime {
 }
 
 fn assert_run(input: &str, expected: Expect) {
-    let result = Runner::new(StubTime {}).run(input);
+    let result = AoCRunner::new(StubTime {}).run(input);
     let actual = format!("{:#?}", result);
     expected.assert_eq(&actual)
 }
 
 fn assert_test(input: &str, expected: Expect) {
-    let result = Runner::new(StubTime {}).test(input);
+    let result = AoCRunner::new(StubTime {}).test(input);
     let actual = format!("{:#?}", result);
     expected.assert_eq(&actual)
 }

@@ -27,17 +27,21 @@ test/cli:
 	@$(DOCKER) $(IMAGE) cargo build --bin santa-cli --verbose
 	@$(DOCKER) $(IMAGE) cargo test --bin santa-cli --verbose
 
+.PHONY: test/wasm
+test/wasm:
+	@wasm-pack test --node wasm
+
 .PHONY: fmt
 fmt:
 	@$(DOCKER) -it $(IMAGE) bash -c "rustup component add rustfmt && cargo fmt"
 
 .PHONY: docs/serve
 docs/serve:
-	docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
+	@docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
 
 .PHONY: docs/build
 docs/build:
-	docker run --rm -v ${PWD}:/docs squidfunk/mkdocs-material build --clean --site-dir site --verbose
+	@docker run --rm -v ${PWD}:/docs squidfunk/mkdocs-material build --clean --site-dir site --verbose
 
 cli/build/%:
 	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.68.2 \

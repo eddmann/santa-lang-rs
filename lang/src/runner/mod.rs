@@ -72,7 +72,7 @@ pub struct TestCaseResult {
     pub passed: bool,
 }
 
-pub struct Runner<T: Time> {
+pub struct AoCRunner<T: Time> {
     evaluator: Evaluator,
     time: T,
 }
@@ -81,7 +81,7 @@ pub trait Time {
     fn now(&self) -> u128;
 }
 
-impl<T: Time> Runner<T> {
+impl<T: Time> AoCRunner<T> {
     pub fn new(time: T) -> Self {
         Self {
             evaluator: Evaluator::new(),
@@ -241,16 +241,6 @@ impl<T: Time> Runner<T> {
         Ok(results)
     }
 
-    pub fn evaluate(&mut self, expression: &str, environment: EnvironmentRef) -> Result<Rc<Object>, RunErr> {
-        let lexer = Lexer::new(expression);
-        let mut parser = Parser::new(lexer);
-        let program = parser.parse()?;
-        let result = self
-            .evaluator
-            .evaluate_with_environment(&program, Rc::clone(&environment))?;
-        Ok(result)
-    }
-
     fn elapsed_millis(&self, start: u128) -> u128 {
         self.time.now() - start
     }
@@ -326,4 +316,17 @@ impl<T: Time> Runner<T> {
             },
         })
     }
+}
+
+pub fn run(
+    source: &str,
+    environment: EnvironmentRef,
+    external_functions: &[ExternalFnDef],
+) -> Result<Rc<Object>, RunErr> {
+    let lexer = Lexer::new(source);
+    let mut parser = Parser::new(lexer);
+    let program = parser.parse()?;
+    let mut evaluator = Evaluator::new_with_external_functions(external_functions);
+    let result = evaluator.evaluate_with_environment(&program, Rc::clone(&environment))?;
+    Ok(result)
 }
