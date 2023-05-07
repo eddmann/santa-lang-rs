@@ -15,7 +15,7 @@ jobs:
         with:
           path: ./.cargo
           key: test-cargo-${{ hashFiles('./Cargo.lock') }}
-          restore-keys: test-cargo-
+          restore-keys: test-lang-cargo-
       - name: Test
         run: make test/lang
 
@@ -30,7 +30,7 @@ jobs:
         with:
           path: ./.cargo
           key: test-cargo-${{ hashFiles('./Cargo.lock') }}
-          restore-keys: test-cargo-
+          restore-keys: test-cli-cargo-
       - name: Test
         run: make test/cli
 
