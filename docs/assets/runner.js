@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', () => {
     [].forEach.call(document.querySelectorAll('.md-clipboard.md-icon'), el => {
       const source = document.querySelector(el.dataset.clipboardTarget);
 
+      if (!source.classList.contains('language-santa')) {
+        el.remove();
+        return;
+      }
+
       source.addEventListener('dblclick', () => {
         source.contentEditable = true;
       });
@@ -23,12 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         e.stopPropagation();
 
-        source.nextSibling?.remove();
+        source.parentNode.nextSibling?.remove();
         const result = document.createElement('pre');
-        source.after(result);
+        source.parentNode.after(result);
 
         try {
-          result.innerHTML = `<code>${wasm_bindgen.run(source.innerText, {}).value}</code>`;
+          result.innerHTML = `<code>${wasm_bindgen.run(source.innerText, {})}</code>`;
         } catch (error) {
           result.innerHTML = `<code>${error.message}</code>`;
         }
