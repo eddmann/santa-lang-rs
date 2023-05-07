@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         source.parentNode.after(result);
 
         try {
-          result.innerHTML = `<code>${wasm_bindgen.run(source.innerText, {})}</code>`;
+          result.innerHTML = `<code>${wasm_bindgen.evaluate(source.innerText, {})}</code>`;
         } catch (error) {
           result.innerHTML = `<code>${error.message}</code>`;
         }
