@@ -16,7 +16,7 @@ lint:
 		cargo clippy -- -D warnings"
 
 .PHONY: test
-test: test/lang test/cli
+test: test/lang test/cli test/wasm
 
 .PHONY: test/lang
 test/lang:

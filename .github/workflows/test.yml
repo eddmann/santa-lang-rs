@@ -4,8 +4,8 @@ on:
   push:
 
 jobs:
-  test:
-    name: Test
+  test-lang:
+    name: Test Lang
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -17,4 +17,47 @@ jobs:
           key: test-cargo-${{ hashFiles('./Cargo.lock') }}
           restore-keys: test-cargo-
       - name: Test
-        run: make can-release
+        run: make test/lang
+
+  test-cli:
+    name: Test CLI
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Load Cache
+        uses: actions/cache@v3
+        with:
+          path: ./.cargo
+          key: test-cargo-${{ hashFiles('./Cargo.lock') }}
+          restore-keys: test-cargo-
+      - name: Test
+        run: make test/cli
+
+  test-wasm:
+    name: Test WebAssembly
+    runs-on: ubuntu-22.04
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.68.2
+          target: wasm32-unknown-unknown
+          override: true
+      - name: Load Rust Cache
+        uses: Swatinem/rust-cache@v2
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: v0.11.0
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.16.0
+      - name: Test
+        run: make test/wasm
