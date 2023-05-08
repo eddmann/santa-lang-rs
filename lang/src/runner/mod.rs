@@ -11,6 +11,7 @@ use std::rc::Rc;
 mod tests;
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RunErr {
     pub message: String,
     pub source: Location,
@@ -38,12 +39,15 @@ impl From<ParserErr> for RunErr {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RunResult {
     pub value: String,
     pub duration: u128,
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(untagged))]
 pub enum RunEvaluation {
     Solution {
         part_one: Option<RunResult>,
@@ -60,12 +64,14 @@ struct SourceEvaluation {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TestCase {
     pub part_one: Option<TestCaseResult>,
     pub part_two: Option<TestCaseResult>,
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TestCaseResult {
     pub expected: String,
     pub actual: String,

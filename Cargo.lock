@@ -951,6 +951,7 @@ version = "0.0.1"
 dependencies = [
  "js-sys",
  "santa-lang",
+ "serde-wasm-bindgen",
  "wasm-bindgen",
  "wasm-bindgen-test",
  "web-sys",
@@ -985,6 +986,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71b2f6e1ab5c2b98c05f0f35b236b22e8df7ead6ffbf51d7808da7f8817e7ab6"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde-wasm-bindgen"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3b143e2833c57ab9ad3ea280d21fd34e285a42837aeb0ee301f4f41890fa00e"
+dependencies = [
+ "js-sys",
+ "serde",
+ "wasm-bindgen",
 ]
 
 [[package]]

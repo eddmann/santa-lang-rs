@@ -1,4 +1,5 @@
 use super::*;
+use js_sys::Reflect;
 use wasm_bindgen_test::*;
 
 const SCRIPT: &str = "1..5 |> map(_ + 1) |> reduce(+);";

@@ -1,8 +1,7 @@
 mod external_functions;
-mod translation;
 
-use js_sys::{Array, Object, Reflect};
-use santa_lang::{run, AoCRunner, Environment, RunErr, RunEvaluation, Time};
+use js_sys::{Array, Object};
+use santa_lang::{run, AoCRunner, Environment, Time};
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 
 #[cfg(test)]
@@ -27,34 +26,8 @@ pub fn aoc_run(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
         AoCRunner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions));
 
     match runner.run(source) {
-        Ok(RunEvaluation::Script(result)) => {
-            let object = Object::new();
-
-            Reflect::set(&object, &"value".into(), &result.value.into()).unwrap();
-            Reflect::set(&object, &"duration".into(), &result.duration.into()).unwrap();
-
-            Ok(object.into())
-        }
-        Ok(RunEvaluation::Solution { part_one, part_two }) => {
-            let object = Object::new();
-
-            if let Some(part_one) = part_one {
-                let part = Object::new();
-                Reflect::set(&part, &"value".into(), &part_one.value.into()).unwrap();
-                Reflect::set(&part, &"duration".into(), &part_one.duration.into()).unwrap();
-                Reflect::set(&object, &"part_one".into(), &part.into()).unwrap();
-            }
-
-            if let Some(part_two) = part_two {
-                let part = Object::new();
-                Reflect::set(&part, &"value".into(), &part_two.value.into()).unwrap();
-                Reflect::set(&part, &"duration".into(), &part_two.duration.into()).unwrap();
-                Reflect::set(&object, &"part_two".into(), &part.into()).unwrap();
-            }
-
-            Ok(object.into())
-        }
-        Err(error) => Err(to_error_object(error)),
+        Ok(result) => Ok(serde_wasm_bindgen::to_value(&result).unwrap()),
+        Err(error) => Err(serde_wasm_bindgen::to_value(&error).unwrap()),
     }
 }
 
@@ -67,30 +40,10 @@ pub fn aoc_test(source: &str, js_functions: Object) -> Result<JsValue, JsValue> 
         Ok(test_cases) => Ok(JsValue::from(
             test_cases
                 .iter()
-                .map(|test_case| {
-                    let object = Object::new();
-
-                    if let Some(part_one) = &test_case.part_one {
-                        let part = Object::new();
-                        Reflect::set(&part, &"expected".into(), &part_one.expected.to_owned().into()).unwrap();
-                        Reflect::set(&part, &"actual".into(), &part_one.actual.to_owned().into()).unwrap();
-                        Reflect::set(&part, &"passed".into(), &part_one.passed.into()).unwrap();
-                        Reflect::set(&object, &"part_one".into(), &part.into()).unwrap();
-                    }
-
-                    if let Some(part_two) = &test_case.part_two {
-                        let part = Object::new();
-                        Reflect::set(&part, &"expected".into(), &part_two.expected.to_owned().into()).unwrap();
-                        Reflect::set(&part, &"actual".into(), &part_two.actual.to_owned().into()).unwrap();
-                        Reflect::set(&part, &"passed".into(), &part_two.passed.into()).unwrap();
-                        Reflect::set(&object, &"part_two".into(), &part.into()).unwrap();
-                    }
-
-                    JsValue::from(object)
-                })
+                .map(|test_case| serde_wasm_bindgen::to_value(test_case).unwrap())
                 .collect::<Array>(),
         )),
-        Err(error) => Err(to_error_object(error)),
+        Err(error) => Err(serde_wasm_bindgen::to_value(&error).unwrap()),
     }
 }
 
@@ -105,31 +58,6 @@ pub fn evaluate(expression: &str, js_functions: Option<Object>) -> Result<JsValu
 
     match run(expression, enviornment, &external_functions) {
         Ok(evaluated) => Ok(JsValue::from(evaluated.to_string())),
-        Err(error) => Err(to_error_object(error)),
+        Err(error) => Err(serde_wasm_bindgen::to_value(&error).unwrap()),
     }
-}
-
-fn to_error_object(error: RunErr) -> JsValue {
-    let object = Object::new();
-
-    Reflect::set(&object, &"message".into(), &error.message.into()).unwrap();
-
-    let source = Object::new();
-    Reflect::set(&source, &"start".into(), &error.source.start.into()).unwrap();
-    Reflect::set(&source, &"end".into(), &error.source.end.into()).unwrap();
-    Reflect::set(&object, &"source".into(), &source.into()).unwrap();
-
-    let trace = error
-        .trace
-        .iter()
-        .map(|location| {
-            let source = Object::new();
-            Reflect::set(&source, &"start".into(), &location.start.into()).unwrap();
-            Reflect::set(&source, &"end".into(), &location.end.into()).unwrap();
-            JsValue::from(source)
-        })
-        .collect::<Array>();
-    Reflect::set(&object, &"trace".into(), &trace.into()).unwrap();
-
-    JsValue::from(object)
 }

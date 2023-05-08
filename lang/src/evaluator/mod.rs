@@ -21,6 +21,7 @@ use ordered_float::OrderedFloat;
 use std::rc::Rc;
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RuntimeErr {
     pub message: String,
     pub source: Location,
