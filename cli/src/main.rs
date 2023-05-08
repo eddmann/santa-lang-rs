@@ -5,7 +5,7 @@ static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 use getopts::Options;
 use rustyline::DefaultEditor;
-use santa_lang::{run, AoCRunner, Environment, Location, Object, RunErr, RunEvaluation, Time};
+use santa_lang::{AoCRunner, Environment, Evaluator, Lexer, Location, Object, Parser, RunErr, RunEvaluation, Time};
 use std::fs;
 use std::rc::Rc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -106,15 +106,17 @@ fn print_usage(program: &str, opts: Options) {
 }
 
 fn repl() -> Result<()> {
-    let enviornment = Environment::new();
+    let environment = Environment::new();
 
     let mut functions = crate::external_functions::definitions();
-    let shared_enviornment = Rc::clone(&enviornment);
+    let shared_environment = Rc::clone(&environment);
     functions.push((
         "env".to_owned(),
         vec![],
-        Rc::new(move |_, _| Ok(Rc::new(Object::String(format!("{:?}", shared_enviornment.borrow()))))),
+        Rc::new(move |_, _| Ok(Rc::new(Object::String(format!("{:?}", shared_environment.borrow()))))),
     ));
+
+    let mut evaluator = Evaluator::new_with_external_functions(&functions);
 
     println!("   ,--.\n  ()   \\\n   /    \\\n _/______\\_\n(__________)\n(/  @  @  \\)\n(`._,()._,')  Santa REPL\n(  `-'`-'  )\n \\        /\n  \\,,,,,,/\n");
 
@@ -125,8 +127,19 @@ fn repl() -> Result<()> {
             Ok(line) => {
                 let expression = line.as_str();
                 rl.add_history_entry(expression)?;
-                match run(expression, Rc::clone(&enviornment), &functions) {
-                    Ok(result) => println!("{}", result),
+
+                let lexer = Lexer::new(expression);
+                let mut parser = Parser::new(lexer);
+                let program = match parser.parse() {
+                    Ok(parsed) => parsed,
+                    Err(error) => {
+                        println!("{}", error.message);
+                        continue;
+                    }
+                };
+
+                match evaluator.evaluate_with_environment(&program, Rc::clone(&environment)) {
+                    Ok(evaluated) => println!("{}", evaluated),
                     Err(error) => println!("{}", error.message),
                 };
             }

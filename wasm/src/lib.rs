@@ -1,7 +1,7 @@
 mod external_functions;
 
 use js_sys::{Array, Object};
-use santa_lang::{run, AoCRunner, Environment, Time};
+use santa_lang::{AoCRunner, Environment, Evaluator, Lexer, Parser, Time};
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 
 #[cfg(test)]
@@ -49,14 +49,21 @@ pub fn aoc_test(source: &str, js_functions: Object) -> Result<JsValue, JsValue> 
 
 #[wasm_bindgen]
 pub fn evaluate(expression: &str, js_functions: Option<Object>) -> Result<JsValue, JsValue> {
-    let enviornment = Environment::new();
     let external_functions = if let Some(js_functions) = js_functions {
         crate::external_functions::definitions(&js_functions)
     } else {
         vec![]
     };
+    let mut evaluator = Evaluator::new_with_external_functions(&external_functions);
 
-    match run(expression, enviornment, &external_functions) {
+    let lexer = Lexer::new(expression);
+    let mut parser = Parser::new(lexer);
+    let program = match parser.parse() {
+        Ok(parsed) => parsed,
+        Err(error) => return Err(serde_wasm_bindgen::to_value(&error).unwrap()),
+    };
+
+    match evaluator.evaluate_with_environment(&program, Environment::new()) {
         Ok(evaluated) => Ok(JsValue::from(evaluated.to_string())),
         Err(error) => Err(serde_wasm_bindgen::to_value(&error).unwrap()),
     }

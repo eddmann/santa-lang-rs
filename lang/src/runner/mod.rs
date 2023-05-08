@@ -319,16 +319,3 @@ impl<T: Time> AoCRunner<T> {
         })
     }
 }
-
-pub fn run(
-    source: &str,
-    environment: EnvironmentRef,
-    external_functions: &[ExternalFnDef],
-) -> Result<Rc<Object>, RunErr> {
-    let lexer = Lexer::new(source);
-    let mut parser = Parser::new(lexer);
-    let program = parser.parse()?;
-    let mut evaluator = Evaluator::new_with_external_functions(external_functions);
-    let result = evaluator.evaluate_with_environment(&program, Rc::clone(&environment))?;
-    Ok(result)
-}

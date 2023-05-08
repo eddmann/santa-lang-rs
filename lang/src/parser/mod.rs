@@ -23,6 +23,7 @@ enum Precedence {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ParserErr {
     pub message: String,
     pub source: Location,
