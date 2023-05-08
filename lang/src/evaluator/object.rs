@@ -9,6 +9,8 @@ use std::hash::Hash;
 use std::rc::Rc;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(untagged))]
 pub enum Object {
     Nil,
     Integer(i64),

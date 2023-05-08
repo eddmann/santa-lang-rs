@@ -352,3 +352,23 @@ impl Iterator for LazySequenceIter<'_> {
         }
     }
 }
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for LazySequence {
+    fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        Err(serde::ser::Error::custom("Unable to serialize LazySequence"))
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for LazySequence {
+    fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Err(serde::de::Error::custom("Unable to deserialize LazySequence"))
+    }
+}

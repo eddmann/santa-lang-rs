@@ -1,12 +1,14 @@
 use std::fmt;
 
 #[derive(PartialEq, Debug, Clone, Copy, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Token {
     pub kind: TokenKind,
     pub source: Location,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(u8)]
 pub enum TokenKind {
     Illegal,
@@ -69,6 +71,7 @@ pub enum TokenKind {
 }
 
 #[derive(PartialEq, Clone, Copy, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Location {
     pub start: usize,
     pub end: usize,

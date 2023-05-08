@@ -400,6 +400,7 @@ dependencies = [
  "rand_core",
  "rand_xoshiro",
  "refpool",
+ "serde",
  "sized-chunks",
  "typenum",
  "version_check",
@@ -618,6 +619,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13a384337e997e6860ffbaa83708b2ef329fd8c54cb67a5f64d421e0f943254f"
 dependencies = [
  "num-traits",
+ "serde",
 ]
 
 [[package]]
@@ -940,6 +942,7 @@ dependencies = [
  "im-rc",
  "ordered-float",
  "regex",
+ "serde",
 ]
 
 [[package]]
@@ -977,9 +980,23 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.160"
+version = "1.0.162"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb2f3770c8bce3bcda7e149193a069a0f4365bda1fa5cd88e03bca26afc1216c"
+checksum = "71b2f6e1ab5c2b98c05f0f35b236b22e8df7ead6ffbf51d7808da7f8817e7ab6"
+dependencies = [
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_derive"
+version = "1.0.162"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2a0814352fd64b58489904a44ea8d90cb1a91dcb6b4f5ebabc32c8318e93cb6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.14",
+]
 
 [[package]]
 name = "sized-chunks"
