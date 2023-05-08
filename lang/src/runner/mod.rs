@@ -1,10 +1,6 @@
-use crate::evaluator::environment::{Environment, EnvironmentErr, EnvironmentRef};
-use crate::evaluator::function::ExternalFnDef;
-use crate::evaluator::object::Object;
-use crate::evaluator::{Evaluator, RuntimeErr};
+use crate::evaluator::{Environment, EnvironmentErr, EnvironmentRef, Evaluator, ExternalFnDef, Object, RuntimeErr};
 use crate::lexer::{Lexer, Location};
-use crate::parser::ast::Section;
-use crate::parser::{Parser, ParserErr};
+use crate::parser::{ast::Section, Parser, ParserErr};
 use std::rc::Rc;
 
 #[cfg(test)]

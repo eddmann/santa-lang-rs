@@ -1,19 +1,20 @@
 mod builtins;
-pub mod environment;
-pub mod function;
+mod environment;
+mod function;
 mod index;
 mod infix;
 mod lazy_sequence;
 mod matcher;
-pub mod object;
+mod object;
 
 #[cfg(test)]
 mod tests;
 
-use crate::evaluator::environment::{Environment, EnvironmentErr, EnvironmentRef};
-use crate::evaluator::function::{ExternalFnDef, Function};
+pub use crate::evaluator::environment::{Environment, EnvironmentErr, EnvironmentRef};
+use crate::evaluator::function::Function;
+pub use crate::evaluator::function::{Arguments, ExternalFnDef};
 use crate::evaluator::lazy_sequence::LazySequence;
-use crate::evaluator::object::Object;
+pub use crate::evaluator::object::Object;
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Prefix, Program, Statement, StatementKind};
 use im_rc::{HashMap, HashSet, Vector};
