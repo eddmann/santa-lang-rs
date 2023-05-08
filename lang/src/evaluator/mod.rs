@@ -113,7 +113,7 @@ impl Evaluator {
         self.frames.pop();
     }
 
-    fn enviornment(&self) -> EnvironmentRef {
+    fn environment(&self) -> EnvironmentRef {
         match &self.frames.last().unwrap() {
             Frame::Program { environment } => Rc::clone(environment),
             Frame::Block { environment, .. } => Rc::clone(environment),
@@ -178,7 +178,7 @@ impl Evaluator {
             StatementKind::Break(value) => Ok(Rc::new(Object::Break(self.eval_expression(value)?))),
             StatementKind::Comment(_) => Ok(Rc::new(Object::Nil)),
             StatementKind::Section { name, body } => {
-                self.enviornment()
+                self.environment()
                     .borrow_mut()
                     .add_section(name, Rc::new(*body.clone()));
                 Ok(Rc::new(Object::Nil))
@@ -187,7 +187,7 @@ impl Evaluator {
             StatementKind::Block(statements) => {
                 self.push_frame(Frame::Block {
                     source: statement.source,
-                    environment: Environment::from(self.enviornment()),
+                    environment: Environment::from(self.environment()),
                 });
                 let result = self.eval_statement_block(statements)?;
                 self.pop_frame();
@@ -202,7 +202,7 @@ impl Evaluator {
             ExpressionKind::MutableLet { name, value } => self.eval_mutable_let_expression(name, value),
             ExpressionKind::Assign { name, value } => self.eval_assign_expression(name, value),
             ExpressionKind::Identifier(name) => {
-                if let Some(value) = self.enviornment().borrow().get_variable(name) {
+                if let Some(value) = self.environment().borrow().get_variable(name) {
                     return Ok(value);
                 }
 
@@ -243,7 +243,7 @@ impl Evaluator {
             ExpressionKind::Function { parameters, body } => Ok(Rc::new(Object::Function(Function::Closure {
                 parameters: parameters.clone(),
                 body: *body.clone(),
-                environment: Rc::clone(&self.enviornment()),
+                environment: Rc::clone(&self.environment()),
             }))),
             ExpressionKind::Call { function, arguments } => {
                 let evaluated_function = self.eval_expression(function)?;
@@ -410,7 +410,7 @@ impl Evaluator {
         match &name.kind {
             ExpressionKind::Identifier(id) => {
                 match self
-                    .enviornment()
+                    .environment()
                     .borrow_mut()
                     .declare_variable(id, Rc::clone(&evaluated_value), false)
                 {
@@ -439,7 +439,7 @@ impl Evaluator {
         match &name.kind {
             ExpressionKind::Identifier(id) => {
                 match self
-                    .enviornment()
+                    .environment()
                     .borrow_mut()
                     .declare_variable(id, Rc::clone(&evaluated_value), true)
                 {
@@ -468,7 +468,7 @@ impl Evaluator {
         match &name.kind {
             ExpressionKind::Identifier(id) => {
                 match self
-                    .enviornment()
+                    .environment()
                     .borrow_mut()
                     .assign_variable(id, Rc::clone(&evaluated_value))
                 {
@@ -547,7 +547,7 @@ impl Evaluator {
         for (position, pattern) in pattern.iter().enumerate() {
             match &pattern.kind {
                 ExpressionKind::Identifier(name) => {
-                    match self.enviornment().borrow_mut().declare_variable(
+                    match self.environment().borrow_mut().declare_variable(
                         name,
                         Rc::clone(list.iter().nth(position).unwrap_or(&Rc::new(Object::Nil))),
                         is_mutable,
@@ -563,7 +563,7 @@ impl Evaluator {
                     }
                 }
                 ExpressionKind::RestIdentifier(name) => {
-                    match self.enviornment().borrow_mut().declare_variable(
+                    match self.environment().borrow_mut().declare_variable(
                         name,
                         Rc::new(Object::List(list.clone().into_iter().skip(position).collect())),
                         is_mutable,

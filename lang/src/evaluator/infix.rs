@@ -43,7 +43,7 @@ pub fn apply(
                     })),
                     source,
                 },
-                environment: evaluator.enviornment(),
+                environment: evaluator.environment(),
             })))
         }
         (ExpressionKind::Placeholder, _) => {
@@ -66,7 +66,7 @@ pub fn apply(
                     })),
                     source,
                 },
-                environment: evaluator.enviornment(),
+                environment: evaluator.environment(),
             })))
         }
         (_, ExpressionKind::Placeholder) => {
@@ -89,7 +89,7 @@ pub fn apply(
                     })),
                     source,
                 },
-                environment: evaluator.enviornment(),
+                environment: evaluator.environment(),
             })))
         }
         _ => {}

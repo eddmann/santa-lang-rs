@@ -146,12 +146,12 @@ fn assert_section(source: &str, name: &str, expected: Expect) {
     let mut parser = crate::parser::Parser::new(crate::lexer::Lexer::new(source));
     let program = parser.parse();
     let mut evaluator = crate::evaluator::Evaluator::new();
-    let enviornment = crate::evaluator::Environment::new();
+    let environment = crate::evaluator::Environment::new();
 
     evaluator
-        .evaluate_with_environment(&program.expect("Ok"), std::rc::Rc::clone(&enviornment))
+        .evaluate_with_environment(&program.expect("Ok"), std::rc::Rc::clone(&environment))
         .expect("Ok");
 
-    let actual = format!("{:#?}", enviornment.borrow().get_sections(name));
+    let actual = format!("{:#?}", environment.borrow().get_sections(name));
     expected.assert_eq(&actual);
 }

@@ -16,10 +16,10 @@ pub fn matcher(evaluator: &mut Evaluator, subject: &Expression, cases: &[MatchCa
             ExpressionKind::Identifier(name) => {
                 evaluator.push_frame(Frame::Block {
                     source: case.pattern.source,
-                    environment: Environment::from(evaluator.enviornment()),
+                    environment: Environment::from(evaluator.environment()),
                 });
                 match evaluator
-                    .enviornment()
+                    .environment()
                     .borrow_mut()
                     .declare_variable(name, Rc::clone(&evaluated_subject), false)
                 {
@@ -53,7 +53,7 @@ pub fn matcher(evaluator: &mut Evaluator, subject: &Expression, cases: &[MatchCa
             ExpressionKind::ListMatchPattern(pattern) => {
                 evaluator.push_frame(Frame::Block {
                     source: case.pattern.source,
-                    environment: Environment::from(evaluator.enviornment()),
+                    environment: Environment::from(evaluator.environment()),
                 });
                 if !destructure_match_list_pattern(evaluator, pattern, Rc::clone(&evaluated_subject))? {
                     evaluator.pop_frame();
@@ -154,7 +154,7 @@ fn destructure_match_list_pattern(
             ExpressionKind::Placeholder => {}
             ExpressionKind::Identifier(name) => {
                 match evaluator
-                    .enviornment()
+                    .environment()
                     .borrow_mut()
                     .declare_variable(name, Rc::clone(&list[position]), false)
                 {
@@ -177,7 +177,7 @@ fn destructure_match_list_pattern(
                 let rest = list.clone().into_iter().skip(position).collect::<Vector<Rc<Object>>>();
 
                 match evaluator
-                    .enviornment()
+                    .environment()
                     .borrow_mut()
                     .declare_variable(name, Rc::new(Object::List(rest)), false)
                 {

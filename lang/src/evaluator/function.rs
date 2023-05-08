@@ -55,21 +55,21 @@ impl Function {
                 body,
                 environment,
             } => {
-                let enclosed_enviornment = Environment::from(Rc::clone(environment));
+                let enclosed_environment = Environment::from(Rc::clone(environment));
                 let remaining_parameters =
-                    self.assign_closure_parameters(Rc::clone(&enclosed_enviornment), parameters, &arguments)?;
+                    self.assign_closure_parameters(Rc::clone(&enclosed_environment), parameters, &arguments)?;
 
                 if !remaining_parameters.is_empty() {
                     return Ok(Rc::new(Object::Function(Self::Closure {
                         parameters: remaining_parameters,
                         body: body.clone(),
-                        environment: enclosed_enviornment,
+                        environment: enclosed_environment,
                     })));
                 }
 
                 evaluator.push_frame(Frame::ClosureCall {
                     source,
-                    environment: Rc::clone(&enclosed_enviornment),
+                    environment: Rc::clone(&enclosed_environment),
                 });
 
                 let mut result = evaluator.eval_statement(body)?;
@@ -77,13 +77,13 @@ impl Function {
                 loop {
                     if let Object::Function(Function::Continuation { arguments }) = &*result {
                         let remaining_parameters =
-                            self.assign_closure_parameters(Rc::clone(&enclosed_enviornment), parameters, arguments)?;
+                            self.assign_closure_parameters(Rc::clone(&enclosed_environment), parameters, arguments)?;
 
                         if !remaining_parameters.is_empty() {
                             result = Rc::new(Object::Function(Self::Closure {
                                 parameters: remaining_parameters,
                                 body: body.clone(),
-                                environment: enclosed_enviornment,
+                                environment: enclosed_environment,
                             }));
                             break;
                         }
@@ -115,21 +115,21 @@ impl Function {
                     return Ok(Rc::clone(result));
                 }
 
-                let enclosed_enviornment = Environment::from(Rc::clone(environment));
+                let enclosed_environment = Environment::from(Rc::clone(environment));
                 let remaining_parameters =
-                    self.assign_closure_parameters(Rc::clone(&enclosed_enviornment), parameters, &arguments)?;
+                    self.assign_closure_parameters(Rc::clone(&enclosed_environment), parameters, &arguments)?;
 
                 if !remaining_parameters.is_empty() {
                     return Ok(Rc::new(Object::Function(Self::Closure {
                         parameters: remaining_parameters,
                         body: body.clone(),
-                        environment: enclosed_enviornment,
+                        environment: enclosed_environment,
                     })));
                 }
 
                 evaluator.push_frame(Frame::ClosureCall {
                     source,
-                    environment: Rc::clone(&enclosed_enviornment),
+                    environment: Rc::clone(&enclosed_environment),
                 });
 
                 let mut result = evaluator.eval_statement(body)?;
@@ -137,13 +137,13 @@ impl Function {
                 loop {
                     if let Object::Function(Function::Continuation { arguments }) = &*result {
                         let remaining_parameters =
-                            self.assign_closure_parameters(Rc::clone(&enclosed_enviornment), parameters, arguments)?;
+                            self.assign_closure_parameters(Rc::clone(&enclosed_environment), parameters, arguments)?;
 
                         if !remaining_parameters.is_empty() {
                             result = Rc::new(Object::Function(Self::Closure {
                                 parameters: remaining_parameters,
                                 body: body.clone(),
-                                environment: enclosed_enviornment,
+                                environment: enclosed_environment,
                             }));
                             break;
                         }
@@ -255,7 +255,7 @@ impl Function {
 
     fn assign_closure_parameters(
         &self,
-        enviornment: EnvironmentRef,
+        environment: EnvironmentRef,
         #[allow(clippy::ptr_arg)] parameters: &Vec<Expression>,
         arguments: &Vec<Rc<Object>>,
     ) -> Result<Vec<Expression>, RuntimeErr> {
@@ -269,10 +269,10 @@ impl Function {
 
             match &parameter.kind {
                 ExpressionKind::Identifier(name) => {
-                    enviornment.borrow_mut().set_variable(name, Rc::clone(argument));
+                    environment.borrow_mut().set_variable(name, Rc::clone(argument));
                 }
                 ExpressionKind::RestIdentifier(name) => {
-                    enviornment.borrow_mut().set_variable(
+                    environment.borrow_mut().set_variable(
                         name,
                         Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
                     );
@@ -280,7 +280,7 @@ impl Function {
                 }
                 ExpressionKind::IdentifierListPattern(pattern) => {
                     Self::destructure_list_pattern_parameter(
-                        Rc::clone(&enviornment),
+                        Rc::clone(&environment),
                         pattern,
                         Rc::clone(argument),
                         parameter.source,
