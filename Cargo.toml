@@ -1,5 +1,5 @@
 [workspace]
-members = ["lang", "cli", "wasm"]
+members = ["lang", "cli", "wasm", "lambda"]
 
 [profile.release]
 strip = true

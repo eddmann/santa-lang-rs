@@ -35,13 +35,27 @@ test/wasm:
 fmt:
 	@$(DOCKER) -it $(IMAGE) bash -c "rustup component add rustfmt && cargo fmt"
 
+.PHONY: lambda/build
+lambda/build:
+	@$(DOCKER) -e BIN=santa-lambda rustserverless/lambda-rust
+
+.PHONY: lambda/serve
+lambda/serve:
+	@docker run --rm -it \
+		-e DOCKER_LAMBDA_STAY_OPEN=1 \
+		-e _HANDLER=fibonacci.handler \
+		-p 9001:9001 \
+		-v $(PWD)/target/lambda/release/santa-lambda:/opt/bootstrap \
+		-v $(PWD)/lambda/fixtures:/var/task \
+		lambci/lambda:provided.al2
+
 .PHONY: docs/serve
 docs/serve:
-	@docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
+	@docker run --rm -it -p 8000:8000 -v $(PWD):/docs squidfunk/mkdocs-material
 
 .PHONY: docs/build
 docs/build:
-	@docker run --rm -v ${PWD}:/docs squidfunk/mkdocs-material build --clean --site-dir site --verbose
+	@docker run --rm -v $(PWD):/docs squidfunk/mkdocs-material build --clean --site-dir site --verbose
 
 cli/build/%:
 	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.68.2 \

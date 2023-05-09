@@ -1,0 +1,12 @@
+let fibonacci = |n| {
+  let recur = |x, y, n| {
+    if n > 0 { return recur(y, x + y, n - 1) } else { x }
+  };
+  recur(0, 1, n);
+};
+
+handler: {
+  let number = event["number"];
+  puts("Requested the " + number + " number in the fibonacci sequence");
+  #{"result": fibonacci(number)};
+}

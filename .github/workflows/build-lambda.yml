@@ -1,0 +1,23 @@
+name: Build Lambda
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: build-lambda
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build
+        run: make lambda/build
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: santa-lang-lambda
+          path: target/lambda/release/santa-lambda.zip

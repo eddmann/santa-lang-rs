@@ -920,6 +920,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ryu"
+version = "1.0.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f91339c0467de62360649f8d3e185ca8de4224ff281f66000de5eb2a77a79041"
+
+[[package]]
 name = "santa-cli"
 version = "0.0.1"
 dependencies = [
@@ -932,6 +938,16 @@ dependencies = [
  "tikv-jemallocator",
  "ureq",
  "url",
+]
+
+[[package]]
+name = "santa-lambda"
+version = "0.0.1"
+dependencies = [
+ "santa-lang",
+ "serde",
+ "serde_json",
+ "ureq",
 ]
 
 [[package]]
@@ -1008,6 +1024,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.14",
+]
+
+[[package]]
+name = "serde_json"
+version = "1.0.96"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "057d394a50403bcac12672b2b18fb387ab6d289d957dab67dd201875391e52f1"
+dependencies = [
+ "itoa",
+ "ryu",
+ "serde",
 ]
 
 [[package]]
@@ -1232,6 +1259,8 @@ dependencies = [
  "log",
  "once_cell",
  "rustls",
+ "serde",
+ "serde_json",
  "url",
  "webpki",
  "webpki-roots",
