@@ -188,7 +188,7 @@ fn list() {
 }
 
 #[test]
-fn hash() {
+fn dictionary() {
     assert_tokens(
         r#"#{2.0: "hello", 1: true}"#,
         expect![[r#"

@@ -274,20 +274,20 @@ impl Evaluator {
                 }
                 Ok(Rc::new(Object::Set(elements)))
             }
-            ExpressionKind::Hash(map) => {
+            ExpressionKind::Dictionary(map) => {
                 let mut elements = HashMap::default();
                 for (key, value) in map {
                     let evaluated_key = self.eval_expression(key)?;
                     if !evaluated_key.is_hashable() {
                         return Err(RuntimeErr {
-                            message: format!("Unable to use a {} as a Hash key", evaluated_key.name()),
+                            message: format!("Unable to use a {} as a Dictionary key", evaluated_key.name()),
                             source: key.source,
                             trace: self.get_trace(),
                         });
                     }
                     elements.insert(evaluated_key, self.eval_expression(value)?);
                 }
-                Ok(Rc::new(Object::Hash(elements)))
+                Ok(Rc::new(Object::Dictionary(elements)))
             }
             ExpressionKind::Index { left, index } => {
                 let evaluated_left = self.eval_expression(left)?;

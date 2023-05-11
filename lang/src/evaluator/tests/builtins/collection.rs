@@ -14,8 +14,8 @@ test_eval! {
     ("size([1, 2])", "2", list_with_elements),
     ("size({})", "0", empty_set),
     ("size({1, 2})", "2", set_with_elements),
-    ("size(#{})", "0", empty_hash),
-    ("size(#{1: 2, 3: 4})", "2", hash_with_elements),
+    ("size(#{})", "0", empty_dictionary),
+    ("size(#{1: 2, 3: 4})", "2", dictionary_with_elements),
     ("size(\"\")", "0", empty_string),
     ("size(\"ab\")", "2", string_with_characters),
     ("size(0..0)", "0", empty_lazy_sequence),
@@ -29,8 +29,8 @@ test_eval! {
     ("map(_ + 1, [1, 2])", "[2, 3]", list_with_elements),
     ("map(_ + 1, {})", "{}", empty_set),
     ("map(_ + 1, {1, 2})", "{2, 3}", set_with_elements),
-    ("map(_ + 1, #{})", "#{}", empty_hash),
-    ("map(_ + 1, #{1: 2, 3: 4})", "#{1: 3, 3: 5}", hash_with_elements),
+    ("map(_ + 1, #{})", "#{}", empty_dictionary),
+    ("map(_ + 1, #{1: 2, 3: 4})", "#{1: 3, 3: 5}", dictionary_with_elements),
     ("map(_ * 2, \"\")", "[]", empty_string),
     ("map(_ * 2, \"ab\")", "[\"aa\", \"bb\"]", string_with_characters),
     ("map(_ + 1, 0..0) |> list", "[]", empty_lazy_sequence),
@@ -44,8 +44,8 @@ test_eval! {
     ("filter(_ == 1, [1, 2])", "[1]", list_with_elements),
     ("filter(_ == 1, {})", "{}", empty_set),
     ("filter(_ == 1, {1, 2})", "{1}", set_with_elements),
-    ("filter(_ == 1, #{})", "#{}", empty_hash),
-    ("filter(_ == 2, #{1: 2, 3: 4})", "#{1: 2}", hash_with_elements),
+    ("filter(_ == 1, #{})", "#{}", empty_dictionary),
+    ("filter(_ == 2, #{1: 2, 3: 4})", "#{1: 2}", dictionary_with_elements),
     ("filter(_ == \"a\", \"\")", "[]", empty_string),
     ("filter(_ == \"a\", \"ab\")", "[\"a\"]", string_with_characters),
     ("filter(_ == 0, 0..0) |> list", "[]", empty_lazy_sequence),
@@ -59,8 +59,8 @@ test_eval! {
     ("fold(0, +, [1, 2])", "3", list_with_elements),
     ("fold(0, +, {})", "0", empty_set),
     ("fold(0, +, {1, 2})", "3", set_with_elements),
-    ("fold(0, +, #{})", "0", empty_hash),
-    ("fold(0, +, #{1: 2, 3: 4})", "6", hash_with_elements),
+    ("fold(0, +, #{})", "0", empty_dictionary),
+    ("fold(0, +, #{1: 2, 3: 4})", "6", dictionary_with_elements),
     ("fold(0, _ + 1, \"\")", "0", empty_string),
     ("fold(0, _ + 1, \"ab\")", "2", string_with_characters),
     ("fold(0, +, 0..0)", "0", empty_lazy_sequence),
@@ -77,8 +77,8 @@ test_eval! {
     ("each(|v| a = a + v, [1, 2]); a", "3", list_with_elements),
     ("each(|v| a = a + v, {}); a", "0", empty_set),
     ("each(|v| a = a + v, {1, 2}); a", "3", set_with_elements),
-    ("each(|v| a = a + v, #{}); a", "0", empty_hash),
-    ("each(|v| a = a + v, #{1: 2, 3: 4}); a", "6", hash_with_elements),
+    ("each(|v| a = a + v, #{}); a", "0", empty_dictionary),
+    ("each(|v| a = a + v, #{1: 2, 3: 4}); a", "6", dictionary_with_elements),
     ("each(|_| a = a + 1, \"\"); a", "0", empty_string),
     ("each(|_| a = a + 1, \"ab\"); a", "2", string_with_characters),
     ("each(|v| a = a + v, 0..0); a", "0", empty_lazy_sequence),
@@ -93,8 +93,8 @@ test_eval! {
     ("reduce(+, [1, 2])", "3", list_with_elements),
     ("reduce(+, {})", "Unable to reduce an empty Set", empty_set),
     ("reduce(+, {1, 2})", "3", set_with_elements),
-    ("reduce(+, #{})", "Unable to reduce an empty Hash", empty_hash),
-    ("reduce(+, #{1: 2, 3: 4})", "6", hash_with_elements),
+    ("reduce(+, #{})", "Unable to reduce an empty Dictionary", empty_dictionary),
+    ("reduce(+, #{1: 2, 3: 4})", "6", dictionary_with_elements),
     ("reduce(+, \"\")", "Unable to reduce an empty String", empty_string),
     ("reduce(+, \"ab\")", "\"ab\"", string_with_characters),
     ("reduce(+, 0..0)", "Unable to reduce an empty LazySequence", empty_lazy_sequence),
@@ -116,8 +116,8 @@ test_eval! {
     ("find(_ == 1, [1, 2])", "1", list_with_elements),
     ("find(_ == 1, {})", "nil", empty_set),
     ("find(_ == 1, {1, 2})", "1", set_with_elements),
-    ("find(_ == 1, #{})", "nil", empty_hash),
-    ("find(_ == 2, #{1: 2, 3: 4})", "2", hash_with_elements),
+    ("find(_ == 1, #{})", "nil", empty_dictionary),
+    ("find(_ == 2, #{1: 2, 3: 4})", "2", dictionary_with_elements),
     ("find(_ == \"a\", \"\")", "nil", empty_string),
     ("find(_ == \"a\", \"ab\")", "\"a\"", string_with_characters),
     ("find(_ == 1, 0..0)", "nil", empty_lazy_sequence),
@@ -131,8 +131,8 @@ test_eval! {
     ("count(_ == 1, [1, 2])", "1", list_with_elements),
     ("count(_ == 1, {})", "0", empty_set),
     ("count(_ == 1, {1, 2})", "1", set_with_elements),
-    ("count(_ == 1, #{})", "0", empty_hash),
-    ("count(_ == 2, #{1: 2, 3: 4})", "1", hash_with_elements),
+    ("count(_ == 1, #{})", "0", empty_dictionary),
+    ("count(_ == 2, #{1: 2, 3: 4})", "1", dictionary_with_elements),
     ("count(_ == \"a\", \"\")", "0", empty_string),
     ("count(_ == \"a\", \"ab\")", "1", string_with_characters),
     ("count(_ == 1, 0..0)", "0", empty_lazy_sequence),
@@ -146,8 +146,8 @@ test_eval! {
     ("sum([1, 2])", "3", list_with_elements),
     ("sum({})", "0", empty_set),
     ("sum({1, 2})", "3", set_with_elements),
-    ("sum(#{})", "0", empty_hash),
-    ("sum(#{1: 2, 3: 4})", "6", hash_with_elements),
+    ("sum(#{})", "0", empty_dictionary),
+    ("sum(#{1: 2, 3: 4})", "6", dictionary_with_elements),
     ("sum(0..0)", "0", empty_lazy_sequence),
     ("sum(0..2)", "1", lazy_sequence_with_elements)
 }
@@ -159,8 +159,8 @@ test_eval! {
     ("max([1, 2])", "2", list_with_elements),
     ("max({})", "nil", empty_set),
     ("max({1, 2})", "2", set_with_elements),
-    ("max(#{})", "nil", empty_hash),
-    ("max(#{1: 2, 3: 4})", "4", hash_with_elements),
+    ("max(#{})", "nil", empty_dictionary),
+    ("max(#{1: 2, 3: 4})", "4", dictionary_with_elements),
     ("max(0..0)", "nil", empty_lazy_sequence),
     ("max(0..2)", "1", lazy_sequence_with_elements),
     ("max(1, 2)", "2", multi_argument)
@@ -173,8 +173,8 @@ test_eval! {
     ("min([1, 2])", "1", list_with_elements),
     ("min({})", "nil", empty_set),
     ("min({1, 2})", "1", set_with_elements),
-    ("min(#{})", "nil", empty_hash),
-    ("min(#{1: 2, 3: 4})", "2", hash_with_elements),
+    ("min(#{})", "nil", empty_dictionary),
+    ("min(#{1: 2, 3: 4})", "2", dictionary_with_elements),
     ("min(0..0)", "nil", empty_lazy_sequence),
     ("min(0..2)", "0", lazy_sequence_with_elements),
     ("min(1, 2)", "1", multi_argument)
@@ -205,8 +205,8 @@ test_eval! {
     ("list([1, 2])", "[1, 2]", list_with_elements),
     ("list({})", "[]", empty_set),
     ("list({1, 2})", "[1, 2]", set_with_elements),
-    ("list(#{})", "[]", empty_hash),
-    ("list(#{1: 2, 3: 4})", "[[1, 2], [3, 4]]", hash_with_elements),
+    ("list(#{})", "[]", empty_dictionary),
+    ("list(#{1: 2, 3: 4})", "[[1, 2], [3, 4]]", dictionary_with_elements),
     ("list(\"\")", "[]", empty_string),
     ("list(\"ab\")", "[\"a\", \"b\"]", string_with_characters),
     ("list(0..0)", "[]", empty_lazy_sequence),
@@ -227,14 +227,14 @@ test_eval! {
 }
 
 test_eval! {
-    suite hash;
+    suite dict;
 
-    ("hash([])", "#{}", empty_list),
-    ("hash([[1, 2], [3, 4]])", "#{1: 2, 3: 4}", list_with_elements),
-    ("hash(#{})", "#{}", empty_hash),
-    ("hash(#{1: 2, 3: 4})", "#{1: 2, 3: 4}", hash_with_elements),
-    ("zip(0..0, 0..1) |> hash", "#{}", empty_lazy_sequence),
-    ("zip(0..2, 1..3) |> hash", "#{1: 2, 0: 1}", lazy_sequence_with_elements)
+    ("dict([])", "#{}", empty_list),
+    ("dict([[1, 2], [3, 4]])", "#{1: 2, 3: 4}", list_with_elements),
+    ("dict(#{})", "#{}", empty_dictionary),
+    ("dict(#{1: 2, 3: 4})", "#{1: 2, 3: 4}", dictionary_with_elements),
+    ("zip(0..0, 0..1) |> dict", "#{}", empty_lazy_sequence),
+    ("zip(0..2, 1..3) |> dict", "#{1: 2, 0: 1}", lazy_sequence_with_elements)
 }
 
 test_eval! {
@@ -277,15 +277,15 @@ test_eval! {
 test_eval! {
     suite keys;
 
-    ("keys(#{})", "[]", empty_hash),
-    ("keys(#{1: 2, 3: 4})", "[1, 3]", hash_with_elements)
+    ("keys(#{})", "[]", empty_dictionary),
+    ("keys(#{1: 2, 3: 4})", "[1, 3]", dictionary_with_elements)
 }
 
 test_eval! {
     suite values;
 
-    ("values(#{})", "[]", empty_hash),
-    ("values(#{1: 2, 3: 4})", "[2, 4]", hash_with_elements)
+    ("values(#{})", "[]", empty_dictionary),
+    ("values(#{1: 2, 3: 4})", "[2, 4]", dictionary_with_elements)
 }
 
 test_eval! {
@@ -334,8 +334,8 @@ test_eval! {
     ("get(1, [1, 2])", "2", list_with_elements),
     ("get(1, {})", "nil", empty_set),
     ("get(1, {2, 1})", "1", set_with_elements),
-    ("get(1, #{})", "nil", empty_hash),
-    ("get(1, #{1: 2, 3: 4})", "2", hash_with_elements),
+    ("get(1, #{})", "nil", empty_dictionary),
+    ("get(1, #{1: 2, 3: 4})", "2", dictionary_with_elements),
     ("get(1, \"\")", "nil", empty_string),
     ("get(1, \"ab\")", "\"b\"", string_with_characters),
     ("get(1, 0..0)", "nil", empty_lazy_sequence),
@@ -350,8 +350,8 @@ test_eval! {
     ("includes?([1, 2], 1)", "true", list_with_elements),
     ("includes?({}, 1)", "false", empty_set),
     ("includes?({2, 1}, 1)", "true", set_with_elements),
-    ("includes?(#{}, 1)", "false", empty_hash),
-    ("includes?(#{1: 2, 3: 4}, 1)", "true", hash_with_elements),
+    ("includes?(#{}, 1)", "false", empty_dictionary),
+    ("includes?(#{1: 2, 3: 4}, 1)", "true", dictionary_with_elements),
     ("includes?(\"\", \"a\")", "false", empty_string),
     ("includes?(\"ab\", \"a\")", "true", string_with_characters),
     ("includes?(0..0, 1)", "false", empty_lazy_sequence),
@@ -366,8 +366,8 @@ test_eval! {
     ("excludes?([1, 2], 1)", "false", list_with_elements),
     ("excludes?({}, 1)", "true", empty_set),
     ("excludes?({2, 1}, 1)", "false", set_with_elements),
-    ("excludes?(#{}, 1)", "true", empty_hash),
-    ("excludes?(#{1: 2, 3: 4}, 1)", "false", hash_with_elements),
+    ("excludes?(#{}, 1)", "true", empty_dictionary),
+    ("excludes?(#{1: 2, 3: 4}, 1)", "false", dictionary_with_elements),
     ("excludes?(\"\", \"a\")", "true", empty_string),
     ("excludes?(\"ab\", \"a\")", "false", string_with_characters),
     ("excludes?(0..0, 1)", "true", empty_lazy_sequence),
@@ -381,8 +381,8 @@ test_eval! {
     ("any?(_ == 1, [1, 2])", "true", list_with_elements),
     ("any?(_ == 1, {})", "false", empty_set),
     ("any?(_ == 1, {2, 1})", "true", set_with_elements),
-    ("any?(_ == 2, #{})", "false", empty_hash),
-    ("any?(_ == 2, #{1: 2, 3: 4})", "true", hash_with_elements),
+    ("any?(_ == 2, #{})", "false", empty_dictionary),
+    ("any?(_ == 2, #{1: 2, 3: 4})", "true", dictionary_with_elements),
     ("any?(_ == \"a\", \"\")", "false", empty_string),
     ("any?(_ == \"a\", \"ab\")", "true", string_with_characters),
     ("any?(_ == 1, 0..0)", "false", empty_lazy_sequence),
@@ -396,8 +396,8 @@ test_eval! {
     ("all?(_ > 0, [1, 2])", "true", list_with_elements),
     ("all?(_ > 0, {})", "true", empty_set),
     ("all?(_ > 0, {2, 1})", "true", set_with_elements),
-    ("all?(_ > 0, #{})", "true", empty_hash),
-    ("all?(_ > 0, #{1: 2, 3: 4})", "true", hash_with_elements),
+    ("all?(_ > 0, #{})", "true", empty_dictionary),
+    ("all?(_ > 0, #{1: 2, 3: 4})", "true", dictionary_with_elements),
     ("all?(_ != \"c\", \"\")", "true", empty_string),
     ("all?(_ != \"c\", \"ab\")", "true", string_with_characters),
     ("all?(_ >= 0, 0..0)", "true", empty_lazy_sequence),
@@ -448,8 +448,8 @@ test_eval! {
     ("scan(0, +, [1, 2])", "[0, 1, 3]", list_with_elements),
     ("scan(0, +, {})", "[0]", empty_set),
     ("scan(0, +, {1, 2})", "[0, 1, 3]", set_with_elements),
-    ("scan(0, +, #{})", "[0]", empty_hash),
-    ("scan(0, +, #{1: 2, 3: 4})", "[0, 2, 6]", hash_with_elements),
+    ("scan(0, +, #{})", "[0]", empty_dictionary),
+    ("scan(0, +, #{1: 2, 3: 4})", "[0, 2, 6]", dictionary_with_elements),
     ("scan(\"\", +, \"\")", "[\"\"]", empty_string),
     ("scan(\"\", +, \"ab\")", "[\"\", \"a\", \"ab\"]", string_with_characters),
     ("scan(0, +, 0..0)", "[0]", empty_lazy_sequence),
@@ -474,8 +474,8 @@ test_eval! {
     ("filter_map(|a| if a != 1 { a + 1 }, [1, 2])", "[3]", list_with_elements),
     ("filter_map(|a| if a != 1 { a + 1 }, {})", "{}", empty_set),
     ("filter_map(|a| if a != 1 { a + 1 }, {1, 2})", "{3}", set_with_elements),
-    ("filter_map(|a| if a != 1 { a + 1 }, #{})", "#{}", empty_hash),
-    ("filter_map(|a| if a != 2 { a + 1 }, #{1: 2, 3: 4})", "#{3: 5}", hash_with_elements),
+    ("filter_map(|a| if a != 1 { a + 1 }, #{})", "#{}", empty_dictionary),
+    ("filter_map(|a| if a != 2 { a + 1 }, #{1: 2, 3: 4})", "#{3: 5}", dictionary_with_elements),
     ("filter_map(|a| if a != \"a\" { a * 2 }, \"\")", "[]", empty_string),
     ("filter_map(|a| if a != \"a\" { a * 2 }, \"ab\")", "[\"bb\"]", string_with_characters),
     ("filter_map(|a| if a != 1 { a + 1 }, 0..0) |> list", "[]", empty_lazy_sequence),
@@ -489,8 +489,8 @@ test_eval! {
     ("find_map(|a| if a != 1 { a + 1 }, [1, 2])", "3", list_with_elements),
     ("find_map(|a| if a != 1 { a + 1 }, {})", "nil", empty_set),
     ("find_map(|a| if a != 1 { a + 1 }, {1, 2})", "3", set_with_elements),
-    ("find_map(|a| if a != 1 { a + 1 }, #{})", "nil", empty_hash),
-    ("find_map(|a| if a != 2 { a + 1 }, #{1: 2, 3: 4})", "5", hash_with_elements),
+    ("find_map(|a| if a != 1 { a + 1 }, #{})", "nil", empty_dictionary),
+    ("find_map(|a| if a != 2 { a + 1 }, #{1: 2, 3: 4})", "5", dictionary_with_elements),
     ("find_map(|a| if a != \"a\" { a * 2 }, \"\")", "nil", empty_string),
     ("find_map(|a| if a != \"a\" { a * 2 }, \"ab\")", "\"bb\"", string_with_characters),
     ("find_map(|a| if a != 1 { a + 1 }, 0..0)", "nil", empty_lazy_sequence),
@@ -503,9 +503,9 @@ test_eval! {
     ("assoc(0, 1, [])", "[1]", empty_list),
     ("assoc(1, 1, [])", "[nil, 1]", empty_list_second_index),
     ("assoc(0, 3, [1, 2])", "[3, 2]", list_with_existing_element),
-    ("assoc(0, 1, #{})", "#{0: 1}", empty_hash),
-    ("assoc(1, 1, #{1: 2, 3: 4})", "#{1: 1, 3: 4}", hash_with_existing_entry),
-    ("assoc(0, 1, #{1: 2, 3: 4})", "#{1: 2, 3: 4, 0: 1}", hash_with_new_entry)
+    ("assoc(0, 1, #{})", "#{0: 1}", empty_dictionary),
+    ("assoc(1, 1, #{1: 2, 3: 4})", "#{1: 1, 3: 4}", dictionary_with_existing_entry),
+    ("assoc(0, 1, #{1: 2, 3: 4})", "#{1: 2, 3: 4, 0: 1}", dictionary_with_new_entry)
 }
 
 test_eval! {
@@ -514,8 +514,8 @@ test_eval! {
     ("update(0, || 1, [])", "[1]", empty_list),
     ("update(1, || 1, [])", "[nil, 1]", empty_list_non_zero_index),
     ("update(0, _ + 1, [1, 2])", "[2, 2]", list_with_existing_element),
-    ("update(0, || 1, #{})", "#{0: 1}", empty_hash),
-    ("update(1, _ + 1, #{1: 2, 3: 4})", "#{1: 3, 3: 4}", hash_with_existing_entry)
+    ("update(0, || 1, #{})", "#{0: 1}", empty_dictionary),
+    ("update(1, _ + 1, #{1: 2, 3: 4})", "#{1: 3, 3: 4}", dictionary_with_existing_entry)
 }
 
 test_eval! {
@@ -524,8 +524,8 @@ test_eval! {
     ("update_d(0, 0, _ + 1, [])", "[1]", empty_list),
     ("update_d(1, 0, _ + 1, [])", "[nil, 1]", empty_list_non_zero_index),
     ("update_d(0, 0, _ + 1, [1, 2])", "[2, 2]", list_with_existing_element),
-    ("update_d(0, 0, _ + 1, #{})", "#{0: 1}", empty_hash),
-    ("update_d(1, 0, _ + 1, #{1: 2, 3: 4})", "#{1: 3, 3: 4}", hash_with_existing_entry)
+    ("update_d(0, 0, _ + 1, #{})", "#{0: 1}", empty_dictionary),
+    ("update_d(1, 0, _ + 1, #{1: 2, 3: 4})", "#{1: 3, 3: 4}", dictionary_with_existing_entry)
 }
 
 test_eval! {
@@ -537,8 +537,8 @@ test_eval! {
     ("fold_s([0, 1], folder, [1, 4, 3, 2])", "23", list_with_elements),
     ("fold_s([0, 1], folder, {})", "0", empty_set),
     ("fold_s([0, 1], folder, {1, 4, 3, 2})", "23", set_with_elements),
-    ("fold_s([0, 1], folder, #{})", "0", empty_hash),
-    ("fold_s([0, 1], folder, #{1: 2, 3: 4})", "10", hash_with_elements),
+    ("fold_s([0, 1], folder, #{})", "0", empty_dictionary),
+    ("fold_s([0, 1], folder, #{1: 2, 3: 4})", "10", dictionary_with_elements),
     ("fold_s([\"\", \"\"], |[acc, prev], val| [acc + prev + val, val], \"\")", "\"\"", empty_string),
     ("fold_s([\"\", \"a\"], |[acc, prev], val| [acc + prev + val, val], \"ab\")", "\"aaab\"", string_with_characters),
     ("fold_s([0, 1], folder, 0..0)", "0", empty_lazy_sequence),

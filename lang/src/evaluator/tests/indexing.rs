@@ -28,16 +28,16 @@ test_eval! {
 }
 
 test_eval! {
-    suite hashs;
+    suite dictionaries;
 
-    sut "let hash = #{1: \"integer\", 1.5: [1, 2, 3], \"hello\": \"world\", true: 1..5, [3, 2, 1]: true};";
+    sut "let dictionary = #{1: \"integer\", 1.5: [1, 2, 3], \"hello\": \"world\", true: 1..5, [3, 2, 1]: true};";
 
-    ("hash[1]", "\"integer\"", integer),
-    ("hash[1.5]", "[1, 2, 3]", decimal),
-    ("hash[\"hello\"]", "\"world\"", string),
-    ("hash[true]", "1..5", boolean),
-    ("hash[[3, 2, 1]]", "true", list),
-    ("hash[\"unknown\"]", "nil", unknown_value)
+    ("dictionary[1]", "\"integer\"", integer),
+    ("dictionary[1.5]", "[1, 2, 3]", decimal),
+    ("dictionary[\"hello\"]", "\"world\"", string),
+    ("dictionary[true]", "1..5", boolean),
+    ("dictionary[[3, 2, 1]]", "true", list),
+    ("dictionary[\"unknown\"]", "nil", unknown_value)
 }
 
 test_eval! {

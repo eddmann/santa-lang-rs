@@ -20,7 +20,7 @@ pub enum Object {
 
     List(Vector<Rc<Object>>),
     Set(HashSet<Rc<Object>, BuildHasherDefault<DefaultHasher>>),
-    Hash(HashMap<Rc<Object>, Rc<Object>, BuildHasherDefault<DefaultHasher>>),
+    Dictionary(HashMap<Rc<Object>, Rc<Object>, BuildHasherDefault<DefaultHasher>>),
     LazySequence(LazySequence),
 
     Function(Function),
@@ -41,7 +41,7 @@ impl Object {
 
             Self::List(_) => "List",
             Self::Set(_) => "Set",
-            Self::Hash(_) => "Hash",
+            Self::Dictionary(_) => "Dictionary",
             Self::LazySequence(_) => "LazySequence",
 
             Self::Function(_) => "Function",
@@ -62,7 +62,7 @@ impl Object {
 
             Self::List(v) => !v.is_empty(),
             Self::Set(v) => !v.is_empty(),
-            Self::Hash(v) => !v.is_empty(),
+            Self::Dictionary(v) => !v.is_empty(),
             Self::LazySequence(_) => true,
 
             Self::Function(_) => true,
@@ -99,7 +99,7 @@ impl fmt::Display for Object {
                 let elements: Vec<String> = v.iter().map(|element| element.to_string()).collect();
                 format!("{{{}}}", elements.join(", "))
             }
-            Self::Hash(v) => {
+            Self::Dictionary(v) => {
                 let formatted: Vec<String> = v.iter().map(|(key, value)| format!("{}: {}", key, value)).collect();
                 format!("#{{{}}}", formatted.join(", "))
             }

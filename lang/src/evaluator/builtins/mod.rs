@@ -10,7 +10,7 @@ mod string;
 builtins! {
     collection::list,
     collection::set,
-    collection::hash,
+    collection::dict,
     collection::get,
     collection::size,
     collection::push,

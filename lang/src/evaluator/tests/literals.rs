@@ -65,14 +65,14 @@ test_eval! {
 }
 
 test_eval! {
-    suite hash;
+    suite dictionary;
 
     ("#{\"1\": 1, \"2\": 2, \"3\": 3}", "#{\"3\": 3, \"1\": 1, \"2\": 2}", homogeneous),
     ("#{\"1\": 1, \"2\": 2, \"3\": 3, \"1\": 4}", "#{\"3\": 3, \"1\": 4, \"2\": 2}", homogeneous_with_duplicates),
     ("#{1: true, \"2\": {nil}, 3.0: [1..5], {1}: #{1: 2}}", "#{1: true, 3: [1..5], {1}: #{1: 2}, \"2\": {nil}}", heterogeneous),
     ("#{1: true, \"2\": {nil}, 3.0: [1..5], {1}: #{1: 2}, {1}: 2}", "#{1: true, 3: [1..5], {1}: 2, \"2\": {nil}}", heterogeneous_with_duplicates),
-    ("#{(|a| a): 1}", "Unable to use a Function as a Hash key", function_key_disallowed),
-    ("#{1..5: 1}", "Unable to use a LazySequence as a Hash key", lazy_sequence_key_disallowed)
+    ("#{(|a| a): 1}", "Unable to use a Function as a Dictionary key", function_key_disallowed),
+    ("#{1..5: 1}", "Unable to use a LazySequence as a Dictionary key", lazy_sequence_key_disallowed)
 }
 
 test_eval! {
@@ -108,8 +108,8 @@ test_eval! {
     ("!([])", "true", falsey_list_value),
     ("!({1, 2, 3})", "false", truthy_set_value),
     ("!({})", "true", falsey_set_value),
-    ("!(#{1: 2})", "false", truthy_hash_value),
-    ("!(#{})", "true", falsey_hash_value)
+    ("!(#{1: 2})", "false", truthy_dictionary_value),
+    ("!(#{})", "true", falsey_dictionary_value)
 }
 
 test_eval! {

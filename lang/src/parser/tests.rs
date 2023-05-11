@@ -302,7 +302,7 @@ fn list() {
 }
 
 #[test]
-fn hash() {
+fn dictionary() {
     assert_ast(
         r#"
             #{"Hello, world!": #{x}, 1: "2", [1, 2]: 1.4}
@@ -313,7 +313,7 @@ fn hash() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Hash(
+                                kind: Dictionary(
                                     [
                                         (
                                             Expression {
@@ -323,7 +323,7 @@ fn hash() {
                                                 source: 2..17,
                                             },
                                             Expression {
-                                                kind: Hash(
+                                                kind: Dictionary(
                                                     [
                                                         (
                                                             Expression {

@@ -76,7 +76,7 @@ pub enum ExpressionKind {
     },
     List(Vec<Expression>),
     Set(Vec<Expression>),
-    Hash(Vec<(Expression, Expression)>),
+    Dictionary(Vec<(Expression, Expression)>),
     InclusiveRange {
         from: Box<Expression>,
         to: Box<Expression>,
@@ -193,7 +193,7 @@ impl fmt::Display for ExpressionKind {
                 let formatted: Vec<String> = elements.iter().map(|element| element.to_string()).collect();
                 format!("{{{}}}", formatted.join(", "))
             }
-            Self::Hash(elements) => {
+            Self::Dictionary(elements) => {
                 let formatted: Vec<String> = elements
                     .iter()
                     .map(|(key, value)| format!("{}: {}", key, value))

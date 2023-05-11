@@ -43,7 +43,7 @@ fn main() -> ! {
             Rc::new(Object::String("request_id".to_owned())),
             Rc::new(Object::String(request_id.to_owned())),
         );
-        let context = Rc::new(Object::Hash(context_map.into()));
+        let context = Rc::new(Object::Dictionary(context_map.into()));
 
         match handler(event, context) {
             Ok(response) => {

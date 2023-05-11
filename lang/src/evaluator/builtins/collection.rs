@@ -29,7 +29,7 @@ builtin! {
         Object::Set(set) => {
             Ok(Rc::new(Object::Integer(set.len() as i64)))
         }
-        Object::Hash(map) => {
+        Object::Dictionary(map) => {
             Ok(Rc::new(Object::Integer(map.len() as i64)))
         }
         Object::String(string) => {
@@ -65,12 +65,12 @@ builtin! {
             }
             Ok(Rc::new(Object::Set(elements)))
         }
-        (Object::Function(mapper), Object::Hash(map)) => {
+        (Object::Function(mapper), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
             for (key, value) in map {
                 elements.insert(Rc::clone(key), mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?);
             }
-            Ok(Rc::new(Object::Hash(elements)))
+            Ok(Rc::new(Object::Dictionary(elements)))
         }
         (Object::Function(mapper), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Map(mapper.clone())))))
@@ -105,14 +105,14 @@ builtin! {
             }
             Ok(Rc::new(Object::Set(elements)))
         }
-        (Object::Function(predicate), Object::Hash(map)) => {
+        (Object::Function(predicate), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
             for (key, value) in map {
                 if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
                     elements.insert(Rc::clone(key), Rc::clone(value));
                 }
             }
-            Ok(Rc::new(Object::Hash(elements)))
+            Ok(Rc::new(Object::Dictionary(elements)))
         }
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Filter(predicate.clone())))))
@@ -152,7 +152,7 @@ builtin! {
             }
             Ok(Rc::clone(&accumulator))
         }
-        (_, Object::Function(folder), Object::Hash(map)) => {
+        (_, Object::Function(folder), Object::Dictionary(map)) => {
             let mut accumulator = Rc::clone(initial);
             for (key, value) in map {
                 accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(value), Rc::clone(key)], source)?;
@@ -206,7 +206,7 @@ builtin! {
             }
             Ok(Rc::new(Object::Nil))
         }
-        (Object::Function(side_effect), Object::Hash(map)) => {
+        (Object::Function(side_effect), Object::Dictionary(map)) => {
             for (key, value) in map {
                 let result = side_effect.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
                 if let Object::Break(_) = &*result {
@@ -275,12 +275,12 @@ builtin! {
             }
             Ok(Rc::clone(&accumulator))
         }
-        (Object::Function(reducer), Object::Hash(map)) => {
+        (Object::Function(reducer), Object::Dictionary(map)) => {
             let mut elements = map.iter();
             let mut accumulator = match elements.next() {
                 Some((key, value)) => Rc::clone(value),
                 None => return Err(RuntimeErr {
-                    message: "Unable to reduce an empty Hash".to_owned(),
+                    message: "Unable to reduce an empty Dictionary".to_owned(),
                     source,
                     trace: evaluator.get_trace()
                 })
@@ -365,7 +365,7 @@ builtin! {
             }
             Ok(Rc::new(Object::Nil))
         }
-        (Object::Function(predicate), Object::Hash(map)) => {
+        (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map {
                 if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
                     return Ok(Rc::clone(value));
@@ -414,7 +414,7 @@ builtin! {
             }
             Ok(Rc::new(Object::Integer(count)))
         }
-        (Object::Function(predicate), Object::Hash(map)) => {
+        (Object::Function(predicate), Object::Dictionary(map)) => {
             let mut count = 0;
             for (key, value) in map {
                 if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
@@ -466,7 +466,7 @@ builtin! {
             }
             Ok(Rc::new(Object::Integer(sum)))
         }
-        Object::Hash(map) => {
+        Object::Dictionary(map) => {
             let mut sum = 0;
             for (key, value) in map {
                 if let Object::Integer(value) = &**value {
@@ -518,7 +518,7 @@ builtin! {
 
                 Ok(Rc::new(Object::Nil))
             }
-            Object::Hash(map) => {
+            Object::Dictionary(map) => {
                 if let Some(max) = map.values().max() {
                     return Ok(Rc::clone(max));
                 }
@@ -572,7 +572,7 @@ builtin! {
 
                 Ok(Rc::new(Object::Nil))
             }
-            Object::Hash(map) => {
+            Object::Dictionary(map) => {
                 if let Some(min) = map.values().min() {
                     return Ok(Rc::clone(min));
                 }
@@ -625,7 +625,7 @@ builtin! {
         Object::Set(set) => {
             Ok(Rc::new(Object::List(set.clone().into_iter().collect::<Vector<Rc<Object>>>())))
         }
-        Object::Hash(map) => {
+        Object::Dictionary(map) => {
             let to_pairs = |(key, value)| Rc::new(Object::List(vec![key, value].into()));
             Ok(Rc::new(Object::List(map.clone().into_iter().map(to_pairs).collect::<Vector<Rc<Object>>>())))
         }
@@ -678,7 +678,7 @@ builtin! {
 }
 
 builtin! {
-    hash(value) [evaluator, source] match {
+    dict(value) [evaluator, source] match {
         Object::List(list) => {
             let mut elements = HashMap::default();
 
@@ -687,7 +687,7 @@ builtin! {
                     if pair.len() == 2 {
                         if !pair[0].is_hashable() {
                             return Err(RuntimeErr {
-                                message: format!("Unable to use a {} as a Hash key", pair[0].name()),
+                                message: format!("Unable to use a {} as a Dictionary key", pair[0].name()),
                                 source,
                                 trace: evaluator.get_trace()
                             });
@@ -707,10 +707,10 @@ builtin! {
                 })
             }
 
-            Ok(Rc::new(Object::Hash(elements)))
+            Ok(Rc::new(Object::Dictionary(elements)))
         }
-        Object::Hash(map) => {
-            Ok(Rc::new(Object::Hash(map.clone())))
+        Object::Dictionary(map) => {
+            Ok(Rc::new(Object::Dictionary(map.clone())))
         }
         Object::LazySequence(sequence) => {
             let mut elements = HashMap::default();
@@ -720,7 +720,7 @@ builtin! {
                     if pair.len() == 2 {
                         if !pair[0].is_hashable() {
                             return Err(RuntimeErr {
-                                message: format!("Unable to use a {} as a Hash key", pair[0].name()),
+                                message: format!("Unable to use a {} as a Dictionary key", pair[0].name()),
                                 source,
                                 trace: evaluator.get_trace()
                             });
@@ -740,7 +740,7 @@ builtin! {
                 })
             }
 
-            Ok(Rc::new(Object::Hash(elements)))
+            Ok(Rc::new(Object::Dictionary(elements)))
         }
     }
 }
@@ -848,16 +848,16 @@ builtin! {
 }
 
 builtin! {
-    keys(hash_map) [evaluator, source] match {
-        Object::Hash(map) => {
+    keys(dictionary) [evaluator, source] match {
+        Object::Dictionary(map) => {
             Ok(Rc::new(Object::List(map.iter().map(|(key, _)| Rc::clone(key)).collect::<Vector<_>>())))
         }
     }
 }
 
 builtin! {
-    values(hash_map) [evaluator, source] match {
-        Object::Hash(map) => {
+    values(dictionary) [evaluator, source] match {
+        Object::Dictionary(map) => {
             Ok(Rc::new(Object::List(map.iter().map(|(_, value)| Rc::clone(value)).collect::<Vector<_>>())))
         }
     }
@@ -963,7 +963,7 @@ builtin! {
         (Object::Set(set), _) => {
             Ok(Rc::new(Object::Boolean(set.contains(value))))
         }
-        (Object::Hash(map), _) => {
+        (Object::Dictionary(map), _) => {
             Ok(Rc::new(Object::Boolean(map.contains_key(value))))
         }
         (Object::LazySequence(sequence), _) => {
@@ -991,7 +991,7 @@ builtin! {
         (Object::Set(set), _) => {
             Ok(Rc::new(Object::Boolean(!set.contains(value))))
         }
-        (Object::Hash(map), _) => {
+        (Object::Dictionary(map), _) => {
             Ok(Rc::new(Object::Boolean(!map.contains_key(value))))
         }
         (Object::LazySequence(sequence), _) => {
@@ -1029,7 +1029,7 @@ builtin! {
             }
             Ok(Rc::new(Object::Boolean(false)))
         }
-        (Object::Function(predicate), Object::Hash(map)) => {
+        (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map.iter() {
                 if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
@@ -1075,7 +1075,7 @@ builtin! {
             }
             Ok(Rc::new(Object::Boolean(true)))
         }
-        (Object::Function(predicate), Object::Hash(map)) => {
+        (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map.iter() {
                 if !predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
@@ -1401,7 +1401,7 @@ builtin! {
             }
             Ok(Rc::new(Object::List(elements)))
         }
-        (_, Object::Function(mapper), Object::Hash(map)) => {
+        (_, Object::Function(mapper), Object::Dictionary(map)) => {
             let mut elements = Vector::new();
             elements.push_back(Rc::clone(initial));
             let mut previous = Rc::clone(initial);
@@ -1478,7 +1478,7 @@ builtin! {
             }
             Ok(Rc::new(Object::Set(elements)))
         }
-        (Object::Function(mapper), Object::Hash(map)) => {
+        (Object::Function(mapper), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
             for (key, value) in map {
                 let mapped = mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
@@ -1486,7 +1486,7 @@ builtin! {
                     elements.insert(Rc::clone(key), mapped);
                 }
             }
-            Ok(Rc::new(Object::Hash(elements)))
+            Ok(Rc::new(Object::Dictionary(elements)))
         }
         (Object::Function(mapper), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::FilterMap(mapper.clone())))))
@@ -1524,7 +1524,7 @@ builtin! {
             }
             Ok(Rc::new(Object::Nil))
         }
-        (Object::Function(mapper), Object::Hash(map)) => {
+        (Object::Function(mapper), Object::Dictionary(map)) => {
             for (key, value) in map {
                 let mapped = mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
                 if mapped.is_truthy() {
@@ -1566,8 +1566,8 @@ builtin! {
             }
             Ok(Rc::new(Object::List(associated.update(*index as usize, Rc::clone(value)))))
         }
-        (_, _, Object::Hash(map)) => {
-            Ok(Rc::new(Object::Hash(map.update(Rc::clone(key), Rc::clone(value)))))
+        (_, _, Object::Dictionary(map)) => {
+            Ok(Rc::new(Object::Dictionary(map.update(Rc::clone(key), Rc::clone(value)))))
         }
     }
 }
@@ -1588,12 +1588,12 @@ builtin! {
             };
             Ok(Rc::new(Object::List(updated.update(index, updater.apply(evaluator, vec![Rc::clone(&previous)], source)?))))
         }
-        (_, Object::Function(updater), Object::Hash(map)) => {
+        (_, Object::Function(updater), Object::Dictionary(map)) => {
             let previous = match map.get(key) {
                 Some(value) => Rc::clone(value),
                 None => Rc::new(Object::Nil),
             };
-            Ok(Rc::new(Object::Hash(map.update(Rc::clone(key), updater.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(key)], source)?))))
+            Ok(Rc::new(Object::Dictionary(map.update(Rc::clone(key), updater.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(key)], source)?))))
         }
     }
 }
@@ -1614,12 +1614,12 @@ builtin! {
             }
             Ok(Rc::new(Object::List(updated.update(index, updater.apply(evaluator, vec![Rc::clone(&previous)], source)?))))
         }
-        (_, _,Object::Function(updater), Object::Hash(map)) => {
+        (_, _,Object::Function(updater), Object::Dictionary(map)) => {
             let previous = match map.get(key) {
                 Some(value) => Rc::clone(value),
                 None => Rc::clone(default),
             };
-            Ok(Rc::new(Object::Hash(map.update(Rc::clone(key), updater.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(key)], source)?))))
+            Ok(Rc::new(Object::Dictionary(map.update(Rc::clone(key), updater.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(key)], source)?))))
         }
     }
 }
@@ -1664,7 +1664,7 @@ builtin! {
                 trace: evaluator.get_trace()
             })
         }
-        (_, Object::Function(folder), Object::Hash(map)) => {
+        (_, Object::Function(folder), Object::Dictionary(map)) => {
             let mut accumulator = Rc::clone(initial);
             for (key, value) in map {
                 accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(value), Rc::clone(key)], source)?;

@@ -40,7 +40,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
         } else {
             Object::Nil
         })),
-        (Object::Hash(map), index) => {
+        (Object::Dictionary(map), index) => {
             if let Some(value) = map.get(index) {
                 Ok(Rc::clone(value))
             } else {

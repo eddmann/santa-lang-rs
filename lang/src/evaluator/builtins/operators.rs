@@ -48,12 +48,12 @@ pub fn plus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, so
             }
             Ok(Rc::new(Object::Set(set)))
         }
-        (Object::Hash(a), Object::Hash(b)) => {
+        (Object::Dictionary(a), Object::Dictionary(b)) => {
             let mut map = a.clone();
             for (k, v) in b.clone() {
                 map.insert(k, v);
             }
-            Ok(Rc::new(Object::Hash(map)))
+            Ok(Rc::new(Object::Dictionary(map)))
         }
         _ => Err(RuntimeErr {
             message: format!("Unsupported operation: {} + {}", left.name(), right.name()),

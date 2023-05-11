@@ -259,7 +259,7 @@ impl<'a> Parser<'a> {
             T!['('] => self.parse_grouped_expression(),
             T!['['] => self.parse_list_expression(),
             T!['{'] => self.parse_set_expression(),
-            T!["#{"] => self.parse_hash_expression(),
+            T!["#{"] => self.parse_dictionary_expression(),
             T![IF] => self.parse_if_expression(),
             T![MATCH] => self.parse_match_expression(),
             T![|] | T![||] => self.parse_function_expression(),
@@ -533,7 +533,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_hash_expression(&mut self) -> RExpression {
+    fn parse_dictionary_expression(&mut self) -> RExpression {
         let start = self.expect(T!["#{"])?;
 
         let mut elements: Vec<(Expression, Expression)> = Vec::new();
@@ -565,7 +565,7 @@ impl<'a> Parser<'a> {
         self.expect(T!['}'])?;
 
         Ok(Expression {
-            kind: ExpressionKind::Hash(elements),
+            kind: ExpressionKind::Dictionary(elements),
             source: start.source_range(&self.current_token),
         })
     }

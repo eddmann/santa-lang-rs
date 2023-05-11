@@ -118,26 +118,26 @@ Most types can be stored within a Set, except for Lazy Sequences and Functions.
 let set = {1, || 1}; // Error
 ```
 
-#### Map
+#### Dictionary
 
 Represents an unordered association between arbitrary keys and values.
 
 ```santa
-let homogeneous_map = #{"a": 1, "b": 2};
-let heterogeneous_map = #{[1]: 1.5, 2: true, homogeneous_map};
+let homogeneous_dict = #{"a": 1, "b": 2};
+let heterogeneous_dict = #{[1]: 1.5, 2: true, homogeneous_dict};
 ```
 
 ```santa
-let hash_map = #{"a": 1};
-hash_map |> assoc("a", 2); // #{"a": 2}
-hash_map; // #{"a": 1}
+let dictionary = #{"a": 1};
+dictionary |> assoc("a", 2); // #{"a": 2}
+dictionary; // #{"a": 1}
 ```
 
-Most types can be used as Map keys, except for Lazy Sequences and Functions.
+Most types can be used as Dictionary keys, except for Lazy Sequences and Functions.
 
 ```santa
 let attempted_key = || 1;
-let hash_map = #{attempted_key: "one"}; // Error
+let dictionary = #{attempted_key: "one"}; // Error
 ```
 
 ### Lazy Sequence
@@ -191,7 +191,7 @@ Values can be evaluated to a Boolean within predicate expressions using the _tru
 | String       | Not empty |
 | List         | Not empty |
 | Set          | Not empty |
-| Hash         | Not empty |
+| Dictionary   | Not empty |
 | LazySequence | Always    |
 | Function     | Always    |
 
@@ -329,16 +329,16 @@ list[1..=2]; // [2, 3]
 list[1..=-1]; // [2, 1, 4]
 ```
 
-### Map
+### Dictionary
 
-Map values can be found via their associated key.
-If a Map key is not present within the collection `nil` is returned.
+Dictionary values can be found via their associated key.
+If a Dictionary key is not present within the collection `nil` is returned.
 
 ```santa
-let hash_map = #{"a": 1, "b": 2};
+let dictionary = #{"a": 1, "b": 2};
 
-hash_map["a"]; // 1
-hash_map["c"]; // nil
+dictionary["a"]; // 1
+dictionary["c"]; // nil
 ```
 
 ### String
