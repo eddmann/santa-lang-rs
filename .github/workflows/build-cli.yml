@@ -1,9 +1,7 @@
 name: Build CLI
 
 on:
-  push:
-    branches:
-      - draft-release
+  workflow_call:
 
 concurrency: build-cli
 

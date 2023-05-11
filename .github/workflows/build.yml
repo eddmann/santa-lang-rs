@@ -1,0 +1,16 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - draft-release
+
+concurrency: build
+
+jobs:
+  build-cli:
+    uses: eddmann/santa-lang-rs/.github/workflows/build-cli.yml@draft-release
+  build-lambda:
+    uses: eddmann/santa-lang-rs/.github/workflows/build-lambda.yml@draft-release
+  build-wasm:
+    uses: eddmann/santa-lang-rs/.github/workflows/build-wasm.yml@draft-release
