@@ -1,6 +1,11 @@
 [workspace]
 members = ["lang", "cli", "wasm", "lambda"]
 
+[workspace.package]
+version = "0.0.1"
+authors = ["Edd Mann <the@eddmann.com>"]
+documentation = "https://eddmann.com/santa-lang-rs/"
+
 [profile.release]
 strip = true
 codegen-units = 1
