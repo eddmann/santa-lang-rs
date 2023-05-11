@@ -61,3 +61,22 @@ jobs:
           node-version: 18.16.0
       - name: Test
         run: make test/wasm
+
+  update-draft-release-branch:
+    needs:
+      - test-lang
+      - test-cli
+      - test-wasm
+    name: Update draft release branch
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+      - name: Update
+        uses: alice-biometrics/github-push-action@v0.7.0
+        with:
+          branch: draft-release
+          force: true
+          github_token: ${{ secrets.RELEASE_TOKEN }}

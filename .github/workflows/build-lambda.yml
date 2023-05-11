@@ -3,7 +3,7 @@ name: Build Lambda
 on:
   push:
     branches:
-      - main
+      - draft-release
 
 concurrency: build-lambda
 

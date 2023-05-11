@@ -3,7 +3,7 @@ name: Build CLI
 on:
   push:
     branches:
-      - main
+      - draft-release
 
 concurrency: build-cli
 

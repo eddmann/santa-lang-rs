@@ -3,7 +3,7 @@ name: Build WebAssembly
 on:
   push:
     branches:
-      - main
+      - draft-release
 
 concurrency: build-wasm
 
