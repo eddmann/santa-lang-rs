@@ -19,5 +19,5 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: santa-lang-lambda
+          name: santa-lang-lambda.zip
           path: target/lambda/release/santa-lambda.zip

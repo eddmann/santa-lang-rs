@@ -11,9 +11,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-22.04
-    permissions:
-      contents: read
-      packages: write
     env:
       CARGO_TERM_COLOR: always
     steps:
@@ -42,15 +39,11 @@ jobs:
         working-directory: wasm/pkg
         run: |
           npm pkg set 'name'='@eddmann/santa-lang-wasm'
-          npm pkg set 'version'="0.0.1-${GITHUB_SHA::7}"
           npm pkg set 'repository'='https://github.com/eddmann/santa-lang-rs'
           npm pkg set 'publishConfig.registry'='https://npm.pkg.github.com'
           wasm-pack pack
-      - name: Publish
-        working-directory: wasm/pkg
-        run: |
-          echo @eddmann:https://npm.pkg.github.com/ > .npmrc
-          echo '//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}' >> .npmrc
-          npm publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: santa-lang-wasm.tgz
+          path: wasm/pkg/santa-wasm-*.tgz

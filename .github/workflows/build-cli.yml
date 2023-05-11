@@ -20,10 +20,14 @@ jobs:
             -f cli/Dockerfile \
             --label "org.opencontainers.image.source=https://github.com/eddmann/santa-lang-rs" \
             -t ghcr.io/eddmann/santa-lang-cli:latest .
-      - name: Push
+      - name: Pack
         run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker push ghcr.io/eddmann/santa-lang-cli:latest
+          docker save -o santa-lang-cli-docker.tar ghcr.io/eddmann/santa-lang-cli:latest
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: santa-lang-cli-docker.tar
+          path: santa-lang-cli-docker.tar
 
   binary:
     name: Binary
@@ -62,5 +66,5 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: santa-cli-${{ matrix.target }}
+          name: santa-lang-cli-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/santa-cli
