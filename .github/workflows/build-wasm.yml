@@ -2,18 +2,25 @@ name: Build WebAssembly
 
 on:
   workflow_call:
-
-concurrency: build-wasm
+    inputs:
+      release-tag:
+        required: true
+        type: string
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     env:
       CARGO_TERM_COLOR: always
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Set release version
+        run: |
+          sed -i 's/version = "[0-9.]*"$/version = "${{ inputs.release-tag }}"/' Cargo.toml
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -21,7 +28,7 @@ jobs:
           toolchain: 1.68.2
           target: wasm32-unknown-unknown
           override: true
-      - name: Load Rust Cache
+      - name: Load Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.4.0
@@ -40,8 +47,8 @@ jobs:
           npm pkg set 'repository'='https://github.com/eddmann/santa-lang-rs'
           wasm-pack pack
       - name: Upload
-        uses: actions/upload-artifact@v3
-        with:
-          name: santa-lang-wasm.tgz
-          path: wasm/pkg/eddmann-santa-lang-wasm-*.tgz
-          retention-days: 5
+        run: |
+          cp wasm/pkg/eddmann-santa-lang-wasm-${{ inputs.release-tag }}.tgz santa-lang-wasm-${{ inputs.release-tag }}.tgz
+          gh release upload ${{ inputs.release-tag }} santa-lang-wasm-${{ inputs.release-tag }}.tgz --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

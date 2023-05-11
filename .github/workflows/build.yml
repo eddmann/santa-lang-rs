@@ -8,9 +8,40 @@ on:
 concurrency: build
 
 jobs:
-  build-cli:
+  update-draft-release:
+    name: Update draft release
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: read
+    outputs:
+      tag_name: ${{ steps.update-release-content.outputs.tag_name }}
+    steps:
+      - name: Update release content
+        id: update-release-content
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          commitish: 'draft-release'
+
+  cli:
+    needs: update-draft-release
+    name: Build CLI
     uses: eddmann/santa-lang-rs/.github/workflows/build-cli.yml@draft-release
-  build-lambda:
+    with:
+      release-tag: ${{ needs.update-draft-release.outputs.tag_name }}
+
+  lambda:
+    needs: update-draft-release
+    name: Build Lambda
     uses: eddmann/santa-lang-rs/.github/workflows/build-lambda.yml@draft-release
-  build-wasm:
+    with:
+      release-tag: ${{ needs.update-draft-release.outputs.tag_name }}
+
+  wasm:
+    needs: update-draft-release
+    name: Build WebAssembly
     uses: eddmann/santa-lang-rs/.github/workflows/build-wasm.yml@draft-release
+    with:
+      release-tag: ${{ needs.update-draft-release.outputs.tag_name }}

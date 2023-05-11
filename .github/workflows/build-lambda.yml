@@ -2,8 +2,10 @@ name: Build Lambda
 
 on:
   workflow_call:
-
-concurrency: build-lambda
+    inputs:
+      release-tag:
+        required: true
+        type: string
 
 jobs:
   build:
@@ -12,11 +14,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Set release version
+        run: |
+          sed -i 's/version = "[0-9.]*"$/version = "${{ inputs.release-tag }}"/' Cargo.toml
       - name: Build
         run: make lambda/build
       - name: Upload
-        uses: actions/upload-artifact@v3
-        with:
-          name: santa-lang-lambda.zip
-          path: target/lambda/release/santa-lambda.zip
-          retention-days: 5
+        run: |
+          cp target/lambda/release/santa-lambda.zip santa-lang-lambda-${{ inputs.release-tag }}.zip
+          gh release upload ${{ inputs.release-tag }} santa-lang-lambda-${{ inputs.release-tag }}.zip --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

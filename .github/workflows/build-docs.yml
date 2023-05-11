@@ -23,7 +23,7 @@ jobs:
           toolchain: 1.68.2
           target: wasm32-unknown-unknown
           override: true
-      - name: Load Rust Cache
+      - name: Load Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.4.0

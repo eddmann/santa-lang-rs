@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Load Cache
+      - name: Load cache
         uses: actions/cache@v3
         with:
           path: ./.cargo
@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Load Cache
+      - name: Load cache
         uses: actions/cache@v3
         with:
           path: ./.cargo
@@ -51,7 +51,7 @@ jobs:
           toolchain: 1.68.2
           target: wasm32-unknown-unknown
           override: true
-      - name: Load Rust Cache
+      - name: Load Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.4.0
