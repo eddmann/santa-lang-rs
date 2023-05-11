@@ -2,6 +2,8 @@ name: Test
 
 on:
   push:
+    branches-ignore:
+      - draft-release
 
 jobs:
   test-lang:
@@ -14,7 +16,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./.cargo
-          key: test-cargo-${{ hashFiles('./Cargo.lock') }}
+          key: test-lang-cargo-${{ hashFiles('./Cargo.lock') }}
           restore-keys: test-lang-cargo-
       - name: Test
         run: make test/lang
@@ -29,7 +31,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./.cargo
-          key: test-cargo-${{ hashFiles('./Cargo.lock') }}
+          key: test-cli-cargo-${{ hashFiles('./Cargo.lock') }}
           restore-keys: test-cli-cargo-
       - name: Test
         run: make test/cli
@@ -67,6 +69,7 @@ jobs:
       - test-lang
       - test-cli
       - test-wasm
+    if: github.ref == 'refs/heads/main'
     name: Update draft release branch
     runs-on: ubuntu-22.04
     steps:
