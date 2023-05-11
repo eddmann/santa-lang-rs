@@ -28,6 +28,7 @@ jobs:
         with:
           name: santa-lang-cli-docker.tar
           path: santa-lang-cli-docker.tar
+          retention-days: 5
 
   binary:
     name: Binary
@@ -68,3 +69,4 @@ jobs:
         with:
           name: santa-lang-cli-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/santa-cli
+          retention-days: 5

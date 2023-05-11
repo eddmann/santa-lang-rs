@@ -21,3 +21,4 @@ jobs:
         with:
           name: santa-lang-lambda.zip
           path: target/lambda/release/santa-lambda.zip
+          retention-days: 5

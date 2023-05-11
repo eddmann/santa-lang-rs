@@ -40,10 +40,10 @@ jobs:
         run: |
           npm pkg set 'name'='@eddmann/santa-lang-wasm'
           npm pkg set 'repository'='https://github.com/eddmann/santa-lang-rs'
-          npm pkg set 'publishConfig.registry'='https://npm.pkg.github.com'
           wasm-pack pack
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
           name: santa-lang-wasm.tgz
-          path: wasm/pkg/santa-wasm-*.tgz
+          path: wasm/pkg/eddmann-santa-lang-wasm-*.tgz
+          retention-days: 5
