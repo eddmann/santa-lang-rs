@@ -1,0 +1,24 @@
+name: Build PHP extension
+
+on:
+  workflow_call:
+    inputs:
+      release-tag:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build
+        run: make php-ext/build
+      - name: Upload
+        run: |
+          cp target/release/libsanta_lang.so santa-lang-php-ext-${{ inputs.release-tag }}-x86_64-linux.so
+          gh release upload ${{ inputs.release-tag }} santa-lang-php-ext-${{ inputs.release-tag }}-x86_64-linux.so --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

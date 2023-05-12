@@ -1,0 +1,17 @@
+[package]
+name = "santa-php-ext"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition = "2021"
+
+[lib]
+name = "santa_lang"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+ext-php-rs = "0.10.0"
+santa-lang = { path = "../lang", version = "*" }
+ureq = "2.6.2"
+url = "2.3.1"

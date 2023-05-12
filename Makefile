@@ -49,6 +49,16 @@ lambda/serve:
 		-v $(PWD)/lambda/fixtures:/var/task \
 		lambci/lambda:provided.al2
 
+.PHONY: php-ext/build
+php-ext/build:
+	@docker build -t local/santa-php-ext-build - < php-ext/build.Dockerfile
+	@$(DOCKER) local/santa-php-ext-build bash -c "cargo build --package santa-php-ext --release"
+
+.PHONY: php-ext/test
+php-ext/test:
+	@docker build -t local/santa-php-ext-build - < php-ext/build.Dockerfile
+	@$(DOCKER) local/santa-php-ext-build bash -c "php -dextension=./target/release/libsanta_lang.so php-ext/fixtures/test.php"
+
 .PHONY: docs/serve
 docs/serve:
 	@docker run --rm -it -p 8000:8000 -v $(PWD):/docs squidfunk/mkdocs-material

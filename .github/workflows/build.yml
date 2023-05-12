@@ -45,3 +45,10 @@ jobs:
     uses: eddmann/santa-lang-rs/.github/workflows/build-wasm.yml@draft-release
     with:
       release-tag: ${{ needs.update-draft-release.outputs.tag_name }}
+
+  php-ext:
+    needs: update-draft-release
+    name: Build PHP extension
+    uses: eddmann/santa-lang-rs/.github/workflows/build-php-ext.yml@draft-release
+    with:
+      release-tag: ${{ needs.update-draft-release.outputs.tag_name }}
