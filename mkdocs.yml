@@ -17,6 +17,7 @@ nav:
       - CLI: cli.md
       - WebAssembly: wasm.md
       - Lambda: lambda.md
+      - PHP Extension: php-ext.md
   - Examples: examples.md
 extra_javascript:
   - assets/santa_lang.js
