@@ -479,7 +479,8 @@ test_eval! {
     ("filter_map(|a| if a != \"a\" { a * 2 }, \"\")", "[]", empty_string),
     ("filter_map(|a| if a != \"a\" { a * 2 }, \"ab\")", "[\"bb\"]", string_with_characters),
     ("filter_map(|a| if a != 1 { a + 1 }, 0..0) |> list", "[]", empty_lazy_sequence),
-    ("filter_map(|a| if a != 1 { a + 1 }, 0..2) |> list", "[1]", lazy_sequence_with_elements)
+    ("filter_map(|a| if a != 1 { a + 1 }, 0..2) |> list", "[1]", bounded_lazy_sequence_with_elements),
+    ("filter_map(|a| if a != 1 { a + 1 }, 0..) |> take(3)", "[1, 3, 4]", unbounded_lazy_sequence_with_elements)
 }
 
 test_eval! {
