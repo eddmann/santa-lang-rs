@@ -1,4 +1,5 @@
 <p align="center"><img src="assets/logo.png" alt="santa-lang" width="400px" /></p>
+<p align="center"><a href="cli/">CLI</a> - <a href="wasm/">WebAssembly</a> - <a href="lambda/">Lambda</a> - <a href="php-ext/">PHP Extension</a></p>
 
 # santa-lang
 
