@@ -1380,54 +1380,54 @@ builtin! {
 }
 
 builtin! {
-    scan(initial, mapper, collection) [evaluator, source] match {
-        (_, Object::Function(mapper), Object::List(list)) => {
+    scan(initial, folder, collection) [evaluator, source] match {
+        (_, Object::Function(folder), Object::List(list)) => {
             let mut elements = Vector::new();
             elements.push_back(Rc::clone(initial));
             let mut previous = Rc::clone(initial);
             for element in list {
-                previous = mapper.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(element)], source)?;
+                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(element)], source)?;
                 elements.push_back(Rc::clone(&previous));
             }
             Ok(Rc::new(Object::List(elements)))
         }
-        (_, Object::Function(mapper), Object::Set(set)) => {
+        (_, Object::Function(folder), Object::Set(set)) => {
             let mut elements = Vector::new();
             elements.push_back(Rc::clone(initial));
             let mut previous = Rc::clone(initial);
             for element in set {
-                previous = mapper.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(element)], source)?;
+                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(element)], source)?;
                 elements.push_back(Rc::clone(&previous));
             }
             Ok(Rc::new(Object::List(elements)))
         }
-        (_, Object::Function(mapper), Object::Dictionary(map)) => {
+        (_, Object::Function(folder), Object::Dictionary(map)) => {
             let mut elements = Vector::new();
             elements.push_back(Rc::clone(initial));
             let mut previous = Rc::clone(initial);
             for (key, value) in map {
-                previous = mapper.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(value), Rc::clone(key)], source)?;
+                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(value), Rc::clone(key)], source)?;
                 elements.push_back(Rc::clone(&previous));
             }
             Ok(Rc::new(Object::List(elements)))
         }
-        (_, Object::Function(mapper), Object::LazySequence(sequence)) => {
+        (_, Object::Function(folder), Object::LazySequence(sequence)) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             let mut elements = Vector::new();
             elements.push_back(Rc::clone(initial));
             let mut previous = Rc::clone(initial);
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                previous = mapper.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&previous), Rc::clone(&element)], source)?;
+                previous = folder.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&previous), Rc::clone(&element)], source)?;
                 elements.push_back(Rc::clone(&previous));
             }
             Ok(Rc::new(Object::List(elements)))
         }
-        (_, Object::Function(mapper), Object::String(string)) => {
+        (_, Object::Function(folder), Object::String(string)) => {
             let mut elements = Vector::new();
             elements.push_back(Rc::clone(initial));
             let mut previous = Rc::clone(initial);
             for character in string.chars() {
-                previous = mapper.apply(evaluator, vec![Rc::clone(&previous), Rc::new(Object::String(character.to_string()))], source)?;
+                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(Object::String(character.to_string()))], source)?;
                 elements.push_back(Rc::clone(&previous));
             }
             Ok(Rc::new(Object::List(elements)))
