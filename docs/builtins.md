@@ -1834,18 +1834,6 @@ Predicate to assert if all values within the collection hold _truthy_ based on t
     all?(_ > 0, 1..=5)
     ```
 
-=== "Unbounded Range"
-
-    ```santa
-    all?(_ > 0, 1..)
-    ```
-
-=== "Lazy Sequence"
-
-    ```santa
-    all?(_ > 0, iterate(_ + 1, 1))
-    ```
-
 ## Math
 
 ### abs
