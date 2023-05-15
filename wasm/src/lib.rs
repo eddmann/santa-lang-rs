@@ -9,14 +9,17 @@ mod tests;
 
 #[wasm_bindgen]
 extern "C" {
-    #[wasm_bindgen(js_namespace = this, js_name = performance)]
-    pub static JS_PERFORMANCE: web_sys::Performance;
+    #[wasm_bindgen(js_namespace = self, js_name = performance)]
+    type Performance;
+
+    #[wasm_bindgen(static_method_of = Performance, catch)]
+    fn now() -> Result<f64, JsValue>;
 }
 
 struct WebTime {}
 impl Time for WebTime {
     fn now(&self) -> u128 {
-        JS_PERFORMANCE.now() as u128
+        Performance::now().unwrap_or(0.0) as u128
     }
 }
 
