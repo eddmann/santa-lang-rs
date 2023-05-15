@@ -703,8 +703,8 @@ If the collection is empty then the _initial value_ is returned.
 
 ```santa
 50..100 |> fold_s(
-  |[acc, x, y], val| [acc + x * y * val, val, val / 2],
-  [0, 0, 0]
+  [0, 0, 0],
+  |[acc, x, y], val| [acc + x * y * val, val, val / 2]
 )
 ```
 
