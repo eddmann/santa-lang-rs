@@ -8,11 +8,11 @@ The following builtin functions are available in **all** runtimes:
 
 ### list
 
-Returns the List represenation of the given value.
-
 ```
 list(value)
 ```
+
+Return the List representation of the given value.
 
 === "List"
 
@@ -28,7 +28,7 @@ list(value)
 
 === "Dictionary"
 
-    Ouput is a List of List tuples (key, value).
+    Ouput is a List of List tuples `[key, value]`.
 
     ```santa
     list(#{1: 2, 3: 4})
@@ -40,13 +40,13 @@ list(value)
     list("ab")
     ```
 
-=== "Inclusive Range"
+=== "Exclusive Range"
 
     ```santa
     list(1..5)
     ```
 
-=== "Exclusive Range"
+=== "Inclusive Range"
 
     ```santa
     list(1..=5)
@@ -54,11 +54,11 @@ list(value)
 
 ### set
 
-Returns the Set represenation of the given value.
-
 ```
 set(value)
 ```
+
+Return the Set representation of the given value.
 
 === "List"
 
@@ -78,13 +78,13 @@ set(value)
     set("ab")
     ```
 
-=== "Inclusive Range"
+=== "Exclusive Range"
 
     ```santa
     set(1..5)
     ```
 
-=== "Exclusive Range"
+=== "Inclusive Range"
 
     ```santa
     set(1..=5)
@@ -92,15 +92,15 @@ set(value)
 
 ### dict
 
-Returns the Dictionary represenation of the given value.
-
 ```
 dict(value)
 ```
 
+Return the Dictionary representation of the given value.
+
 === "List"
 
-    Input is a List of List tuples (key, value).
+    Input is a List of List tuples `[key, value]`.
 
     ```santa
     dict([[1, 2], [3, 4]])
@@ -114,12 +114,12 @@ dict(value)
 
 ### get
 
-Get an element within a collection, following the rules laid out in [Indexing](language.md#indexing).
-If an element can not be found at that index then `nil` is returned.
-
 ```
 get(index, collection)
 ```
+
+Get an element within a collection, following the rules laid out in [Indexing](language.md#indexing).
+If an element can not be found at that index then `nil` is returned.
 
 === "List"
 
@@ -130,7 +130,7 @@ get(index, collection)
 === "Set"
 
     ```santa
-    get(1, {2, 1})
+    get(1, {1, 2})
     ```
 
 === "Dictionary"
@@ -145,13 +145,13 @@ get(index, collection)
     get(1, "ab")
     ```
 
-=== "Inclusive Range"
+=== "Exclusive Range"
 
     ```santa
     get(1, 1..5)
     ```
 
-=== "Exclusive Range"
+=== "Inclusive Range"
 
     ```santa
     get(1, 1..=5)
@@ -165,11 +165,11 @@ get(index, collection)
 
 ### size
 
-Get the size of a collection.
-
 ```
 size(collection)
 ```
+
+Get the size of a collection.
 
 === "List"
 
@@ -195,13 +195,13 @@ size(collection)
     size("ab")
     ```
 
-=== "Inclusive Range"
+=== "Exclusive Range"
 
     ```santa
     size(1..5)
     ```
 
-=== "Exclusive Range"
+=== "Inclusive Range"
 
     ```santa
     size(1..=5)
@@ -209,15 +209,15 @@ size(collection)
 
 ### push
 
-Add a new value to a collection.
-
 ```
 push(value, collection)
 ```
 
+Add a new value to a collection.
+
 === "List"
 
-    The value is added to the end of the List.
+    The value is appended to the end of the List.
 
     ```santa
     push(3, [1, 2])
@@ -231,11 +231,11 @@ push(value, collection)
 
 ### assoc
 
-Associate the given key/index with the given value in a collection.
-
 ```
 assoc(key, value, collection)
 ```
+
+Associate the provided key/index with the given value in a collection.
 
 === "List"
 
@@ -243,7 +243,7 @@ assoc(key, value, collection)
     assoc(0, 3, [1, 2])
     ```
 
-    If the index is not already present `nil` values are inserted upto the given index.
+    If the index is not already present `nil` values are inserted up to the given index.
 
     ```santa
     assoc(1, 1, [])
@@ -261,12 +261,12 @@ assoc(key, value, collection)
 
 ### update
 
-Update the given index/key of a collection using the supplied `updater` function.
-The `updater` function is supplied the current value at the given index/key, if not present `nil` is supplied.
-
 ```
 update(key, updater, collection)
 ```
+
+Update the given index/key of a collection using the supplied pure `updater` function.
+The `updater` function is supplied the current value at the given index/key, if not present `nil` is supplied.
 
 === "List"
 
@@ -274,7 +274,7 @@ update(key, updater, collection)
     update(0, _ + 1, [1, 2])
     ```
 
-    If the index is not already present `nil` values are inserted upto the given index.
+    If the index is not already present `nil` values are inserted up to the given index.
 
     ```santa
     update(1, || 1, [])
@@ -292,12 +292,12 @@ update(key, updater, collection)
 
 ### update_d
 
-Update the given index/key of a collection using the supplied `updater` function.
-The `updater` function is supplied the current value at the given index/key, if not present the _default_ value is supplied.
-
 ```
 update_d(key, default, updater, collection)
 ```
+
+Update the given index/key of a collection using the supplied pure `updater` function.
+The `updater` function is supplied the current value at the given index/key, if not present the _default_ value is supplied.
 
 === "List"
 
@@ -305,7 +305,7 @@ update_d(key, default, updater, collection)
     update_d(0, 0, _ + 1, [1, 2])
     ```
 
-    If the index is not already present `nil` values are inserted upto the given index.
+    If the index is not already present `nil` values are inserted up to the given index.
 
     ```santa
     update_d(1, 0, _ + 1, [])
@@ -323,11 +323,11 @@ update_d(key, default, updater, collection)
 
 ### map
 
-Apply a pure function over each element within the given collection.
-
 ```
 map(mapper, collection)
 ```
+
+Return a collection with a pure `mapper` function applied over each element within the given collection.
 
 === "List"
 
@@ -362,15 +362,15 @@ map(mapper, collection)
     map(_ * 2, "ab")
     ```
 
-Lazy Sequences return another Lazy Sequence which when resolved will apply the required mapping.
+Lazy Sequences return another Lazy Sequence, which when resolved will lazily apply the required mapping.
 
-=== "Inclusive Range"
+=== "Exclusive Range"
 
     ```santa
     map(_ + 1, 1..5) |> list
     ```
 
-=== "Exclusive Range"
+=== "Inclusive Range"
 
     ```santa
     map(_ + 1, 1..=5) |> list
@@ -390,11 +390,11 @@ Lazy Sequences return another Lazy Sequence which when resolved will apply the r
 
 ### filter
 
-Return a collection based on a pure predicate function holding truthy for the given element in a collection.
-
 ```
 filter(predicate, collection)
 ```
+
+Return a collection based on a pure `predicate` function holding _truthy_ for the given element in a collection.
 
 === "List"
 
@@ -422,31 +422,31 @@ filter(predicate, collection)
 
 === "String"
 
-    Each character is considered an element within the mapping.
+    Each character is considered an element within the predicate.
     The returned collection is a List.
 
     ```santa
     filter(_ == "a", "ab")
     ```
 
-Lazy Sequences return another Lazy Sequence which when resolved will apply the required mapping.
-
-=== "Inclusive Range"
-
-    ```santa
-    filter(|v| v % 2 == 0, 1..5) |> list
-    ```
+Lazy Sequences return another Lazy Sequence, which when resolved will lazily apply the required filter.
 
 === "Exclusive Range"
 
     ```santa
-    filter(|v| v % 2 == 0, 1..=5) |> list
+    filter(_ % 2, 1..5) |> list
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    filter(_ % 2, 1..=5) |> list
     ```
 
 === "Unbounded Range"
 
     ```santa
-    filter(|v| v % 2 == 0, 0..) |> take(3)
+    filter(_ % 2, 0..) |> take(3)
     ```
 
 === "Lazy Sequence"
@@ -457,93 +457,91 @@ Lazy Sequences return another Lazy Sequence which when resolved will apply the r
 
 ### each
 
-Apply a side-effecting function over each element in the given collection.
-
 ```
 each(side_effect, collection)
 ```
 
+Apply a side-effecting function over each element in the given collection.
+
 === "List"
 
     ```santa
-    let mut a = 0;
-    each(|v| a = a + v, [1, 2]);
-    a;
+    let mut acc = 0;
+    each(|v| acc = acc + v, [1, 2]);
+    acc;
     ```
 
 === "Set"
 
     ```santa
-    let mut a = 0;
-    each(|v| a = a + v, {1, 2});
-    a;
+    let mut acc = 0;
+    each(|v| acc = acc + v, {1, 2});
+    acc;
     ```
 
 === "Dictionary"
 
     ```santa
-    let mut a = 0;
-    each(|v| a = a + v, #{1: 2, 3: 4});
-    a;
+    let mut acc = 0;
+    each(|v| acc = acc + v, #{1: 2, 3: 4});
+    acc;
     ```
 
     The `predicate` function is suppled both the value and key in the context of a Dictionary.
 
     ```santa
-    let mut a = 0;
-    each(|_, k| a = a + k, #{1: 2, 3: 4});
-    a;
+    let mut acc = 0;
+    each(|_, k| acc = ac + k, #{1: 2, 3: 4});
+    acc;
     ```
 
 === "String"
 
-    Each character is considered an element within the mapping.
+    Each character is considered an element within the iteration.
     The returned collection is a List.
 
     ```santa
-    let mut a = 0;
-    each(|_| a = a + 1, "ab");
-    a;
+    let mut acc = 0;
+    each(|_| acc = acc + 1, "ab");
+    acc;
     ```
 
-The function can `break` which will break out of the iteration early.
-
-=== "Inclusive Range"
-
-    ```santa
-    let mut a = 0;
-    each(|v| a = a + v, 1..5);
-    a;
-    ```
+The function can `break` which will terminate the collection iteration early.
 
 === "Exclusive Range"
 
     ```santa
-    let mut a = 0;
-    each(|v| a = a + v, 1..=5);
-    a;
+    let mut acc = 0;
+    each(|v| acc = acc + v, 1..5);
+    acc;
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    let mut acc = 0;
+    each(|v| acc = acc + v, 1..=5);
+    acc;
     ```
 
 === "Unbounded Range"
 
     ```santa
-    let mut a = 0;
-    each(
-      |v| if v == 10 { break nil } else { a = a + v },
-      0..
-    );
-    a;
+    let mut acc = 0;
+    0.. |> each |v| {
+      if v == 10 { break nil } else { acc = acc + v }
+    };
+    acc;
     ```
 
 === "Lazy Sequence"
 
     ```santa
-    let mut a = 0;
-    each(
-      |v| if v == 10 { break nil } else { a = a + v },
-      iterate(_ + 1, 1)
-    );
-    a;
+    let mut acc = 0;
+    iterate(_ + 1, 1) |> each |v| {
+      if v == 10 { break nil } else { acc = acc + v }
+    };
+    acc;
     ```
 
 ### reduce
@@ -552,9 +550,72 @@ The function can `break` which will break out of the iteration early.
 reduce(reducer, collection)
 ```
 
-Apply a reduction function over a given collection.
+Apply a pure `reducer` function over a given collection.
 The initial accumulator value supplied upon first iteration is the first element in the collection.
 If the collection is empty then an error is thrown.
+
+=== "List"
+
+    ```santa
+    reduce(+, [1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    reduce(+, {1, 2})
+    ```
+
+=== "Dictionary"
+
+    ```santa
+    reduce(+, #{1: 2, 3: 4})
+    ```
+
+    The `reducer` function is suppled both the value and key in the context of a Dictionary.
+
+    ```santa
+    reduce(|acc, _, k| acc + k, #{1: 2, 3: 4})
+    ```
+
+=== "String"
+
+    Each character is considered an element within the reduction.
+    The returned collection is a List.
+
+    ```santa
+    reduce(|acc, ch| ch + acc, "ab")
+    ```
+
+The function can `break` which will terminate the collection iteration early.
+
+=== "Exclusive Range"
+
+    ```santa
+    reduce(+, 1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    reduce(+, 1..=5)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    0.. |> reduce |acc, v| {
+      if acc == 10 { break acc } else { acc + v }
+    }
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    iterate(_ + 1, 1) |> reduce |acc, v| {
+      if acc == 10 { break acc } else { acc + v }
+    }
+    ```
 
 ### fold
 
@@ -562,8 +623,72 @@ If the collection is empty then an error is thrown.
 fold(initial, folder, collection)
 ```
 
-Apply a folding function over a given collection.
-If the collection is empty then the initial value is returned.
+Apply a pure `folder` function over a given collection.
+The initial fold receives the first element and the _initial value_ supplied.
+If the collection is empty then the _initial value_ is returned.
+
+=== "List"
+
+    ```santa
+    fold(0, +, [1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    fold(0, +, {1, 2})
+    ```
+
+=== "Dictionary"
+
+    ```santa
+    fold(0, +, #{1: 2, 3: 4})
+    ```
+
+    The `folder` function is suppled both the value and key in the context of a Dictionary.
+
+    ```santa
+    fold(0, |acc, _, k| acc + k, #{1: 2, 3: 4})
+    ```
+
+=== "String"
+
+    Each character is considered an element within the fold.
+    The returned collection is a List.
+
+    ```santa
+    fold(0, _ + 1, "ab")
+    ```
+
+The function can `break` which will terminate the collection iteration early.
+
+=== "Exclusive Range"
+
+    ```santa
+    fold(0, +, 1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    fold(0, +, 1..=5)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    0.. |> fold |acc, v| {
+      if acc == 10 { break acc } else { acc + v }
+    }
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    iterate(_ + 1, 1) |> fold |acc, v| {
+      if acc == 10 { break acc } else { acc + v }
+    }
+    ```
 
 ### fold_s
 
@@ -571,10 +696,17 @@ If the collection is empty then the initial value is returned.
 fold_s(initial, folder, collection)
 ```
 
-Apply a folding function over a given collection, with optional state which is passed throughout the fold.
-The accumulated value is a List comprised of the first element being the resulting folded value, and other elements being _state_ you wish to pass on to the next iteration.
+Apply a pure `folder` function over a given collection, with optional state which is passed along throughout the fold.
+The accumulated value is a List comprising of the first element being the resulting _folded_ value, and other elements being _state_ you wish to pass on to the next iteration.
 Upon completion, the extra state is discarded and the folded value is returned.
-If the collection is empty then the initial folded value is returned.
+If the collection is empty then the _initial value_ is returned.
+
+```santa
+50..100 |> fold_s(
+  |[acc, x, y], val| [acc + x * y * val, val, val / 2],
+  [0, 0, 0]
+)
+```
 
 ### find
 
@@ -582,13 +714,117 @@ If the collection is empty then the initial folded value is returned.
 find(predicate, collection)
 ```
 
-Apply a pure predicate function over a given collection, returning the first element where the predicate holds truthy.
+Apply a pure `predicate` function over a given collection, returning the first element where the predicate holds _truthy_.
+
+=== "List"
+
+    ```santa
+    find(_ % 2, [1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    find(_ % 2, {1, 2})
+    ```
+
+=== "Dictionary"
+
+    ```santa
+    find(_ % 2, #{1: 2, 3: 4})
+    ```
+
+    The `predicate` function is suppled both the value and key in the context of a Dictionary.
+
+    ```santa
+    find(|_, k| k % 2, #{1: 2, 3: 4})
+    ```
+
+=== "String"
+
+    Each character is considered an element within the predicate.
+    The returned collection is a List.
+
+    ```santa
+    find(_ == "b", "ab")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    find(_ % 2, 1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    find(_ % 2, 1..=5)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    find(_ % 2, 0..)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    find(_ % 2, iterate(_ + 1, 1))
+    ```
 
 ### scan
 
 ```
-scan(initial, mapper, collection)
+scan(initial, folder, collection)
 ```
+
+Return a collection which includes the result of each iteration of folding a pure `folder` function over each element within the given collection.
+
+=== "List"
+
+    ```santa
+    scan(0, +, [1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    scan(0, +, {1, 2})
+    ```
+
+=== "Dictionary"
+
+    ```santa
+    scan(0, +, #{1: 2, 3: 4})
+    ```
+
+    The `folder` function is suppled both the value and key in the context of a Dictionary.
+
+    ```santa
+    scan(0, |acc, _, k| acc + k, #{1: 2, 3: 4})
+    ```
+
+=== "String"
+
+    Each character is considered an element within the fold.
+    The returned collection is a List.
+
+    ```santa
+    scan("", +, "ab")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    scan(0, +, 1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    scan(0, +, 1..=5)
+    ```
 
 ### flat_map
 
@@ -596,7 +832,11 @@ scan(initial, mapper, collection)
 flat_map(mapper, collection)
 ```
 
-Apply a function over a given collection with the resulting mapped List results being flatterned into a single List.
+Apply a pure `mapper` function over a given collection with the resulting _mapped_ List results being flattened into a single List.
+
+```santa
+flat_map(_ * 2, [[1, 2], [3, 4]])
+```
 
 ### filter_map
 
@@ -604,8 +844,69 @@ Apply a function over a given collection with the resulting mapped List results 
 filter_map(mapper, collection)
 ```
 
-Apply a map function over a given collection and filter the mapped values based on the values being truthy.
-This is a convience function for the common place `map(..) |> filter(..)` pattern.
+Apply a pure `mapper` function over a given collection and filter out the mapped values based on them being _truthy_.
+This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.filter_map)) for the common place `map(..) |> filter(..)` pattern.
+
+=== "List"
+
+    ```santa
+    [1, 2] |> filter_map(|v| if v != 1 { v + 1 })
+    ```
+
+=== "Set"
+
+    ```santa
+    {1, 2} |> filter_map(|v| if v != 1 { v + 1 })
+    ```
+
+=== "Dictionary"
+
+    ```santa
+    #{1: 2, 3: 4} |> filter_map(|v| if v != 2 { v + 1 })
+    ```
+
+    The `mapper` function is suppled both the value and key in the context of a Dictionary.
+
+    ```santa
+    #{1: 2, 3: 4} |> filter_map(|_, k| if k != 1 { k + 1 })
+    ```
+
+=== "String"
+
+    Each character is considered an element within the mapping.
+    The returned collection is a List.
+
+    ```santa
+    "ab" |> filter_map(|v| if v != "a" { v * 2 })
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    1..5 |> filter_map(|v| if v != 1 { v + 1 })
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    1..=5 |> filter_map(|v| if v != 1 { v + 1 })
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    1..
+      |> filter_map(|v| if v != 1 { v + 1 })
+      |> take(3)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    iterate(_ + 1, 1)
+      |> filter_map(|v| if v != 1 { v + 1 })
+      |> take(3)
+    ```
 
 ### find_map
 
@@ -613,8 +914,66 @@ This is a convience function for the common place `map(..) |> filter(..)` patter
 find_map(mapper, collection)
 ```
 
-Apply a map function over a given collection and find the first mapped element where the predicate holds truthy.
-This is a convience function for the common place `map(..) |> find(..)` pattern.
+Apply a pure `mapper` function over a given collection and find the first mapped element where the value returned is _truthy_.
+This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.filter_map)) for the common place `map(..) |> find(..)` pattern.
+
+=== "List"
+
+    ```santa
+    [1, 2] |> find_map(|v| if v != 1 { v + 1 })
+    ```
+
+=== "Set"
+
+    ```santa
+    {1, 2} |> find_map(|v| if v != 1 { v + 1 })
+    ```
+
+=== "Dictionary"
+
+    ```santa
+    #{1: 2, 3: 4} |> find_map(|v| if v != 2 { v + 1 })
+    ```
+
+    The `mapper` function is suppled both the value and key in the context of a Dictionary.
+
+    ```santa
+    #{1: 2, 3: 4} |> find_map(|_, k| if k != 1 { k + 1 })
+    ```
+
+=== "String"
+
+    Each character is considered an element within the mapping.
+    The returned collection is a List.
+
+    ```santa
+    "ab" |> find_map(|v| if v != "a" { v * 2 })
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    1..5 |> find_map(|v| if v != 1 { v + 1 })
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    1..=5 |> find_map(|v| if v != 1 { v + 1 })
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    1.. |> find_map(|v| if v != 1 { v + 1 })
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    iterate(_ + 1, 1)
+      |> find_map(|v| if v != 1 { v + 1 })
+    ```
 
 ### count
 
@@ -622,7 +981,52 @@ This is a convience function for the common place `map(..) |> find(..)` pattern.
 count(predicate, collection)
 ```
 
-Count the total number of elements where the pure predicate function holds truthy.
+Count the total number of elements where the pure `predicate` function holds _truthy_.
+
+=== "List"
+
+    ```santa
+    count(_ % 2, [1, 2, 3, 4])
+    ```
+
+=== "Set"
+
+    ```santa
+    count(_ % 2, {1, 2, 3, 4})
+    ```
+
+=== "Dictionary"
+
+    ```santa
+    count(_ % 2, #{1: 2, 3: 4})
+    ```
+
+    The `predicate` function is suppled both the value and key in the context of a Dictionary.
+
+    ```santa
+    count(|_, k| k % 2, #{1: 2, 3: 4})
+    ```
+
+=== "String"
+
+    Each character is considered an element within the predicate.
+    The returned collection is a List.
+
+    ```santa
+    count(_ == "a", "ab")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    count(_ % 2, 1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    count(_ % 2, 1..=5)
+    ```
 
 ### zip
 
@@ -631,8 +1035,21 @@ zip(collection, ..collections)
 ```
 
 Takes any number of iterables as an argument and aggregates them together producing a List/Lazy Sequence of List tuples.
-Each List tuple contains elements of all iterables occuring at the same position, stopping when the shortest iterables is exhausted.
-If all the iterables have a finite size then a List is returned, else a Lazy Sequence is produced.
+Each List tuple contains elements of all iterables occurring at the same position, stopping when the shortest iterables is exhausted.
+
+```santa
+zip(0.., "abc", [1.5, 2.5, 3.5])
+```
+
+```santa
+zip(0.., "abcdef", [1.5, 2.5, 3.5])
+```
+
+If any of the iterables have a finite size then a List is returned, else a Lazy Sequence is produced.
+
+```santa
+zip(0.., 1..) |> take(3)
+```
 
 ### sum
 
@@ -642,13 +1059,78 @@ sum(collection)
 
 Sum all the Integer elements within a collection.
 
+=== "List"
+
+    ```santa
+    sum([1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    sum({1, 2})
+    ```
+
+=== "Dictionary"
+
+    ```santa
+    sum(#{1: 2, 3: 4})
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    sum(1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    sum(1..=5)
+    ```
+
 ### max
 
 ```
 max(..values)
 ```
 
-Find the largest (maxium) elemement within a collection.
+Find the largest (maximum) element within a collection.
+The collections can be supplied as a single argument List (containing multiple collections), or as a multi-arity function call.
+
+```santa
+max(1, 2) == max([1, 2])
+```
+
+=== "List"
+
+    ```santa
+    max([1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    max({1, 2})
+    ```
+
+=== "Dictionary"
+
+    ```santa
+    max(#{1: 2, 3: 4})
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    max(1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    max(1..=5)
+    ```
 
 ### min
 
@@ -656,7 +1138,42 @@ Find the largest (maxium) elemement within a collection.
 min(..values)
 ```
 
-Find the smallest (minimum) elemement within a collection.
+Find the smallest (minimum) element within a collection.
+The collections can be supplied as a single argument List (containing multiple collections), or as a multi-arity function call.
+
+```santa
+min(1, 2) == min([1, 2])
+```
+
+=== "List"
+
+    ```santa
+    min([1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    min({1, 2})
+    ```
+
+=== "Dictionary"
+
+    ```santa
+    min(#{1: 2, 3: 4})
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    min(1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    min(1..=5)
+    ```
 
 ### skip
 
@@ -664,8 +1181,44 @@ Find the smallest (minimum) elemement within a collection.
 skip(total, collection)
 ```
 
-Skip a number of elements within the a collection.
-If the collection is a Lazy Sequence the skip is applied when the collection is resolved.
+Skip a number of elements within a collection.
+If the collection is a Lazy Sequence the skip is applied when the collection is lazily resolved.
+
+=== "List"
+
+    ```santa
+    skip(1, [1, 2, 3])
+    ```
+
+=== "Set"
+
+    ```santa
+    skip(1, {1, 2, 3})
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    skip(2, 1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    skip(2, 1..=5)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    skip(2, 1..) |> take(3)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    skip(2, iterate(_ + 1, 1)) |> take(3)
+    ```
 
 ### take
 
@@ -676,17 +1229,62 @@ take(total, collection)
 Take a number of elements from a collection.
 If the collection is a Lazy Sequence then the collection is resolved with any outstanding operations (`map`, `skip` etc.) being applied.
 
+=== "List"
+
+    ```santa
+    take(2, [1, 2, 3])
+    ```
+
+=== "Set"
+
+    ```santa
+    take(2, {1, 2, 3})
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    take(2, 1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    take(2, 1..=5)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    take(2, 1..)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    take(2, iterate(_ + 1, 1))
+    ```
+
 ### sort
 
 ```
 sort(comparator, collection)
 ```
 
-Sort the collection based on a supplied pure comparator function.
-The comparator function take in two values (a, b) and can either return:
+Sort the collection based on a supplied pure `comparator` function.
+The comparator function accepts two values (a, b) from the collection and can either return:
 
-- Boolean value, with `false` signifying _a < b_ and `true` signifying _a > b_.
-- Integer value, with a negative value signifying _a < b_, zero signifying _a == b_, and a positive value signifying _a > b_.
+The Boolean value, with `false` signifying _a < b_ and `true` signifying _a > b_.
+
+```santa
+sort(>, [3, 2, 1])
+```
+
+The Integer value, with a negative value signifying _a < b_, zero signifying _a == b_, and a positive value signifying _a > b_.
+
+```santa
+sort(-, [3, 2, 1])
+```
 
 ### reverse
 
@@ -696,6 +1294,30 @@ reverse(collection)
 
 Reverse the order of a given List collection.
 
+=== "List"
+
+    ```santa
+    reverse([1, 2, 3])
+    ```
+
+=== "String"
+
+    ```santa
+    reverse("abc")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    reverse(1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    reverse(1..=5)
+    ```
+
 ### repeat
 
 ```
@@ -703,6 +1325,10 @@ repeat(value)
 ```
 
 Generate a Lazy Sequence which repeats the provided value indefinitely.
+
+```santa
+repeat(1) |> take(3)
+```
 
 ### cycle
 
@@ -712,13 +1338,37 @@ cycle(list)
 
 Generate a Lazy Sequence which cycles through each element in a List indefinitely, looping back to the start once exhausted.
 
+=== "List"
+
+    ```santa
+    cycle([1, 2, 3]) |> take(4)
+    ```
+
+=== "String"
+
+    Each character is considered an element within the Lazy Sequence.
+
+    ```santa
+    cycle("abc") |> take(4)
+    ```
+
 ### iterate
 
 ```
 iterate(generator, initial)
 ```
 
-Generate a Lazy Sequence which takes a pure function and applies the previous result (starting with an initial value) upon each iteration.
+Generate a Lazy Sequence which supplies a provided pure `generator` function with the previous result (starting with an initial value) to produce the next value in the sequence.
+
+```santa
+iterate(|[a, b]| [b, a + b], [0, 1])
+  |> skip(9)
+  |> take(1)
+```
+
+```santa
+iterate(_ * 2, 1) |> take(5)
+```
 
 ### keys
 
@@ -726,7 +1376,11 @@ Generate a Lazy Sequence which takes a pure function and applies the previous re
 keys(dictionary)
 ```
 
-Return the _keys_ in a given Dictionary as a List.
+Return the keys in a given Dictionary as a List.
+
+```santa
+keys(#{1: 2, 3: 4})
+```
 
 ### values
 
@@ -734,7 +1388,11 @@ Return the _keys_ in a given Dictionary as a List.
 values(dictionary)
 ```
 
-Return the _values_ in a given Dictionary as a List.
+Return the values in a given Dictionary as a List.
+
+```santa
+values(#{1: 2, 3: 4})
+```
 
 ### first
 
@@ -742,7 +1400,52 @@ Return the _values_ in a given Dictionary as a List.
 first(collection)
 ```
 
-Return the first element within the collection (aka head).
+Return the first element within the collection (aka _head_).
+If the collection is empty then `nil` is returned.
+
+=== "List"
+
+    ```santa
+    first([1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    first({1, 2})
+    ```
+
+=== "String"
+
+    Each character is considered an element.
+
+    ```santa
+    first("ab")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    first(1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    first(1..=5)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    first(1..)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    first(iterate(_ + 1, 1))
+    ```
 
 ### second
 
@@ -751,6 +1454,51 @@ second(collection)
 ```
 
 Return the second element within the collection.
+If the collection does not contain a second element then `nil` is returned.
+
+=== "List"
+
+    ```santa
+    second([1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    second({1, 2})
+    ```
+
+=== "String"
+
+    Each character is considered an element.
+
+    ```santa
+    second("ab")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    second(1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    second(1..=5)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    second(1..)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    second(iterate(_ + 1, 1))
+    ```
 
 ### rest
 
@@ -758,7 +1506,52 @@ Return the second element within the collection.
 rest(collection)
 ```
 
-Return the collection with the first element omitted (aka tail).
+Return the collection with the first element omitted (aka _tail_).
+If the collection does not have more than one element then an empty List is returned.
+
+=== "List"
+
+    ```santa
+    rest([1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    rest({1, 2})
+    ```
+
+=== "String"
+
+    Each character is considered an element.
+
+    ```santa
+    rest("ab")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    rest(1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    rest(1..=5)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    rest(1..)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    rest(iterate(_ + 1, 1))
+    ```
 
 ### union
 
@@ -766,7 +1559,16 @@ Return the collection with the first element omitted (aka tail).
 union(..values)
 ```
 
-Return the elements which are found in **any** of the provided collections as a Set.
+Return the elements (as a Set) which are found in _any_ of the provided collections.
+The collections can be supplied as a single argument List (containing multiple collections), or as a multi-arity function call.
+
+```santa
+union([{1, 2}, [2, 3], 1..4, "abc"])
+```
+
+```santa
+union({1, 2}, [2, 3], 1..4, "abc")
+```
 
 ### intersection
 
@@ -774,7 +1576,16 @@ Return the elements which are found in **any** of the provided collections as a 
 intersection(..values)
 ```
 
-Return the elements which are found in **all** of the provided collections as a Set.
+Return the elements (as a Set) which are found in _all_ the provided collections.
+The collections can be supplied as a single argument List (containing multiple collections), or as a multi-arity function call.
+
+```santa
+intersection([{1, 2}, [2, 3], 1..4, "abc"])
+```
+
+```santa
+intersection({1, 2}, [2, 3], 1..4, "abc")
+```
 
 ### rotate
 
@@ -782,9 +1593,17 @@ Return the elements which are found in **all** of the provided collections as a 
 rotate(steps, collection)
 ```
 
-Rotate a given List a number of steps, moving the end item to the front of the List.
-If the step number is positive the rotation will go forward.
-If the step number is negative the rotaion will go backwards, with the first item moving to the end of the List.
+Rotate a given List a number of steps.
+If the step number is positive the rotation proceed forward, with the last item moving to the start of the List.
+If the step number is negative the rotation will go backwards, with the first item moving to the end of the List.
+
+```santa
+rotate(5, [1, 2, 3])
+```
+
+```
+rotate(-5, [1, 2, 3])
+```
 
 ### chunk
 
@@ -793,7 +1612,15 @@ chunk(size, collection)
 ```
 
 Split a List into chunks based on a given size.
-If the List size is not divisible by the chunk size, the last chunk will have fewer than the desired chunk size.
+If the List size is not divisible by the chunk size then the last chunk will contain fewer than the desired elements.
+
+```santa
+chunk(2, [1, 2, 3])
+```
+
+```santa
+chunk(2, [1, 2, 3, 4])
+```
 
 ### combinations
 
@@ -803,13 +1630,65 @@ combinations(size, collection)
 
 Generate a Lazy Sequence which produces all the possible combinations of a desired number of elements from within a List.
 
+```santa
+combinations(1, [1, 2, 3, 4, 5]) |> list
+```
+
+```santa
+combinations(2, [1, 2, 3, 4, 5]) |> list
+```
+
 ### includes?
 
 ```
 includes?(collection, value)
 ```
 
-Predicate to assert if a value is present within a given collection.
+Predicate to assert if a value is present within a given collection, based on [equality](language.md#operators) rules.
+
+=== "List"
+
+    ```santa
+    includes?([1, 2], 1)
+    ```
+
+=== "Set"
+
+    ```santa
+    includes?({1, 2}, 1)
+    ```
+
+=== "String"
+
+    Each character is considered an element.
+
+    ```santa
+    includes?("ab", "a")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    includes?(1..5, 1)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    includes?(1..=5, 1)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    includes?(1.., 5)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    includes?(iterate(_ + 1, 1), 5)
+    ```
 
 ### excludes?
 
@@ -817,7 +1696,51 @@ Predicate to assert if a value is present within a given collection.
 excludes?(collection, value)
 ```
 
-Predicate to assert if a value is not present within a given collection.
+Predicate to assert if a value is not present within a given collection, based on [equality](language.md#operators) rules.
+
+=== "List"
+
+    ```santa
+    excludes?([1, 2], 3)
+    ```
+
+=== "Set"
+
+    ```santa
+    excludes?({1, 2}, 3)
+    ```
+
+=== "String"
+
+    Each character is considered an element.
+
+    ```santa
+    excludes?("ab", "c")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    excludes?(1..5, 6)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    excludes?(1..=5, 6)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    excludes?(1.., 0)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    excludes?(iterate(_ + 1, 1), 0)
+    ```
 
 ### any?
 
@@ -825,7 +1748,51 @@ Predicate to assert if a value is not present within a given collection.
 any?(predicate, collection)
 ```
 
-Predicate to assert if any value within the collection hold truthy based on the supplied pure predicate function.
+Predicate to assert if any value within the collection holds _truthy_ based on the supplied pure `predicate` function.
+
+=== "List"
+
+    ```santa
+    any?(_ == 1, [1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    any?(_ == 1, {1, 2})
+    ```
+
+=== "String"
+
+    Each character is considered an element.
+
+    ```santa
+    any?(_ == "a", "ab")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    any?(_ == 1, 1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    any?(_ == 1, 1..=5)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    any?(_ == 1, 1..)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    any?(_ == 1, iterate(_ + 1, 1))
+    ```
 
 ### all?
 
@@ -833,7 +1800,51 @@ Predicate to assert if any value within the collection hold truthy based on the 
 all?(predicate, collection)
 ```
 
-Predicate to assert if all values within the collection hold truthy based on the supplied pure predicate function.
+Predicate to assert if all values within the collection hold _truthy_ based on the supplied pure `predicate` function.
+
+=== "List"
+
+    ```santa
+    all?(_ > 0, [1, 2])
+    ```
+
+=== "Set"
+
+    ```santa
+    all?(_ > 0, {1, 2})
+    ```
+
+=== "String"
+
+    Each character is considered an element.
+
+    ```santa
+    all?(_ != "c", "ab")
+    ```
+
+=== "Exclusive Range"
+
+    ```santa
+    all?(_ > 0, 1..5)
+    ```
+
+=== "Inclusive Range"
+
+    ```santa
+    all?(_ > 0, 1..=5)
+    ```
+
+=== "Unbounded Range"
+
+    ```santa
+    all?(_ > 0, 1..)
+    ```
+
+=== "Lazy Sequence"
+
+    ```santa
+    all?(_ > 0, iterate(_ + 1, 1))
+    ```
 
 ## Math
 
@@ -996,84 +2007,4 @@ evaluate(source)
 
 ```
 type(value)
-```
-
-## Operators
-
-### +
-
-```
-+(a, b)
-```
-
-### -
-
-```
--(a, b)
-```
-
-### \*
-
-```
-*(a, b)
-```
-
-### /
-
-```
-/(a, b)
-```
-
-### %
-
-```
-%(a, b)
-```
-
-### ==
-
-```
-==(a, b)
-```
-
-### !=
-
-```
-!=(a, b)
-```
-
-### <
-
-```
-<(a, b)
-```
-
-### <=
-
-```
-<=(a, b)
-```
-
-### >
-
-```
->(a, b)
-```
-
-### >=
-
-```
->=(a, b)
-```
-
-### or
-
-```
-or(a, b)
-```
-
-### and
-
-```
-and(a, b)
 ```
