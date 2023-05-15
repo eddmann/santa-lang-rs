@@ -1580,11 +1580,11 @@ Return the elements (as a Set) which are found in _all_ the provided collections
 The collections can be supplied as a single argument List (containing multiple collections), or as a multi-arity function call.
 
 ```santa
-intersection([{1, 2}, [2, 3], 1..4, "abc"])
+intersection([{1, 2}, [2, 3], 1..4])
 ```
 
 ```santa
-intersection({1, 2}, [2, 3], 1..4, "abc")
+intersection({1, 2}, [2, 3], 1..4)
 ```
 
 ### rotate
