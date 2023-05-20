@@ -1916,7 +1916,7 @@ bit_xor(a, b)
 Return an Integer whose binary representation has a 1 in each bit position for which the corresponding bits of either but not both operands are 1.
 
 ```santa
-bit_or(9, 11) // 1001 ^ 1011
+bit_xor(9, 11) // 1001 ^ 1011
 ```
 
 ### bit_shift_left
@@ -1928,7 +1928,7 @@ bit_shift_left(value, shift)
 Return an Integer whose binary representation is the first operand shifted by the specified number of bits to the left.
 
 ```santa
-bit_shift_left(10, 3)
+bit_shift_left(1, 3)
 ```
 
 ### bit_shift_right
@@ -1940,7 +1940,7 @@ bit_shift_right(value, shift)
 Return an Integer whose binary representation is the first operand shifted by the specified number of bits to the right.
 
 ```santa
-bit_shift_left(10, 3)
+bit_shift_right(64, 3)
 ```
 
 ## String
@@ -1977,7 +1977,7 @@ Attempt to parse the provided value into an Integer representation.
     int(true)
     ```
 
-Upon failure to parse the value `nil` is returned.
+Upon failure to parse the value the Integer `0` is returned.
 
 ```santa
 int("invalid")
