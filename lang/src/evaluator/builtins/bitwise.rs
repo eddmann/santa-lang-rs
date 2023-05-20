@@ -26,17 +26,17 @@ builtin! {
 }
 
 builtin! {
-    bit_shift_left(a, b) match {
-        (Object::Integer(a), Object::Integer(b)) => {
-            Ok(Rc::new(Object::Integer(a << b)))
+    bit_shift_left(value, shift) match {
+        (Object::Integer(value), Object::Integer(shift)) => {
+            Ok(Rc::new(Object::Integer(value << shift)))
         }
     }
 }
 
 builtin! {
-    bit_shift_right(a, b) match {
-        (Object::Integer(a), Object::Integer(b)) => {
-            Ok(Rc::new(Object::Integer(a >> b)))
+    bit_shift_right(value, shift) match {
+        (Object::Integer(value), Object::Integer(shift)) => {
+            Ok(Rc::new(Object::Integer(value >> shift)))
         }
     }
 }
