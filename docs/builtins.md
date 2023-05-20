@@ -118,7 +118,7 @@ Return the Dictionary representation of the given value.
 get(index, collection)
 ```
 
-Get an element within a collection, following the rules laid out in [Indexing](language.md#indexing).
+Get an element within a collection following the [indexing](language.md#indexing) rules.
 If an element can not be found at that index then `nil` is returned.
 
 === "List"
@@ -394,7 +394,7 @@ Lazy Sequences return another Lazy Sequence, which when resolved will lazily app
 filter(predicate, collection)
 ```
 
-Return a collection based on a pure `predicate` function holding _truthy_ for the given element in a collection.
+Return a collection based on a pure `predicate` function holding [truthy](language.md#truthy-semantics) for the given element in a collection.
 
 === "List"
 
@@ -714,7 +714,7 @@ If the collection is empty then the _initial value_ is returned.
 find(predicate, collection)
 ```
 
-Apply a pure `predicate` function over a given collection, returning the first element where the predicate holds _truthy_.
+Apply a pure `predicate` function over a given collection, returning the first element where the predicate holds [truthy](language.md#truthy-semantics).
 
 === "List"
 
@@ -844,7 +844,7 @@ flat_map(_ * 2, [[1, 2], [3, 4]])
 filter_map(mapper, collection)
 ```
 
-Apply a pure `mapper` function over a given collection and filter out the mapped values based on them being _truthy_.
+Apply a pure `mapper` function over a given collection and filter out the mapped values based on them being [truthy](language.md#truthy-semantics).
 This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.filter_map)) for the common place `map(..) |> filter(..)` pattern.
 
 === "List"
@@ -914,7 +914,7 @@ This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std
 find_map(mapper, collection)
 ```
 
-Apply a pure `mapper` function over a given collection and find the first mapped element where the value returned is _truthy_.
+Apply a pure `mapper` function over a given collection and find the first mapped element where the value returned is [truthy](language.md#truthy-semantics).
 This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.filter_map)) for the common place `map(..) |> find(..)` pattern.
 
 === "List"
@@ -981,7 +981,7 @@ This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std
 count(predicate, collection)
 ```
 
-Count the total number of elements where the pure `predicate` function holds _truthy_.
+Count the total number of elements where the pure `predicate` function holds [truthy](language.md#truthy-semantics).
 
 === "List"
 
@@ -1274,13 +1274,13 @@ sort(comparator, collection)
 Sort the collection based on a supplied pure `comparator` function.
 The comparator function accepts two values (a, b) from the collection and can either return:
 
-The Boolean value, with `false` signifying _a < b_ and `true` signifying _a > b_.
+An Boolean value, with `false` signifying _a < b_ and `true` signifying _a > b_.
 
 ```santa
 sort(>, [3, 2, 1])
 ```
 
-The Integer value, with a negative value signifying _a < b_, zero signifying _a == b_, and a positive value signifying _a > b_.
+An Integer value, with a negative value signifying _a < b_, zero signifying _a == b_, and a positive value signifying _a > b_.
 
 ```santa
 sort(-, [3, 2, 1])
@@ -1594,8 +1594,8 @@ rotate(steps, collection)
 ```
 
 Rotate a given List a number of steps.
-If the step number is positive the rotation proceed forward, with the last item moving to the start of the List.
-If the step number is negative the rotation will go backwards, with the first item moving to the end of the List.
+If the step number is _positive_ the rotation proceed forward, with the last item moving to the start of the List.
+If the step number is _negative_ the rotation will go backwards, with the first item moving to the end of the List.
 
 ```santa
 rotate(5, [1, 2, 3])
@@ -1631,11 +1631,11 @@ combinations(size, collection)
 Generate a Lazy Sequence which produces all the possible combinations of a desired number of elements from within a List.
 
 ```santa
-combinations(1, [1, 2, 3, 4, 5]) |> list
+combinations(2, [1, 2, 3, 4, 5]) |> list
 ```
 
 ```santa
-combinations(2, [1, 2, 3, 4, 5]) |> list
+combinations(3, [1, 2, 3, 4, 5]) |> find(|x| sum(x) == 10)
 ```
 
 ### includes?
@@ -1730,25 +1730,13 @@ Predicate to assert if a value is not present within a given collection, based o
     excludes?(1..=5, 6)
     ```
 
-=== "Unbounded Range"
-
-    ```santa
-    excludes?(1.., 0)
-    ```
-
-=== "Lazy Sequence"
-
-    ```santa
-    excludes?(iterate(_ + 1, 1), 0)
-    ```
-
 ### any?
 
 ```
 any?(predicate, collection)
 ```
 
-Predicate to assert if any value within the collection holds _truthy_ based on the supplied pure `predicate` function.
+Predicate to assert if any value within the collection holds [truthy](language.md#truthy-semantics) based on the supplied pure `predicate` function.
 
 === "List"
 
@@ -1800,7 +1788,7 @@ Predicate to assert if any value within the collection holds _truthy_ based on t
 all?(predicate, collection)
 ```
 
-Predicate to assert if all values within the collection hold _truthy_ based on the supplied pure `predicate` function.
+Predicate to assert if all values within the collection hold [truthy](language.md#truthy-semantics) based on the supplied pure `predicate` function.
 
 === "List"
 
@@ -1844,6 +1832,18 @@ abs(value)
 
 Return the absolute value of a number.
 
+=== "Integer"
+
+    ```santa
+    abs(-1)
+    ```
+
+=== "Decimal"
+
+    ```santa
+    abs(-1.5)
+    ```
+
 ### vec_add
 
 ```
@@ -1851,6 +1851,15 @@ vec_add(a, b)
 ```
 
 Sum two Lists together using Vector addition.
+The resulting List will contain results up to the shortest List's size.
+
+```santa
+vec_add([1, 2], [3, 4])
+```
+
+```santa
+vec_add([1, 2, 3], [4, 5, 6])
+```
 
 ### signum
 
@@ -1858,7 +1867,19 @@ Sum two Lists together using Vector addition.
 signum(value)
 ```
 
-Return the sign (`-1, 0, 1`) for the given value.
+Return the sign (`-1, 0, 1`) for the given number.
+
+=== "Integer"
+
+    ```santa
+    signum(5)
+    ```
+
+=== "Decimal"
+
+    ```santa
+    signum(-5.5)
+    ```
 
 ## Bitwise
 
@@ -1870,6 +1891,10 @@ bit_and(a, b)
 
 Return an Integer whose binary representation has a 1 in each bit position for which the corresponding bits of both operands are 1.
 
+```santa
+bit_and(9, 11) // 1001 & 1011
+```
+
 ### bit_or
 
 ```
@@ -1877,6 +1902,10 @@ bit_or(a, b)
 ```
 
 Return an Integer whose binary representation has a 1 in each bit position for which the corresponding bits of either or both operands are 1.
+
+```santa
+bit_or(9, 11) // 1001 | 1011
+```
 
 ### bit_xor
 
@@ -1886,21 +1915,33 @@ bit_xor(a, b)
 
 Return an Integer whose binary representation has a 1 in each bit position for which the corresponding bits of either but not both operands are 1.
 
+```santa
+bit_or(9, 11) // 1001 ^ 1011
+```
+
 ### bit_shift_left
 
 ```
-bit_shift_left(a, b)
+bit_shift_left(value, shift)
 ```
 
 Return an Integer whose binary representation is the first operand shifted by the specified number of bits to the left.
 
+```santa
+bit_shift_left(10, 3)
+```
+
 ### bit_shift_right
 
 ```
-bit_shift_right(a, b)
+bit_shift_right(value, shift)
 ```
 
 Return an Integer whose binary representation is the first operand shifted by the specified number of bits to the right.
+
+```santa
+bit_shift_left(10, 3)
+```
 
 ## String
 
@@ -1910,8 +1951,37 @@ Return an Integer whose binary representation is the first operand shifted by th
 int(value)
 ```
 
-Attempt to parse the provided value into an Integer represenation.
-Upon failure `nil` is returned.
+Attempt to parse the provided value into an Integer representation.
+
+=== "Integer"
+
+    ```santa
+    int(5)
+    ```
+
+=== "Decimal"
+
+    ```santa
+    int(-5.5)
+    ```
+
+=== "String"
+
+    ```santa
+    int("5")
+    ```
+
+=== "Boolean"
+
+    ```santa
+    int(true)
+    ```
+
+Upon failure to parse the value `nil` is returned.
+
+```santa
+int("invalid")
+```
 
 ### ints
 
@@ -1922,6 +1992,14 @@ ints(value)
 Return all parseable Integer values (as per [`int`](#int)) from a String value as a List.
 If no Integers are found and empty List is returned.
 
+```santa
+ints("1,2,3")
+```
+
+```santa
+ints("15a20b35")
+```
+
 ### lines
 
 ```
@@ -1930,6 +2008,10 @@ lines(value)
 
 Split a given String into a List of Strings, seperated on new lines `\n`.
 
+```santa
+lines("a\nb\nc")
+```
+
 ### split
 
 ```
@@ -1937,6 +2019,10 @@ split(seperator, value)
 ```
 
 Split a given String into a List of Strings, seperated based on the provided value.
+
+```santa
+split("-", "a-b-c")
+```
 
 ### regex_match
 
@@ -1948,15 +2034,23 @@ Match and capture values from a subject String based on a provided Regular Expre
 Captured values are returned as a List of Strings.
 If no match/capture can be found an empty List is returned.
 
+```santa
+regex_match("name: (\\w+), age: (\\d+)", "name: Bob, age: 30")
+```
+
 ### regex_match_all
 
 ```
 regex_match_all(pattern, value)
 ```
 
-Match and capture all values from a subject String based on a provided Regular Expression.
+Match and capture _all_ occurrences from a subject String based on a provided Regular Expression.
 Captured values are returned as a List of Strings.
 If no match/capture can be found an empty List is returned.
+
+```santa
+regex_match_all("\\w+: \\w+", "name: Bob, age: 30")
+```
 
 ## Miscellaneous
 
@@ -1966,7 +2060,11 @@ If no match/capture can be found an empty List is returned.
 range(from, to, step)
 ```
 
-Generate an [Inclusive Range](language.md#inclusive-range) using a custom desired step value (not the default +1, -1).
+Generate an [Inclusive Range](language.md#inclusive-range) using a custom step value (not the default +1, -1).
+
+```santa
+range(1, 10, 2) |> list
+```
 
 ### id
 
@@ -1975,6 +2073,10 @@ id(value)
 ```
 
 Return the value passed in as an argument.
+
+```santa
+id(5)
+```
 
 ### memoize
 
@@ -1985,14 +2087,37 @@ memoize(function)
 Return a function which wraps a given pure function [memoizing](language.md#memoization) invocation calls for performance.
 This is a trade-off between space and time complexity.
 
+```santa
+let fibonacci = memoize |n| {
+  if (n > 1) {
+    fibonacci(n - 1) + fibonacci(n - 2)
+  } else {
+    n
+  }
+};
+fibonacci(30)
+```
+
 ### evaluate
 
 ```
 evaluate(source)
 ```
 
+Evaluates the provided String expression within a sandbox _santa-lang_ interpreter.
+
+```santa
+evaluate("1.. |> filter(_ % 2) |> take(3)")
+```
+
 ### type
 
 ```
 type(value)
+```
+
+Return the type of the given value as a String.
+
+```santa
+type(1)
 ```
