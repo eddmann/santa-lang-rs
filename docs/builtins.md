@@ -350,7 +350,7 @@ Return a collection with a pure `mapper` function applied over each element with
     The `mapper` function is suppled both the value and key in the context of a Dictionary.
 
     ```santa
-    map(|v, k| "" + k + ": " + v, #{1: 2, 3: 4})
+    map(|_, k| k + 1, #{1: 2, 3: 4})
     ```
 
 === "String"
@@ -417,7 +417,7 @@ Return a collection based on a pure `predicate` function holding [truthy](langua
     The `predicate` function is suppled both the value and key in the context of a Dictionary.
 
     ```santa
-    map(|_, k| k == 3, #{1: 2, 3: 4})
+    filter(|_, k| k == 3, #{1: 2, 3: 4})
     ```
 
 === "String"
@@ -850,25 +850,25 @@ This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std
 === "List"
 
     ```santa
-    [1, 2] |> filter_map(|v| if v != 1 { v + 1 })
+    [1, 2, 3, 4] |> filter_map(|v| if v % 2 { v * 2 })
     ```
 
 === "Set"
 
     ```santa
-    {1, 2} |> filter_map(|v| if v != 1 { v + 1 })
+    {1, 2, 3, 4} |> filter_map(|v| if v % 2 { v * 2 })
     ```
 
 === "Dictionary"
 
     ```santa
-    #{1: 2, 3: 4} |> filter_map(|v| if v != 2 { v + 1 })
+    #{1: 2, 3: 4} |> filter_map(|v| if v != 2 { v * 2 })
     ```
 
     The `mapper` function is suppled both the value and key in the context of a Dictionary.
 
     ```santa
-    #{1: 2, 3: 4} |> filter_map(|_, k| if k != 1 { k + 1 })
+    #{1: 2, 3: 4} |> filter_map(|_, k| if k != 1 { k * 2 })
     ```
 
 === "String"
@@ -883,20 +883,24 @@ This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std
 === "Exclusive Range"
 
     ```santa
-    1..5 |> filter_map(|v| if v != 1 { v + 1 })
+    1..5
+      |> filter_map(|v| if v % 2 { v * 2 })
+      |> list
     ```
 
 === "Inclusive Range"
 
     ```santa
-    1..=5 |> filter_map(|v| if v != 1 { v + 1 })
+    1..=5
+      |> filter_map(|v| if v % 2 { v * 2 })
+      |> list
     ```
 
 === "Unbounded Range"
 
     ```santa
     1..
-      |> filter_map(|v| if v != 1 { v + 1 })
+      |> filter_map(|v| if v % 2 { v * 2 })
       |> take(3)
     ```
 
@@ -904,7 +908,7 @@ This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std
 
     ```santa
     iterate(_ + 1, 1)
-      |> filter_map(|v| if v != 1 { v + 1 })
+      |> filter_map(|v| if v % 2 { v * 2 })
       |> take(3)
     ```
 
@@ -920,25 +924,25 @@ This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std
 === "List"
 
     ```santa
-    [1, 2] |> find_map(|v| if v != 1 { v + 1 })
+    [1, 2] |> find_map(|v| if v % 2 { v * 2 })
     ```
 
 === "Set"
 
     ```santa
-    {1, 2} |> find_map(|v| if v != 1 { v + 1 })
+    {1, 2} |> find_map(|v| if v % 2 { v * 2 })
     ```
 
 === "Dictionary"
 
     ```santa
-    #{1: 2, 3: 4} |> find_map(|v| if v != 2 { v + 1 })
+    #{1: 2, 3: 4} |> find_map(|v| if v != 2 { v * 2 })
     ```
 
     The `mapper` function is suppled both the value and key in the context of a Dictionary.
 
     ```santa
-    #{1: 2, 3: 4} |> find_map(|_, k| if k != 1 { k + 1 })
+    #{1: 2, 3: 4} |> find_map(|_, k| if k != 1 { k * 2 })
     ```
 
 === "String"
@@ -953,26 +957,26 @@ This is a convenience function (inspired by [Rust](https://doc.rust-lang.org/std
 === "Exclusive Range"
 
     ```santa
-    1..5 |> find_map(|v| if v != 1 { v + 1 })
+    1..5 |> find_map(|v| if v % 2 { v * 2 })
     ```
 
 === "Inclusive Range"
 
     ```santa
-    1..=5 |> find_map(|v| if v != 1 { v + 1 })
+    1..=5 |> find_map(|v| if v % 2 { v * 2 })
     ```
 
 === "Unbounded Range"
 
     ```santa
-    1.. |> find_map(|v| if v != 1 { v + 1 })
+    1.. |> find_map(|v| if v % 2 { v * 2 })
     ```
 
 === "Lazy Sequence"
 
     ```santa
     iterate(_ + 1, 1)
-      |> find_map(|v| if v != 1 { v + 1 })
+      |> find_map(|v| if v % 2 { v * 2 })
     ```
 
 ### count
@@ -1598,11 +1602,11 @@ If the step number is _positive_ the rotation proceed forward, with the last ite
 If the step number is _negative_ the rotation will go backwards, with the first item moving to the end of the List.
 
 ```santa
-rotate(5, [1, 2, 3])
+rotate(1, [1, 2, 3])
 ```
 
-```
-rotate(-5, [1, 2, 3])
+```santa
+rotate(-1, [1, 2, 3])
 ```
 
 ### chunk
