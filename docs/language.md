@@ -5,7 +5,7 @@
 - Semicolons are optional.
 - Block expressions implicitly return the last statement as their result, unless an explicit `return` is used.
 
-There is a [write-up](https://eddmann.com/posts/designing-santa-lang-a-language-for-solving-advent-of-code-puzzles/) detailing the design decisions that went into creating the langauge.
+There is a [write-up](https://eddmann.com/posts/designing-santa-lang-a-language-for-solving-advent-of-code-puzzles/) detailing the design decisions that went into creating the language.
 
 ## Types
 
@@ -184,16 +184,16 @@ repeat("a") |> take(3);
 
 Values can be evaluated to a Boolean within predicate expressions using the _truthy_ semantic rules below:
 
-| Type         | True      |
-| ------------ | --------- |
-| Integer      | Not 0     |
-| Decimal      | Not 0.0   |
-| String       | Not empty |
-| List         | Not empty |
-| Set          | Not empty |
-| Dictionary   | Not empty |
-| LazySequence | Always    |
-| Function     | Always    |
+| Type          | True      |
+| ------------- | --------- |
+| Integer       | Not 0     |
+| Decimal       | Not 0.0   |
+| String        | Not empty |
+| List          | Not empty |
+| Set           | Not empty |
+| Dictionary    | Not empty |
+| Lazy Sequence | Always    |
+| Function      | Always    |
 
 ## Variables
 
@@ -471,6 +471,23 @@ let filter = |fn, list| match list {
   [_, ..tail] { filter(fn, tail) }
 };
 filter(_ != 2, [1, 2, 3]);
+```
+
+## Sections
+
+The language has the concept of sections which allow for the definition of named (labeled) expressions.
+This construct is not explicitly accessible by the program itself, but instead used within the [AoC Runner](runner.md) and [runtimes](lambda.md) to provide a domain-specific structure.
+
+An example use-case of this functionality is detailed below, in the form of a AoC solution of which the Runner will process:
+
+```
+part_one: {
+  2 + 2
+}
+
+test: {
+  part_one: 2
+}
 ```
 
 ## Functions
