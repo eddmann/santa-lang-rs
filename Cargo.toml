@@ -1,6 +1,6 @@
 [workspace]
-members = ["lang", "cli", "wasm", "lambda", "php-ext"]
-default-members = ["lang", "cli", "wasm", "lambda"]
+members = ["lang", "runtime/*"]
+default-members = ["lang", "runtime/cli", "runtime/wasm", "runtime/lambda"]
 
 [workspace.package]
 version = "0.0.1"

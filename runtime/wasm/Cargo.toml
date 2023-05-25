@@ -13,7 +13,7 @@ crate-type = ["cdylib"]
 [dependencies]
 wasm-bindgen = "0.2.63"
 js-sys = "0.3.61"
-santa-lang = { path = "../lang", version = "*", features = ["serde"]}
+santa-lang = { path = "../../lang", version = "*", features = ["serde"]}
 serde-wasm-bindgen = "0.5.0"
 
 [dependencies.web-sys]

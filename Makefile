@@ -29,7 +29,8 @@ test/cli:
 
 .PHONY: test/wasm
 test/wasm:
-	@wasm-pack test --node wasm
+	@echo "Note: test/wasm runs on the host"
+	@wasm-pack test --node runtime/wasm
 
 .PHONY: fmt
 fmt:
@@ -37,7 +38,7 @@ fmt:
 
 .PHONY: lambda/build
 lambda/build:
-	@$(DOCKER) -e BIN=santa-lambda rustserverless/lambda-rust
+	@$(DOCKER) -e BIN=santa-lambda rustserverless/lambda-rust:0.4.0-rust-stable
 
 .PHONY: lambda/serve
 lambda/serve:
@@ -46,26 +47,30 @@ lambda/serve:
 		-e _HANDLER=fibonacci.handler \
 		-p 9001:9001 \
 		-v $(PWD)/target/lambda/release/santa-lambda:/opt/bootstrap \
-		-v $(PWD)/lambda/fixtures:/var/task \
+		-v $(PWD)/runtime/lambda/fixtures:/var/task \
 		lambci/lambda:provided.al2
+
+.PHONY: lambda/invoke
+lambda/invoke:
+	@curl -d '{"number": 100}' http://localhost:9001/2015-03-31/functions/myfunction/invocations
 
 .PHONY: php-ext/build
 php-ext/build:
-	@docker build -t local/santa-php-ext-build - < php-ext/build.Dockerfile
+	@docker build -t local/santa-php-ext-build - < runtime/php-ext/build.Dockerfile
 	@$(DOCKER) local/santa-php-ext-build bash -c "cargo build --package santa-php-ext --release"
 
 .PHONY: php-ext/test
 php-ext/test:
-	@docker build -t local/santa-php-ext-build - < php-ext/build.Dockerfile
+	@docker build -t local/santa-php-ext-build - < runtime/php-ext/build.Dockerfile
 	@$(DOCKER) local/santa-php-ext-build bash -c "php -dextension=./target/release/libsanta_lang.so php-ext/fixtures/test.php"
 
 .PHONY: docs/serve
 docs/serve:
-	@docker run --rm -it -p 8000:8000 -v $(PWD):/docs squidfunk/mkdocs-material
+	@docker run --rm -it -p 8000:8000 -v $(PWD):/docs squidfunk/mkdocs-material:9.1.14
 
 .PHONY: docs/build
 docs/build:
-	@docker run --rm -v $(PWD):/docs squidfunk/mkdocs-material build --clean --site-dir site --verbose
+	@docker run --rm -v $(PWD):/docs squidfunk/mkdocs-material:9.1.14 build --clean --site-dir site --verbose
 
 cli/build/%:
 	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.68.2 \

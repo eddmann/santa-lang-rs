@@ -31,8 +31,8 @@ jobs:
           version: v0.11.0
       - name: Build
         run: |
-          RUST_LOG=info wasm-pack build wasm --release --target no-modules
-          mv wasm/pkg/* docs/assets/
+          RUST_LOG=info wasm-pack build runtime/wasm --release --target no-modules
+          mv runtime/wasm/pkg/* docs/assets/
           make docs/build
       - name: Publish
         uses: JamesIves/github-pages-deploy-action@v4.4.1

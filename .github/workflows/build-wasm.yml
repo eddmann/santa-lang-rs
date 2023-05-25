@@ -39,16 +39,16 @@ jobs:
         with:
           node-version: 18.16.0
       - name: Build
-        run: RUST_LOG=info wasm-pack build wasm --release
+        run: RUST_LOG=info wasm-pack build runtime/wasm --release
       - name: Pack
-        working-directory: wasm/pkg
+        working-directory: runtime/wasm/pkg
         run: |
           npm pkg set 'name'='@eddmann/santa-lang-wasm'
           npm pkg set 'repository'='https://github.com/eddmann/santa-lang-rs'
           wasm-pack pack
       - name: Upload
         run: |
-          cp wasm/pkg/eddmann-santa-lang-wasm-${{ inputs.release-tag }}.tgz santa-lang-wasm-${{ inputs.release-tag }}.tgz
+          cp runtime/wasm/pkg/eddmann-santa-lang-wasm-${{ inputs.release-tag }}.tgz santa-lang-wasm-${{ inputs.release-tag }}.tgz
           gh release upload ${{ inputs.release-tag }} santa-lang-wasm-${{ inputs.release-tag }}.tgz --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

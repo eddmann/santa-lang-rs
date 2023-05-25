@@ -12,6 +12,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 ext-php-rs = "0.10.0"
-santa-lang = { path = "../lang", version = "*" }
+santa-lang = { path = "../../lang", version = "*" }
 ureq = "2.6.2"
 url = "2.3.1"

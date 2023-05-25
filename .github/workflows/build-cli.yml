@@ -22,7 +22,7 @@ jobs:
       - name: Build
         run: |
           docker build \
-            -f cli/build.Dockerfile \
+            -f runtime/cli/build.Dockerfile \
             --label "org.opencontainers.image.source=https://github.com/eddmann/santa-lang-rs" \
             -t ghcr.io/eddmann/santa-lang-cli:latest .
       - name: Pack
