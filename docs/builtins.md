@@ -605,7 +605,7 @@ The function can `break` which will terminate the collection iteration early.
 
     ```santa
     0.. |> reduce |acc, v| {
-      if acc == 10 { break acc } else { acc + v }
+      if v == 10 { break acc } else { acc + v }
     }
     ```
 
@@ -613,7 +613,7 @@ The function can `break` which will terminate the collection iteration early.
 
     ```santa
     iterate(_ + 1, 1) |> reduce |acc, v| {
-      if acc == 10 { break acc } else { acc + v }
+      if v == 10 { break acc } else { acc + v }
     }
     ```
 
@@ -677,16 +677,16 @@ The function can `break` which will terminate the collection iteration early.
 === "Unbounded Range"
 
     ```santa
-    0.. |> fold |acc, v| {
-      if acc == 10 { break acc } else { acc + v }
+    0.. |> fold (0) |acc, v| {
+      if v == 10 { break acc } else { acc + v }
     }
     ```
 
 === "Lazy Sequence"
 
     ```santa
-    iterate(_ + 1, 1) |> fold |acc, v| {
-      if acc == 10 { break acc } else { acc + v }
+    iterate(_ + 1, 1) |> fold (0) |acc, v| {
+      if v == 10 { break acc } else { acc + v }
     }
     ```
 
