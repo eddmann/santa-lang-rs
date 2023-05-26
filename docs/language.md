@@ -680,3 +680,9 @@ fibonacci(50);
 ### Builtins
 
 There is a suite of [builtin functions](builtins.md) which help solve many different class of problem.
+
+### External
+
+The evaluator has the ability to supply external functions to the execution environment which are defined by the _delivery_ runtime.
+This provides an extensible means of including runtime specific behaviour to the user.
+It is advised to review your desired runtimes documentation to see what external functions are available.
