@@ -1,3 +1,63 @@
 # CLI
 
 [![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)](https://github.com/eddmann/santa-lang-rs) [![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/eddmann/santa-lang-ts)
+
+This runtime provides the ability to access the language/runner via a Command Line Interface (CLI).
+It includes the following functionality:
+
+- Executes a given solution's source file, providing benchmark timing for each defined part.
+- Executes a given solutions source files test suite.
+- Executes a given script source file.
+- (Rust only) Loads an interactive REPL environment, which can be used to quickly explore the language.
+
+## Platforms
+
+The CLI is available for following platforms:
+
+- GNU/Linux - x86_64-unknown-linux-gnu
+- Apple Darwin - x86_64-apple-darwin
+- MUSL-static Docker image (based on `scratch`) - eddmann/santa-lang-cli
+
+## External Functions
+
+The CLI provides three runtime specific functions, these are:
+
+### puts
+
+```
+puts(..value)
+```
+
+Prints the supplied values (using their display format) to _stdout_.
+
+```santa
+puts("Hello", [1, 2.5, true])
+```
+
+### read
+
+```
+read(path)
+```
+
+Reads the contents of the given path into a String.
+The path can either be:
+
+- A local directory path, absolute or relative to the source file.
+- Based on a `http(s)` schema being defined; a web URL location.
+- Based on a `aoc` schema being defined; a specific Advent of Code problem input (i.e. `aoc://2015/1`).
+  In this case an external `SANTA_CLI_SESSION_TOKEN` environment variable must be defined which includes a valid Advent of Code session token.
+  This can be extracted from the cookie set upon successful login to the [platform](https://adventofcode.com/).
+
+### env
+
+```
+env()
+```
+
+(REPL only) Prints the current environment's variables
+
+## Profiling
+
+The Rust-based CLI can be built locally (via a Cargo `profile` feature flag) with additional [flamegraph](https://github.com/tikv/pprof-rs#flamegraph)/[pprof](https://github.com/tikv/pprof-rs#use-with-pprof) CPU profiling output for a given solutions' execution.
+This can be useful when trying to determine slow areas of a given solution, to improve its overall performance.
