@@ -69,7 +69,7 @@ One of the reasons for providing such a runtime was to create a Web-based code e
 Both the Rust (WASM) and TypeScript (JavaScript) variants have been integrated into a version of the editor.
 The WASM variant however is the preferred version to use.
 
-<img alt="Web Editor" src="/assets/web-editor.png" style="max-width:600px;margin:0 auto;display:block;" />
+<img alt="Web Editor" src="/santa-lang-rs/assets/web-editor.png" style="max-width:600px;margin:0 auto;display:block;" />
 
 In this use-case we are able to map the external `puts` function to `console.log`.
 We are additionally able to map the `read` function to a synchronous-blocking XMLHttpRequest call (old-school!), which provides access to the `http(s)` and `aoc` schema-based input.

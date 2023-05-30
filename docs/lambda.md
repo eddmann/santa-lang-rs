@@ -25,7 +25,7 @@ The Rust implementation has been published as an AWS Lambda Layer: [layer:al2.pr
 
 **Note:** the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
 
-<img alt="Lambda Runtime" src="/assets/lambda-runtime.png" style="max-width:600px;margin:0 auto;display:block;" />
+<img alt="Lambda Runtime" src="/santa-lang-rs/assets/lambda-runtime.png" style="max-width:600px;margin:0 auto;display:block;" />
 
 ## External Functions
 
