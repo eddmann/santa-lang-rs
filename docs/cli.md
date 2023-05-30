@@ -1,22 +1,27 @@
 # CLI
 
-[![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)](https://github.com/eddmann/santa-lang-rs) [![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/eddmann/santa-lang-ts)
+[![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)](https://github.com/eddmann/santa-lang-rs/tree/main/runtime/cli) [![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/eddmann/santa-lang-ts/tree/main/src/cli)
 
 This runtime provides the ability to access the language/runner via a Command Line Interface (CLI).
 It includes the following functionality:
 
-- Executes a given solution's source file, providing benchmark timing for each defined part.
-- Executes a given solutions source files test suite.
-- Executes a given script source file.
-- (Rust only) Loads an interactive REPL environment, which can be used to quickly explore the language.
+- Execute a given solution's source file, providing benchmark timing for each defined part.
+- Execute a given solutions source files test suite.
+- Execute a given script source file.
+- (Rust only) Load an interactive REPL environment, which can be used to quickly explore the language.
 
 ## Platforms
 
 The CLI is available for following platforms:
 
-- GNU/Linux - x86_64-unknown-linux-gnu
-- Apple Darwin - x86_64-apple-darwin
-- MUSL-static Docker image (based on `scratch`) - eddmann/santa-lang-cli
+- GNU/Linux - [x86_64-unknown-linux-gnu]()
+- Apple Darwin - [x86_64-apple-darwin]()
+- Docker image (musl-libc, static, x86, based on `scratch`) - [eddmann/santa-lang-cli](https://github.com/eddmann/santa-lang-rs/pkgs/container/santa-lang-cli)
+
+**Note:** the above releases are based on the Rust implementation.
+Releases for the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
+
+<img alt="CLI Runner" src="/assets/cli-runner.png" style="max-width:48%;max-height:310px;" /><img alt="CLI REPL" src="/assets/cli-repl.png" style="max-width:48%;max-height:310px;" />
 
 ## External Functions
 
@@ -30,7 +35,7 @@ puts(..value)
 
 Prints the supplied values (using their display format) to _stdout_.
 
-```santa
+```
 puts("Hello", [1, 2.5, true])
 ```
 
@@ -49,6 +54,24 @@ The path can either be:
   In this case an external `SANTA_CLI_SESSION_TOKEN` environment variable must be defined which includes a valid Advent of Code session token.
   This can be extracted from the cookie set upon successful login to the [platform](https://adventofcode.com/).
 
+=== "Local"
+
+    ```
+    read("input.txt")
+    ```
+
+=== "URL"
+
+    ```
+    read("https://www.example.com/input.txt")
+    ```
+
+=== "AoC"
+
+    ```
+    read("aoc://2015/1")
+    ```
+
 ### env
 
 ```
@@ -59,5 +82,7 @@ env()
 
 ## Profiling
 
-The Rust-based CLI can be built locally (via a Cargo `profile` feature flag) with additional [flamegraph](https://github.com/tikv/pprof-rs#flamegraph)/[pprof](https://github.com/tikv/pprof-rs#use-with-pprof) CPU profiling output for a given solutions' execution.
+The Rust-based CLI can be built locally (via a Cargo [`profile`](https://github.com/eddmann/santa-lang-rs/blob/main/runtime/cli/Cargo.toml#L26) feature flag) with additional [flamegraph](https://github.com/tikv/pprof-rs#flamegraph)/[pprof](https://github.com/tikv/pprof-rs#use-with-pprof) CPU profiling output for a given solutions' execution.
 This can be useful when trying to determine slow areas of a given solution, to improve its overall performance.
+
+<img alt="CLI Profiler" src="/assets/cli-profiler.png" style="max-width:600px;margin:0 auto;display:block;" />

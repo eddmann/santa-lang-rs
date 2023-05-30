@@ -15,7 +15,7 @@ nav:
   - Runner: runner.md
   - Runtimes:
       - CLI: cli.md
-      - WebAssembly: wasm.md
+      - Web: web.md
       - Lambda: lambda.md
       - PHP Extension: php-ext.md
   - Examples: examples.md
