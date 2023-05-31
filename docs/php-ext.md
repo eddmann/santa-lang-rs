@@ -15,9 +15,11 @@ Using Rust macros and C bindings, it cleanly abstracts away the need to work dir
 The resulting values are implicitly converted into expected PHP data types.
 Errors that occur within the interpreter are relayed back to the PHP runtime via Exceptions.
 
-## Extension
+## Release
 
-The PHP extension is available for Linux x86 64bit: [santa-lang-php-ext-0.0.1-x86_64-linux]()
+| Platform  | Release                                     |
+| --------- | ------------------------------------------- |
+| Linux/GNU | [`santa-lang-php-ext-0.0.1-x86_64-linux`]() |
 
 ## API
 

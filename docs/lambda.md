@@ -7,6 +7,14 @@ This runtime provides the user with the ability to handle a given Lambda request
 Both the Rust and TypeScript implementation have a Lambda runtime available.
 This does not expose the Advent of Code runner, and is only primarily concerned with exposing the core language functionality.
 
+## Release
+
+| Platform     | Release                  |
+| ------------ | ------------------------ |
+| al2.provided | [`layer:al2.provided`]() |
+
+**Note:** the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
+
 ## Lifecycle
 
 Both the Lambda request _event_ and _context_ are supplied to the handler [section](language.md#sections) expression in the form of variables, `event` and `context` accordingly.
@@ -18,12 +26,6 @@ The resolved handler is then tasked with performing the desired behaviour, and r
 In a similar manor to other Lambda runtimes (i.e. Node), the handler section is the the only part that is evaluated upon each request.
 Other computation put outside this is shared between requests, hence, any expensive work you wish to carry out up front upon cold start can be placed here.
 However, mutation should not be relied upon due to the un-determinate nature of when a warm/cold Lambda will be used.
-
-## Layers
-
-The Rust implementation has been published as an AWS Lambda Layer: [layer:al2.provided]()
-
-**Note:** the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
 
 <figure markdown>
   ![Lambda Runtime](assets/lambda-runtime.png){ width="600" }

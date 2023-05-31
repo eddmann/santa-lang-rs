@@ -15,9 +15,11 @@ Both variants provide the following functionality:
 - Execute a arbitrary language expression.
 - Ability to define user-land JavaScript functions which are made available to the evaluator as [external functions](language.md#external).
 
-## Package
+## Release
 
-The WASM variant is published as an NPM package: [@eddmann/santa-lang-wasm](https://github.com/eddmann/santa-lang-rs/pkgs/npm/santa-lang-wasm)
+| Platform | Release                              |
+| -------- | ------------------------------------ |
+| WASM     | [`@eddmann/santa-lang-wasm:0.0.1`]() |
 
 **Note:** the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
 
@@ -26,11 +28,29 @@ The WASM variant is published as an NPM package: [@eddmann/santa-lang-wasm](http
 Both variants expose the same API, however, the WASM version is required to be loaded before use.
 
 ```typescript
-function aoc_run(source: string, js_functions: object): any;
+type InteropType = string | number | object;
 
-function aoc_test(source: string, js_functions: object): any;
+type RunResult = {
+  value: string;
+  duration: number;
+};
 
-function evaluate(expression: string, js_functions?: object): any;
+type RunEvaluation =
+  | {
+      part_one?: RunResult;
+      part_two?: RunResult;
+    }
+  | RunResult;
+
+type ExternalFunctions = {
+  [name: string]: (arguments: InteropType[]) => InteropType;
+};
+
+function aoc_run(source: string, js_functions: ExternalFunctions): RunEvaluation;
+
+function aoc_test(source: string, js_functions: ExternalFunctions): RunEvaluation;
+
+function evaluate(expression: string, js_functions?: ExternalFunctions): string;
 ```
 
 ## External Functions
@@ -42,13 +62,15 @@ This provides an extensive platform on which to add additional behaviour and fun
 The defined JavaScript functions must conform to the following type signature:
 
 ```typescript
-function external_function(arguments: any[]): any;
+type InteropType = string | number | object;
+
+function external_function(arguments: InteropType[]): InteropType;
 ```
 
 An example external function could be:
 
 ```js
-const puts = (arguments: any[]): any => console.log(...arguments);
+const puts = (arguments: InteropType[]): InteropType => console.log(...arguments);
 ```
 
 ## Example

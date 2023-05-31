@@ -7,6 +7,17 @@ An functional, C-like programming language for solving Advent of Code puzzles.
 
 _Influenced by:_ Rust, Python, Clojure, F#, Scala
 
+## Release
+
+| Runtime | Platform     | Release                                             |
+| ------- | ------------ | --------------------------------------------------- |
+| CLI     | Linux/GNU    | [`santa-lang-cli-0.0.1-x86_64-unknown-linux-gnu`]() |
+| CLI     | Apple/Darwin | [`santa-lang-cli-0.0.1-x86_64-apple-darwin`]()      |
+| CLI     | Docker/x86   | [`eddmann/santa-lang-cli:0.0.1`]()                  |
+| Web     | WASM         | [`@eddmann/santa-lang-wasm:0.0.1`]()                |
+| Lambda  | al2.provided | [`layer:al2.provided`]()                            |
+| PHP     | Linux/GNU    | [`santa-lang-php-ext-0.0.1-x86_64-linux`]()         |
+
 ## Why?
 
 Over the past several years I have been slowly working through the previous Advent of Code calendars.

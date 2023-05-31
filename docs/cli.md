@@ -10,16 +10,15 @@ It includes the following functionality:
 - Execute a given script source file.
 - (Rust only) Load an interactive REPL environment, which can be used to quickly explore the language.
 
-## Platforms
+## Release
 
-The CLI is available for following platforms:
+| Platform     | Release                                             |
+| ------------ | --------------------------------------------------- |
+| Linux/GNU    | [`santa-lang-cli-0.0.1-x86_64-unknown-linux-gnu`]() |
+| Apple/Darwin | [`santa-lang-cli-0.0.1-x86_64-apple-darwin`]()      |
+| Docker/x86   | [`eddmann/santa-lang-cli:0.0.1`]()                  |
 
-- GNU/Linux - [x86_64-unknown-linux-gnu]()
-- Apple Darwin - [x86_64-apple-darwin]()
-- Docker image (musl-libc, static, x86, based on `scratch`) - [eddmann/santa-lang-cli](https://github.com/eddmann/santa-lang-rs/pkgs/container/santa-lang-cli)
-
-**Note:** the above releases are based on the Rust implementation.
-Releases for the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
+**Note:** the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
 
 <figure markdown>
   ![CLI Runner](assets/cli-runner.png){ align="left", width="46%" }
