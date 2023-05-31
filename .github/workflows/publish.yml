@@ -1,0 +1,90 @@
+name: Publish
+
+on:
+  release:
+    types:
+      - published
+
+concurrency: publish
+
+jobs:
+  npm:
+    name: Publish NPM package
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Download
+        run: |
+          gh release download ${{ github.event.release.tag_name }} -p 'santa-lang-wasm-${{ github.event.release.tag_name }}.tgz'
+          tar -xvzf santa-lang-wasm-${{ github.event.release.tag_name }}.tgz
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.16.0
+      - name: Publish
+        working-directory: package/
+        run: |
+          echo @eddmann:https://npm.pkg.github.com/ > .npmrc
+          echo '//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}' >> .npmrc
+          npm publish
+
+  docker:
+    name: Publish Docker image
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Download
+        run: |
+          gh release download ${{ github.event.release.tag_name }} -p 'santa-lang-cli-${{ github.event.release.tag_name }}-docker.tar'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Load
+        run: |
+          docker load -i santa-lang-cli-${{ github.event.release.tag_name }}-docker.tar
+          docker tag ghcr.io/eddmann/santa-lang-cli:latest ghcr.io/eddmann/santa-lang-cli:${{ github.event.release.tag_name }}
+      - name: Publish
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/eddmann/santa-lang-cli:latest
+          docker push ghcr.io/eddmann/santa-lang-cli:${{ github.event.release.tag_name }}
+
+  lambda:
+    name: Publish Lambda layer
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Download
+        run: |
+          gh release download ${{ github.event.release.tag_name }} -p 'santa-lang-lambda-${{ github.event.release.tag_name }}.zip'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish
+        run: |
+          LAYER_VERSION=$(
+            aws lambda publish-layer-version \
+              --region eu-west-1 \
+              --layer-name "santa-lang" \
+              --zip-file "fileb://santa-lang-lambda-${{ github.event.release.tag_name }}.zip" \
+              --compatible-runtimes provided.al2 \
+              --license-info MIT \
+              --output text \
+              --query Version
+          )
+          aws lambda add-layer-version-permission \
+            --region eu-west-1 \
+            --layer-name "santa-lang" \
+            --version-number "${LAYER_VERSION}" \
+            --action lambda:GetLayerVersion \
+            --statement-id public \
+            --principal "*"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.LAMBDA_LAYER_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.LAMBDA_LAYER_AWS_SECRET_ACCESS_KEY }}
