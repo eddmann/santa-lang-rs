@@ -9,9 +9,9 @@ This does not expose the Advent of Code runner, and is only primarily concerned 
 
 ## Release
 
-| Platform     | Release                  |
-| ------------ | ------------------------ |
-| al2.provided | [`layer:al2.provided`]() |
+| Platform     | Release                                                    |
+| ------------ | ---------------------------------------------------------- |
+| provided.al2 | `arn:aws:lambda:eu-west-1:428533468732:layer:santa-lang:9` |
 
 **Note:** the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
 

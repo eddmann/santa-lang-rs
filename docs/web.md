@@ -17,9 +17,9 @@ Both variants provide the following functionality:
 
 ## Release
 
-| Platform | Release                              |
-| -------- | ------------------------------------ |
-| WASM     | [`@eddmann/santa-lang-wasm:0.0.1`]() |
+| Platform | Release                                                                                               |
+| -------- | ----------------------------------------------------------------------------------------------------- |
+| WASM     | [`@eddmann/santa-lang-wasm@0.0.1`](https://github.com/eddmann/santa-lang-rs/pkgs/npm/santa-lang-wasm) |
 
 **Note:** the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
 

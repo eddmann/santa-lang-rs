@@ -9,14 +9,14 @@ _Influenced by:_ Rust, Python, Clojure, F#, Scala
 
 ## Release
 
-| Runtime | Platform     | Release                                             |
-| ------- | ------------ | --------------------------------------------------- |
-| CLI     | Linux/GNU    | [`santa-lang-cli-0.0.1-x86_64-unknown-linux-gnu`]() |
-| CLI     | Apple/Darwin | [`santa-lang-cli-0.0.1-x86_64-apple-darwin`]()      |
-| CLI     | Docker/x86   | [`eddmann/santa-lang-cli:0.0.1`]()                  |
-| Web     | WASM         | [`@eddmann/santa-lang-wasm:0.0.1`]()                |
-| Lambda  | al2.provided | [`layer:al2.provided`]()                            |
-| PHP     | Linux/GNU    | [`santa-lang-php-ext-0.0.1-x86_64-linux`]()         |
+| Runtime | Platform     | Release                                                                                                                                                           |
+| ------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CLI     | Linux/GNU    | [`santa-lang-cli-0.0.1-x86_64-unknown-linux-gnu`](https://github.com/eddmann/santa-lang-rs/releases/download/0.0.1/santa-lang-cli-0.0.1-x86_64-unknown-linux-gnu) |
+| CLI     | Apple/Darwin | [`santa-lang-cli-0.0.1-x86_64-apple-darwin`](https://github.com/eddmann/santa-lang-rs/releases/download/0.0.1/santa-lang-cli-0.0.1-x86_64-apple-darwin)           |
+| CLI     | Docker/x86   | [`ghcr.io/eddmann/santa-lang-cli:0.0.1`](https://github.com/eddmann/santa-lang-rs/pkgs/container/santa-lang-cli)                                                  |
+| Web     | WASM         | [`@eddmann/santa-lang-wasm@0.0.1`](https://github.com/eddmann/santa-lang-rs/pkgs/npm/santa-lang-wasm)                                                             |
+| Lambda  | provided.al2 | `arn:aws:lambda:eu-west-1:428533468732:layer:santa-lang:9`                                                                                                        |
+| PHP     | Linux/GNU    | [`santa-lang-php-ext-0.0.1-x86_64-linux`](https://github.com/eddmann/santa-lang-rs/releases/download/0.0.1/santa-lang-php-ext-0.0.1-x86_64-linux.so)              |
 
 ## Why?
 

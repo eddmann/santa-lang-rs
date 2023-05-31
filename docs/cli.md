@@ -12,11 +12,11 @@ It includes the following functionality:
 
 ## Release
 
-| Platform     | Release                                             |
-| ------------ | --------------------------------------------------- |
-| Linux/GNU    | [`santa-lang-cli-0.0.1-x86_64-unknown-linux-gnu`]() |
-| Apple/Darwin | [`santa-lang-cli-0.0.1-x86_64-apple-darwin`]()      |
-| Docker/x86   | [`eddmann/santa-lang-cli:0.0.1`]()                  |
+| Platform     | Release                                                                                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Linux/GNU    | [`santa-lang-cli-0.0.1-x86_64-unknown-linux-gnu`](https://github.com/eddmann/santa-lang-rs/releases/download/0.0.1/santa-lang-cli-0.0.1-x86_64-unknown-linux-gnu) |
+| Apple/Darwin | [`santa-lang-cli-0.0.1-x86_64-apple-darwin`](https://github.com/eddmann/santa-lang-rs/releases/download/0.0.1/santa-lang-cli-0.0.1-x86_64-apple-darwin)           |
+| Docker/x86   | [`ghcr.io/eddmann/santa-lang-cli:0.0.1`](https://github.com/eddmann/santa-lang-rs/pkgs/container/santa-lang-cli)                                                  |
 
 **Note:** the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
 
