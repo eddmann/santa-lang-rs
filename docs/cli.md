@@ -21,7 +21,10 @@ The CLI is available for following platforms:
 **Note:** the above releases are based on the Rust implementation.
 Releases for the TypeScript implementation can be accessed via the [GitHub repository](https://github.com/eddmann/santa-lang-ts).
 
-<img alt="CLI Runner" src="/santa-lang-rs/assets/cli-runner.png" style="max-width:48%;max-height:310px;" /><img alt="CLI REPL" src="/santa-lang-rs/assets/cli-repl.png" style="max-width:48%;max-height:310px;" />
+<figure markdown>
+  ![CLI Runner](assets/cli-runner.png){ align="left", width="46%" }
+  ![CLI REPL](assets/cli-repl.png){ align="right", width="46%" }
+</figure>
 
 ## External Functions
 
@@ -85,4 +88,6 @@ env()
 The Rust-based CLI can be built locally (via a Cargo [`profile`](https://github.com/eddmann/santa-lang-rs/blob/main/runtime/cli/Cargo.toml#L26) feature flag) with additional [flamegraph](https://github.com/tikv/pprof-rs#flamegraph)/[pprof](https://github.com/tikv/pprof-rs#use-with-pprof) CPU profiling output for a given solutions' execution.
 This can be useful when trying to determine slow areas of a given solution, to improve its overall performance.
 
-<img alt="CLI Profiler" src="/santa-lang-rs/assets/cli-profiler.png" style="max-width:600px;margin:0 auto;display:block;" />
+<figure markdown>
+  ![CLI Profiler](assets/cli-profiler.png){ width="600" }
+</figure>

@@ -28,3 +28,5 @@ markdown_extensions:
       alternate_style: true
   - pymdownx.highlight:
       use_pygments: false
+  - attr_list
+  - md_in_html
