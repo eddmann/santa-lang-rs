@@ -64,14 +64,6 @@ php-ext/test:
 	@docker build -t local/santa-php-ext-build - < runtime/php-ext/build.Dockerfile
 	@$(DOCKER) local/santa-php-ext-build bash -c "php -dextension=./target/release/libsanta_lang.so php-ext/fixtures/test.php"
 
-.PHONY: docs/serve
-docs/serve:
-	@docker run --rm -it -p 8000:8000 -v $(PWD):/docs squidfunk/mkdocs-material:9.1.14
-
-.PHONY: docs/build
-docs/build:
-	@docker run --rm -v $(PWD):/docs squidfunk/mkdocs-material:9.1.14 build --clean --site-dir site --verbose
-
 cli/build/%:
 	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.68.2 \
 		sh -c "cargo build --release --bin santa-cli --target $*"
