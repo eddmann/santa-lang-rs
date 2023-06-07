@@ -62,7 +62,7 @@ php-ext/build:
 .PHONY: php-ext/test
 php-ext/test:
 	@docker build -t local/santa-php-ext-build - < runtime/php-ext/build.Dockerfile
-	@$(DOCKER) local/santa-php-ext-build bash -c "php -dextension=./target/release/libsanta_lang.so php-ext/fixtures/test.php"
+	@$(DOCKER) local/santa-php-ext-build bash -c "php -dextension=./target/release/libsanta_lang.so runtime/php-ext/fixtures/test.php"
 
 cli/build/%:
 	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.68.2 \

@@ -25,12 +25,9 @@ pub fn santa_aoc_run(source: &str, cwd: Option<String>) -> PhpResult<Zval> {
 
     match runner.run(source) {
         Ok(RunEvaluation::Script(result)) => {
-            let mut result_ht = ZendHashTable::new();
-            result_ht.insert("value", result.value)?;
-            result_ht.insert("duration", result.duration as u64)?;
-
             let mut output_ht = ZendHashTable::new();
-            output_ht.insert("result", result_ht)?;
+            output_ht.insert("value", result.value)?;
+            output_ht.insert("duration", result.duration as u64)?;
 
             let mut zval = Zval::new();
             zval.set_hashtable(output_ht);
