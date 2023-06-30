@@ -52,3 +52,10 @@ jobs:
     uses: eddmann/santa-lang-rs/.github/workflows/build-php-ext.yml@draft-release
     with:
       release-tag: ${{ needs.update-draft-release.outputs.tag_name }}
+
+  jupyter:
+    needs: update-draft-release
+    name: Build Jupyter Kernel
+    uses: eddmann/santa-lang-rs/.github/workflows/build-jupyter.yml@draft-release
+    with:
+      release-tag: ${{ needs.update-draft-release.outputs.tag_name }}

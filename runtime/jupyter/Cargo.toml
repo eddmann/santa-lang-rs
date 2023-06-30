@@ -1,0 +1,18 @@
+[package]
+name = "santa-jupyter"
+version.workspace = true
+authors.workspace = true
+documentation.workspace = true
+edition = "2021"
+
+[[bin]]
+name = "santa-jupyter"
+path = "src/main.rs"
+
+[dependencies]
+santa-lang = { path = "../../lang", version = "*" }
+jupyter = "0.1.9"
+jupyter-derive = "0.0.2"
+clap = "4.3.9"
+clap_derive = "4.3.2"
+tracing-subscriber = "0.3.17"

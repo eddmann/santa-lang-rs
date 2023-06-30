@@ -1,0 +1,55 @@
+name: Build Jupyter Kernel
+
+on:
+  workflow_call:
+    inputs:
+      release-tag:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    env:
+      CARGO_TERM_COLOR: always
+    strategy:
+      matrix:
+        build:
+          - x86_64-linux-gnu
+          - x86_64-macos
+        include:
+          - build: x86_64-linux-gnu
+            target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+          - build: x86_64-macos
+            target: x86_64-apple-darwin
+            os: macos-12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set release version
+        run: |
+          sed -i.bak 's/version = "[0-9.]*"$/version = "${{ inputs.release-tag }}"/' Cargo.toml
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.70.0
+          target: ${{ matrix.target }}
+          override: true
+      - name: Load cache
+        uses: Swatinem/rust-cache@v2
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --bin santa-jupyter --target ${{ matrix.target }}
+      - name: Upload
+        run: |
+          cp target/${{ matrix.target }}/release/santa-jupyter santa-lang-jupyter-${{ inputs.release-tag }}-${{ matrix.target }}
+          gh release upload ${{ inputs.release-tag }} santa-lang-jupyter-${{ inputs.release-tag }}-${{ matrix.target }} --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
