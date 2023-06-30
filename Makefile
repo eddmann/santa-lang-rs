@@ -1,4 +1,4 @@
-IMAGE = rust:1.68.2-bullseye
+IMAGE = rust:1.70.0-bullseye
 DOCKER = docker run --rm -e CARGO_HOME=/app/.cargo -v $(PWD):/app -w /app
 
 .PHONY: shell
@@ -65,5 +65,5 @@ php-ext/test:
 	@$(DOCKER) local/santa-php-ext-build bash -c "php -dextension=./target/release/libsanta_lang.so runtime/php-ext/fixtures/test.php"
 
 cli/build/%:
-	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.68.2 \
+	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.70.0 \
 		sh -c "cargo build --release --bin santa-cli --target $*"
