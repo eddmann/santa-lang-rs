@@ -1,5 +1,5 @@
 <p align="center"><a href="https://eddmann.com/santa-lang/"><img src="./logo.png" alt="santa-lang" width="400px" /></a></p>
-<p align="center"><a href="https://eddmann.com/santa-lang/cli/">CLI</a> - <a href="https://eddmann.com/santa-lang/web/">Web</a> - <a href="https://eddmann.com/santa-lang/lambda/">Lambda</a> - <a href="https://eddmann.com/santa-lang/php-ext/">PHP Extension</a></p>
+<p align="center"><a href="https://eddmann.com/santa-lang/cli/">CLI</a> - <a href="https://eddmann.com/santa-lang/web/">Web</a> - <a href="https://eddmann.com/santa-lang/lambda/">Lambda</a> - <a href="https://eddmann.com/santa-lang/php-ext/">PHP Extension</a> - <a href="https://eddmann.com/santa-lang/jupyter-kernel/">Jupyter</a></p>
 <p align="center">📙 Visit the <a href="https://eddmann.com/santa-lang/">documentation</a> to learn more</p>
 
 # santa-lang-rs
