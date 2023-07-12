@@ -64,6 +64,17 @@ php-ext/test:
 	@docker build -t local/santa-php-ext-build - < runtime/php-ext/build.Dockerfile
 	@$(DOCKER) local/santa-php-ext-build bash -c "php -dextension=./target/release/libsanta_lang.so runtime/php-ext/fixtures/test.php"
 
+.PHONY: jupyter/build
+jupyter/build:
+	docker build \
+		-f runtime/jupyter/build.Dockerfile \
+		--label "org.opencontainers.image.source=https://github.com/eddmann/santa-lang-rs" \
+		-t ghcr.io/eddmann/santa-lang-jupyter:latest .
+
+.PHONY: jupyter/run
+jupyter/run:
+	docker run --rm -it -p 8888:8888 ghcr.io/eddmann/santa-lang-jupyter:latest
+
 cli/build/%:
 	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.70.0 \
 		sh -c "cargo build --release --bin santa-cli --target $*"
