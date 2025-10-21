@@ -244,7 +244,7 @@ impl Evaluator {
             ExpressionKind::Match { subject, cases } => crate::evaluator::matcher::matcher(self, subject, cases),
             ExpressionKind::Function { parameters, body } => Ok(Rc::new(Object::Function(Function::Closure {
                 parameters: parameters.clone(),
-                body: *body.clone(),
+                body: Rc::clone(body),
                 environment: Rc::clone(&self.environment()),
             }))),
             ExpressionKind::Call { function, arguments } => {
@@ -261,7 +261,12 @@ impl Evaluator {
                     trace: self.get_trace(),
                 })
             }
-            ExpressionKind::List(list) => Ok(Rc::new(Object::List(Vector::from(self.eval_expressions(list)?)))),
+            ExpressionKind::List(list) => Ok(Rc::new(Object::List(Vector::from(
+                self.eval_expressions(list)?
+                    .into_iter()
+                    .map(|obj| (*obj).clone())
+                    .collect::<Vec<_>>()
+            )))),
             ExpressionKind::Set(set) => {
                 let mut elements = HashSet::default();
                 for element in self.eval_expressions(set)? {
@@ -272,7 +277,7 @@ impl Evaluator {
                             trace: self.get_trace(),
                         });
                     }
-                    elements.insert(element);
+                    elements.insert((*element).clone());
                 }
                 Ok(Rc::new(Object::Set(elements)))
             }
@@ -287,7 +292,7 @@ impl Evaluator {
                             trace: self.get_trace(),
                         });
                     }
-                    elements.insert(evaluated_key, self.eval_expression(value)?);
+                    elements.insert((*evaluated_key).clone(), (*self.eval_expression(value)?).clone());
                 }
                 Ok(Rc::new(Object::Dictionary(elements)))
             }
@@ -510,7 +515,7 @@ impl Evaluator {
             if let ExpressionKind::Spread(value) = &expression.kind {
                 if let Object::List(list) = &*self.eval_expression(value)? {
                     for element in list {
-                        results.push(Rc::clone(element));
+                        results.push(Rc::new(element.clone()));
                     }
                     continue;
                 }
@@ -551,7 +556,7 @@ impl Evaluator {
                 ExpressionKind::Identifier(name) => {
                     match self.environment().borrow_mut().declare_variable(
                         name,
-                        Rc::clone(list.iter().nth(position).unwrap_or(&Rc::new(Object::Nil))),
+                        Rc::new(list.iter().nth(position).unwrap_or(&Object::Nil).clone()),
                         is_mutable,
                     ) {
                         Ok(_) => {}
@@ -586,7 +591,7 @@ impl Evaluator {
                 }
                 ExpressionKind::IdentifierListPattern(next_pattern) => {
                     let object = if let Some(value) = list.iter().nth(position) {
-                        Rc::clone(value)
+                        Rc::new(value.clone())
                     } else {
                         Rc::new(Object::List(Vector::new()))
                     };

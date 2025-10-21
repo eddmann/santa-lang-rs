@@ -7,6 +7,7 @@ use super::lexer::{Lexer, Location, Token, TokenKind};
 use crate::T;
 use ast::*;
 use ordered_float::OrderedFloat;
+use std::rc::Rc;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[repr(u8)]
@@ -613,7 +614,7 @@ impl<'a> Parser<'a> {
             self.expect(T![||])?;
             vec![]
         };
-        let body = Box::new(self.parse_block_statement()?);
+        let body = Rc::new(self.parse_block_statement()?);
 
         Ok(Expression {
             kind: ExpressionKind::Function { parameters, body },

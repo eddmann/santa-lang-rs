@@ -39,7 +39,7 @@ builtin! {
             let mut ints = Vector::new();
             for capture in pattern.captures_iter(value) {
                 if let Ok(parsed) = capture[0].parse::<i64>() {
-                    ints.push_back(Rc::new(Object::Integer(parsed)));
+                    ints.push_back(Object::Integer(parsed));
                 }
             }
 
@@ -51,7 +51,7 @@ builtin! {
 builtin! {
     lines(value) match {
         Object::String(value) => {
-            Ok(Rc::new(Object::List(value.lines().map(|line| Rc::new(Object::String(line.to_owned()))).collect())))
+            Ok(Rc::new(Object::List(value.lines().map(|line| Object::String(line.to_owned())).collect())))
         }
     }
 }
@@ -60,9 +60,9 @@ builtin! {
     split(seperator, value) match {
         (Object::String(seperator), Object::String(value)) => {
             if seperator.is_empty() {
-                return Ok(Rc::new(Object::List(value.chars().map(|seperated| Rc::new(Object::String(seperated.to_string()))).collect())))
+                return Ok(Rc::new(Object::List(value.chars().map(|seperated| Object::String(seperated.to_string())).collect())))
             }
-            Ok(Rc::new(Object::List(value.split(seperator).map(|seperated| Rc::new(Object::String(seperated.to_owned()))).collect())))
+            Ok(Rc::new(Object::List(value.split(seperator).map(|seperated| Object::String(seperated.to_owned())).collect())))
         }
     }
 }
@@ -77,7 +77,7 @@ builtin! {
                             matched
                                 .iter()
                                 .skip(1)
-                                .filter_map(|matched| matched.map(|m| Rc::new(Object::String(m.as_str().to_owned()))))
+                                .filter_map(|matched| matched.map(|m| Object::String(m.as_str().to_owned())))
                                 .collect()
                             )
                         ));
@@ -104,7 +104,7 @@ builtin! {
                     Ok(Rc::new(Object::List(
                         compiled_pattern
                             .captures_iter(value)
-                            .filter_map(|matched| matched.get(0).map(|m| Rc::new(Object::String(m.as_str().to_owned()))))
+                            .filter_map(|matched| matched.get(0).map(|m| Object::String(m.as_str().to_owned())))
                             .collect()
                     )))
                 }

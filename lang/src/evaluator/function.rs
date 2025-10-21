@@ -20,12 +20,12 @@ type MemoizedCache = Rc<RefCell<HashMap<Vec<Rc<Object>>, Rc<Object>>>>;
 pub enum Function {
     Closure {
         parameters: Vec<Expression>,
-        body: Statement,
+        body: Rc<Statement>,
         environment: EnvironmentRef,
     },
     MemoizedClosure {
         parameters: Vec<Expression>,
-        body: Statement,
+        body: Rc<Statement>,
         environment: EnvironmentRef,
         cache: MemoizedCache,
     },
@@ -72,7 +72,7 @@ impl Function {
                     environment: Rc::clone(&enclosed_environment),
                 });
 
-                let mut result = evaluator.eval_statement(body)?;
+                let mut result = evaluator.eval_statement(&**body)?;
 
                 loop {
                     if let Object::Function(Function::Continuation { arguments }) = &*result {
@@ -88,7 +88,7 @@ impl Function {
                             break;
                         }
 
-                        result = evaluator.eval_statement(body)?;
+                        result = evaluator.eval_statement(&**body)?;
                         continue;
                     }
 
@@ -132,7 +132,7 @@ impl Function {
                     environment: Rc::clone(&enclosed_environment),
                 });
 
-                let mut result = evaluator.eval_statement(body)?;
+                let mut result = evaluator.eval_statement(&**body)?;
 
                 loop {
                     if let Object::Function(Function::Continuation { arguments }) = &*result {
@@ -148,7 +148,7 @@ impl Function {
                             break;
                         }
 
-                        result = evaluator.eval_statement(body)?;
+                        result = evaluator.eval_statement(&**body)?;
                         continue;
                     }
 
@@ -274,7 +274,7 @@ impl Function {
                 ExpressionKind::RestIdentifier(name) => {
                     environment.borrow_mut().set_variable(
                         name,
-                        Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
+                        Rc::new(Object::List(arguments.clone().into_iter().skip(position).map(|obj| (*obj).clone()).collect())),
                     );
                     break;
                 }
@@ -325,7 +325,7 @@ impl Function {
                 ExpressionKind::RestIdentifier(name) => {
                     evaluated_arguments.insert(
                         name.to_owned(),
-                        Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
+                        Rc::new(Object::List(arguments.clone().into_iter().skip(position).map(|obj| (*obj).clone()).collect())),
                     );
                     break;
                 }
@@ -364,7 +364,7 @@ impl Function {
             match &parameter.kind {
                 ExpressionKind::Identifier(name) => {
                     let object = if let Some(value) = list.iter().nth(position) {
-                        Rc::clone(value)
+                        Rc::new(value.clone())
                     } else {
                         Rc::new(Object::Nil)
                     };
@@ -382,7 +382,7 @@ impl Function {
                 }
                 ExpressionKind::IdentifierListPattern(next_parameter) => {
                     let object = if let Some(value) = list.iter().nth(position) {
-                        Rc::clone(value)
+                        Rc::new(value.clone())
                     } else {
                         Rc::new(Object::List(Vector::new()))
                     };

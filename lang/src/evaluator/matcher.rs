@@ -152,7 +152,7 @@ fn destructure_match_list_pattern(
                 match evaluator
                     .environment()
                     .borrow_mut()
-                    .declare_variable(name, Rc::clone(&list[position]), false)
+                    .declare_variable(name, Rc::new(list[position].clone()), false)
                 {
                     Ok(_) => {}
                     Err(EnvironmentErr { message }) => {
@@ -165,12 +165,12 @@ fn destructure_match_list_pattern(
                 }
             }
             ExpressionKind::ListMatchPattern(pattern) => {
-                if !destructure_match_list_pattern(evaluator, pattern, Rc::clone(&list[position]))? {
+                if !destructure_match_list_pattern(evaluator, pattern, Rc::new(list[position].clone()))? {
                     return Ok(false);
                 }
             }
             ExpressionKind::RestIdentifier(name) => {
-                let rest = list.clone().into_iter().skip(position).collect::<Vector<Rc<Object>>>();
+                let rest = list.clone().into_iter().skip(position).collect::<Vector<Object>>();
 
                 match evaluator
                     .environment()
@@ -191,7 +191,7 @@ fn destructure_match_list_pattern(
             }
             ExpressionKind::InclusiveRange { from, to } => {
                 if let (ExpressionKind::Integer(from), ExpressionKind::Integer(to), Object::Integer(index)) =
-                    (&from.kind, &to.kind, &*list[position])
+                    (&from.kind, &to.kind, &list[position])
                 {
                     if !(*from..=*to).contains(index) {
                         return Ok(false);
@@ -200,7 +200,7 @@ fn destructure_match_list_pattern(
             }
             ExpressionKind::ExclusiveRange { from, until } => {
                 if let (ExpressionKind::Integer(from), ExpressionKind::Integer(until), Object::Integer(index)) =
-                    (&from.kind, &until.kind, &*list[position])
+                    (&from.kind, &until.kind, &list[position])
                 {
                     if !(*from..*until).contains(index) {
                         return Ok(false);
@@ -208,14 +208,14 @@ fn destructure_match_list_pattern(
                 }
             }
             ExpressionKind::UnboundedRange { from } => {
-                if let (ExpressionKind::Integer(from), Object::Integer(index)) = (&from.kind, &*list[position]) {
+                if let (ExpressionKind::Integer(from), Object::Integer(index)) = (&from.kind, &list[position]) {
                     if !(*from..).contains(index) {
                         return Ok(false);
                     }
                 }
             }
             _ => {
-                if list[position] != evaluator.eval_expression(sub_pattern)? {
+                if list[position] != *evaluator.eval_expression(sub_pattern)? {
                     return Ok(false);
                 }
             }

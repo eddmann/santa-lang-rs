@@ -1,6 +1,7 @@
 use crate::lexer::Location;
 use ordered_float::OrderedFloat;
 use std::fmt;
+use std::rc::Rc;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Program {
@@ -91,7 +92,7 @@ pub enum ExpressionKind {
     },
     Function {
         parameters: Vec<Expression>,
-        body: Box<Statement>,
+        body: Rc<Statement>,
     },
     Index {
         left: Box<Expression>,

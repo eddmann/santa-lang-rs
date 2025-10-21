@@ -19,7 +19,8 @@ builtin! {
         (Object::List(a), Object::List(b)) => {
             let mut added = Vector::new();
             for (v1, v2) in a.iter().zip(b.iter()) {
-                added.push_back(crate::evaluator::builtins::operators::plus(evaluator, v1, v2, source)?);
+                let result = crate::evaluator::builtins::operators::plus(evaluator, &Rc::new(v1.clone()), &Rc::new(v2.clone()), source)?;
+                added.push_back((*result).clone());
             }
             Ok(Rc::new(Object::List(added)))
         }

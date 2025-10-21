@@ -259,8 +259,8 @@ impl LazySequenceIter<'_> {
                             .chars()
                             .enumerate()
                             .filter(|&(_, e)| e == '1')
-                            .map(|(i, _)| Rc::clone(&collection[i]))
-                            .collect::<Vector<Rc<Object>>>();
+                            .map(|(i, _)| (*collection[i]).clone())
+                            .collect::<Vector<Object>>();
                         *mask -= 1;
                         return Some(Rc::new(Object::List(res)));
                     }
@@ -318,7 +318,7 @@ impl Iterator for LazySequenceIter<'_> {
                     }
                     LazyFn::Zip(sequences) => {
                         let mut entry = Vector::new();
-                        entry.push_back(next);
+                        entry.push_back((*next).clone());
 
                         let iterators = self
                             .zip_iterators
@@ -338,7 +338,7 @@ impl Iterator for LazySequenceIter<'_> {
 
                         for iterator in iterators.iter_mut() {
                             match iterator.next() {
-                                Some(element) => entry.push_back(element),
+                                Some(element) => entry.push_back((*element).clone()),
                                 None => return None,
                             }
                         }

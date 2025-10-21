@@ -10,12 +10,12 @@ builtin! {
     push(value, collection) match {
         (_, Object::List(list)) => {
             let mut next_list = list.clone();
-            next_list.push_back(Rc::clone(value));
+            next_list.push_back((**value).clone());
             Ok(Rc::new(Object::List(next_list)))
         }
         (_, Object::Set(set)) => {
             let mut next_set = set.clone();
-            next_set.insert(Rc::clone(value));
+            next_set.insert((**value).clone());
             Ok(Rc::new(Object::Set(next_set)))
         }
     }
@@ -46,14 +46,14 @@ builtin! {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
-                elements.push_back(mapper.apply(evaluator, vec![Rc::clone(element)], source)?);
+                elements.push_back((*mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?).clone());
             }
             Ok(Rc::new(Object::List(elements)))
         }
         (Object::Function(mapper), Object::Set(set)) => {
             let mut elements = HashSet::default();
             for element in set {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                let mapped = mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?;
                 if !mapped.is_hashable() {
                     return Err(RuntimeErr {
                         message: format!("Unable to include a {} within an Set", element.name()),
@@ -61,14 +61,14 @@ builtin! {
                         trace: evaluator.get_trace()
                     });
                 }
-                elements.insert(mapper.apply(evaluator, vec![Rc::clone(element)], source)?);
+                elements.insert((*mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?).clone());
             }
             Ok(Rc::new(Object::Set(elements)))
         }
         (Object::Function(mapper), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
             for (key, value) in map {
-                elements.insert(Rc::clone(key), mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?);
+                elements.insert(key.clone(), (*mapper.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?).clone());
             }
             Ok(Rc::new(Object::Dictionary(elements)))
         }
@@ -78,7 +78,7 @@ builtin! {
         (Object::Function(mapper), Object::String(string)) => {
             let mut elements = Vector::new();
             for character in string.chars() {
-                elements.push_back(mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?);
+                elements.push_back((*mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?).clone());
             }
             Ok(Rc::new(Object::List(elements)))
         }
@@ -90,8 +90,8 @@ builtin! {
         (Object::Function(predicate), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
-                    elements.push_back(Rc::clone(element));
+                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                    elements.push_back(element.clone());
                 }
             }
             Ok(Rc::new(Object::List(elements)))
@@ -99,8 +99,8 @@ builtin! {
         (Object::Function(predicate), Object::Set(list)) => {
             let mut elements = HashSet::default();
             for element in list {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
-                    elements.insert(Rc::clone(element));
+                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                    elements.insert(element.clone());
                 }
             }
             Ok(Rc::new(Object::Set(elements)))
@@ -108,8 +108,8 @@ builtin! {
         (Object::Function(predicate), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
             for (key, value) in map {
-                if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
-                    elements.insert(Rc::clone(key), Rc::clone(value));
+                if predicate.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
+                    elements.insert(key.clone(), value.clone());
                 }
             }
             Ok(Rc::new(Object::Dictionary(elements)))
@@ -122,7 +122,7 @@ builtin! {
             for character in string.chars() {
                 let object = Rc::new(Object::String(character.to_string()));
                 if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
-                    elements.push_back(Rc::clone(&object));
+                    elements.push_back((*object).clone());
                 }
             }
             Ok(Rc::new(Object::List(elements)))
@@ -135,7 +135,7 @@ builtin! {
         (_, Object::Function(folder), Object::List(list)) => {
             let mut accumulator = Rc::clone(initial);
             for element in list {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -145,7 +145,7 @@ builtin! {
         (_, Object::Function(folder), Object::Set(set)) => {
             let mut accumulator = Rc::clone(initial);
             for element in set {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -155,7 +155,7 @@ builtin! {
         (_, Object::Function(folder), Object::Dictionary(map)) => {
             let mut accumulator = Rc::clone(initial);
             for (key, value) in map {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(value), Rc::clone(key)], source)?;
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -190,7 +190,7 @@ builtin! {
     each(side_effect, collection) [evaluator, source] match {
         (Object::Function(side_effect), Object::List(list)) => {
             for element in list {
-                let result = side_effect.apply(evaluator, vec![Rc::clone(element)], source)?;
+                let result = side_effect.apply(evaluator, vec![Rc::new(element.clone())], source)?;
                 if let Object::Break(_) = &*result {
                     break;
                 }
@@ -199,7 +199,7 @@ builtin! {
         }
         (Object::Function(side_effect), Object::Set(set)) => {
             for element in set {
-                let result = side_effect.apply(evaluator, vec![Rc::clone(element)], source)?;
+                let result = side_effect.apply(evaluator, vec![Rc::new(element.clone())], source)?;
                 if let Object::Break(_) = &*result {
                     break;
                 }
@@ -208,7 +208,7 @@ builtin! {
         }
         (Object::Function(side_effect), Object::Dictionary(map)) => {
             for (key, value) in map {
-                let result = side_effect.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
+                let result = side_effect.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if let Object::Break(_) = &*result {
                     break;
                 }
@@ -242,7 +242,7 @@ builtin! {
         (Object::Function(reducer), Object::List(list)) => {
             let mut elements = list.iter();
             let mut accumulator = match elements.next() {
-                Some(element) => Rc::clone(element),
+                Some(element) => Rc::new(element.clone()),
                 None => return Err(RuntimeErr {
                     message: "Unable to reduce an empty List".to_owned(),
                     source,
@@ -250,7 +250,7 @@ builtin! {
                 })
             };
             for element in elements {
-                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -260,7 +260,7 @@ builtin! {
         (Object::Function(reducer), Object::Set(set)) => {
             let mut elements = set.iter();
             let mut accumulator = match elements.next() {
-                Some(element) => Rc::clone(element),
+                Some(element) => Rc::new(element.clone()),
                 None => return Err(RuntimeErr {
                     message: "Unable to reduce an empty Set".to_owned(),
                     source,
@@ -268,7 +268,7 @@ builtin! {
                 })
             };
             for element in elements {
-                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -278,7 +278,7 @@ builtin! {
         (Object::Function(reducer), Object::Dictionary(map)) => {
             let mut elements = map.iter();
             let mut accumulator = match elements.next() {
-                Some((key, value)) => Rc::clone(value),
+                Some((key, value)) => Rc::new(value.clone()),
                 None => return Err(RuntimeErr {
                     message: "Unable to reduce an empty Dictionary".to_owned(),
                     source,
@@ -286,7 +286,7 @@ builtin! {
                 })
             };
             for (key, value) in elements {
-                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(value), Rc::clone(key)], source)?;
+                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -338,7 +338,7 @@ builtin! {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
-                if let Object::List(other_elements) = &*mapper.apply(evaluator, vec![Rc::clone(element)], source)? {
+                if let Object::List(other_elements) = &*mapper.apply(evaluator, vec![Rc::new(element.clone())], source)? {
                     elements.append(other_elements.clone());
                 }
             }
@@ -351,24 +351,24 @@ builtin! {
     find(predicate, collection) [evaluator, source] match {
         (Object::Function(predicate), Object::List(list)) => {
             for element in list {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
-                    return Ok(Rc::clone(element))
+                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                    return Ok(Rc::new(element.clone()))
                 }
             }
             Ok(Rc::new(Object::Nil))
         }
         (Object::Function(predicate), Object::Set(set)) => {
             for element in set {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
-                    return Ok(Rc::clone(element))
+                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                    return Ok(Rc::new(element.clone()))
                 }
             }
             Ok(Rc::new(Object::Nil))
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map {
-                if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
-                    return Ok(Rc::clone(value));
+                if predicate.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
+                    return Ok(Rc::new(value.clone()));
                 }
             }
             Ok(Rc::new(Object::Nil))
@@ -399,7 +399,7 @@ builtin! {
         (Object::Function(predicate), Object::List(list)) => {
             let mut count = 0;
             for element in list {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
                     count += 1;
                 }
             }
@@ -408,7 +408,7 @@ builtin! {
         (Object::Function(predicate), Object::Set(set)) => {
             let mut count = 0;
             for element in set {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
                     count += 1;
                 }
             }
@@ -417,7 +417,7 @@ builtin! {
         (Object::Function(predicate), Object::Dictionary(map)) => {
             let mut count = 0;
             for (key, value) in map {
-                if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
+                if predicate.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
                     count += 1;
                 }
             }
@@ -451,7 +451,7 @@ builtin! {
         Object::List(list) => {
             let mut sum = 0;
             for element in list {
-                if let Object::Integer(value) = &**element {
+                if let Object::Integer(value) = element {
                     sum += value;
                 }
             }
@@ -460,7 +460,7 @@ builtin! {
         Object::Set(set) => {
             let mut sum = 0;
             for element in set {
-                if let Object::Integer(value) = &**element {
+                if let Object::Integer(value) = element {
                     sum += value;
                 }
             }
@@ -469,7 +469,7 @@ builtin! {
         Object::Dictionary(map) => {
             let mut sum = 0;
             for (key, value) in map {
-                if let Object::Integer(value) = &**value {
+                if let Object::Integer(value) = value {
                     sum += value;
                 }
             }
@@ -491,7 +491,7 @@ builtin! {
     max(..values) [evaluator, source] {
         let list = if let Object::List(list) = &**values {
             if list.len() == 1 {
-                Rc::clone(&list[0])
+                Rc::new(list[0].clone())
             } else {
                 Rc::clone(values)
             }
@@ -506,21 +506,21 @@ builtin! {
         match &*list {
             Object::List(list) => {
                 if let Some(max) = list.iter().max() {
-                    return Ok(Rc::clone(max));
+                    return Ok(Rc::new(max.clone()));
                 }
 
                 Ok(Rc::new(Object::Nil))
             }
             Object::Set(set) => {
                 if let Some(max) = set.iter().max() {
-                    return Ok(Rc::clone(max));
+                    return Ok(Rc::new(max.clone()));
                 }
 
                 Ok(Rc::new(Object::Nil))
             }
             Object::Dictionary(map) => {
                 if let Some(max) = map.values().max() {
-                    return Ok(Rc::clone(max));
+                    return Ok(Rc::new(max.clone()));
                 }
 
                 Ok(Rc::new(Object::Nil))
@@ -545,7 +545,7 @@ builtin! {
     min(..values) [evaluator, source] {
         let list = if let Object::List(list) = &**values {
             if list.len() == 1 {
-                Rc::clone(&list[0])
+                Rc::new(list[0].clone())
             } else {
                 Rc::clone(values)
             }
@@ -560,21 +560,21 @@ builtin! {
         match &*list {
             Object::List(list) => {
                 if let Some(min) = list.iter().min() {
-                    return Ok(Rc::clone(min));
+                    return Ok(Rc::new(min.clone()));
                 }
 
                 Ok(Rc::new(Object::Nil))
             }
             Object::Set(set) => {
                 if let Some(min) = set.iter().min() {
-                    return Ok(Rc::clone(min));
+                    return Ok(Rc::new(min.clone()));
                 }
 
                 Ok(Rc::new(Object::Nil))
             }
             Object::Dictionary(map) => {
                 if let Some(min) = map.values().min() {
-                    return Ok(Rc::clone(min));
+                    return Ok(Rc::new(min.clone()));
                 }
 
                 Ok(Rc::new(Object::Nil))
@@ -612,7 +612,7 @@ builtin! {
             Ok(Rc::new(Object::List(list.clone().into_iter().take(*total as usize).collect())))
         }
         (Object::Integer(total), Object::LazySequence(sequence)) => {
-            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).take(*total as usize).collect::<Vector<Rc<Object>>>())))
+            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).take(*total as usize).map(|obj| (*obj).clone()).collect::<Vector<Object>>())))
         }
     }
 }
@@ -623,17 +623,17 @@ builtin! {
             Ok(Rc::new(Object::List(list.clone())))
         }
         Object::Set(set) => {
-            Ok(Rc::new(Object::List(set.clone().into_iter().collect::<Vector<Rc<Object>>>())))
+            Ok(Rc::new(Object::List(set.clone().into_iter().collect::<Vector<Object>>())))
         }
         Object::Dictionary(map) => {
-            let to_pairs = |(key, value)| Rc::new(Object::List(vec![key, value].into()));
-            Ok(Rc::new(Object::List(map.clone().into_iter().map(to_pairs).collect::<Vector<Rc<Object>>>())))
+            let to_pairs = |(key, value)| Object::List(vec![key, value].into());
+            Ok(Rc::new(Object::List(map.clone().into_iter().map(to_pairs).collect::<Vector<Object>>())))
         }
         Object::LazySequence(sequence) => {
-            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).collect::<Vector<Rc<Object>>>())))
+            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).map(|obj| (*obj).clone()).collect::<Vector<Object>>())))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::List(string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<Vector<Rc<Object>>>())))
+            Ok(Rc::new(Object::List(string.chars().map(|character| Object::String(character.to_string())).collect::<Vector<Object>>())))
         }
     }
 }
@@ -650,7 +650,7 @@ builtin! {
                         trace: evaluator.get_trace()
                     });
                 }
-                elements.insert(Rc::clone(element));
+                elements.insert(element.clone());
             }
             Ok(Rc::new(Object::Set(elements)))
         }
@@ -667,12 +667,12 @@ builtin! {
                         trace: evaluator.get_trace()
                     });
                 }
-                elements.insert(Rc::clone(&element));
+                elements.insert((*element).clone());
             }
             Ok(Rc::new(Object::Set(elements)))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::Set(string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>())))
+            Ok(Rc::new(Object::Set(string.chars().map(|character| Object::String(character.to_string())).collect::<HashSet<_, _>>())))
         }
     }
 }
@@ -683,7 +683,7 @@ builtin! {
             let mut elements = HashMap::default();
 
             for element in list.clone() {
-                if let Object::List(pair) = &*element {
+                if let Object::List(pair) = &element {
                     if pair.len() == 2 {
                         if !pair[0].is_hashable() {
                             return Err(RuntimeErr {
@@ -692,7 +692,7 @@ builtin! {
                                 trace: evaluator.get_trace()
                             });
                         }
-                        elements.insert(Rc::clone(&pair[0]), Rc::clone(&pair[1]));
+                        elements.insert(pair[0].clone(), pair[1].clone());
                         continue;
                     }
                 }
@@ -725,7 +725,7 @@ builtin! {
                                 trace: evaluator.get_trace()
                             });
                         }
-                        elements.insert(Rc::clone(&pair[0]), Rc::clone(&pair[1]));
+                        elements.insert(pair[0].clone(), pair[1].clone());
                         continue;
                     }
                 }
@@ -754,7 +754,7 @@ builtin! {
 builtin! {
     cycle(list) match {
         Object::List(list) => {
-            Ok(Rc::new(Object::LazySequence(LazySequence::cycle(list.clone()))))
+            Ok(Rc::new(Object::LazySequence(LazySequence::cycle(list.clone().into_iter().map(|obj| Rc::new(obj)).collect()))))
         }
         Object::String(string) => {
             let characters = string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<Vector<Rc<Object>>>();
@@ -772,10 +772,10 @@ builtin! {
 }
 
 #[inline]
-fn lazy_zipper(sequences: &Vector<Rc<Object>>) -> Option<Rc<Object>> {
+fn lazy_zipper(sequences: &Vector<Object>) -> Option<Rc<Object>> {
     let mut zipped = Vec::with_capacity(sequences.len());
     for sequence in sequences {
-        match &**sequence {
+        match sequence {
             Object::LazySequence(sequence) => zipped.push(sequence.clone()),
             _ => return None,
         }
@@ -789,13 +789,13 @@ fn lazy_zipper(sequences: &Vector<Rc<Object>>) -> Option<Rc<Object>> {
 }
 
 #[inline]
-fn eager_zipper(sequences: Vector<Rc<Object>>, evaluator: &mut Evaluator, source: Location) -> Evaluation {
+fn eager_zipper(sequences: Vector<Object>, evaluator: &mut Evaluator, source: Location) -> Evaluation {
     let shared_evaluator = Rc::new(RefCell::new(evaluator));
 
     let mut iterators: Vec<Box<dyn Iterator<Item = Rc<Object>>>> = Vec::with_capacity(sequences.len());
     for sequence in &sequences {
-        match &**sequence {
-            Object::List(list) => iterators.push(Box::new(list.clone().into_iter())),
+        match sequence {
+            Object::List(list) => iterators.push(Box::new(list.clone().into_iter().map(|obj| Rc::new(obj)))),
             Object::String(string) => iterators.push(Box::new(
                 string
                     .chars()
@@ -822,11 +822,11 @@ fn eager_zipper(sequences: Vector<Rc<Object>>, evaluator: &mut Evaluator, source
         let mut entry = Vector::new();
         for iterator in iterators.iter_mut() {
             match iterator.next() {
-                Some(element) => entry.push_back(element),
+                Some(element) => entry.push_back((*element).clone()),
                 None => break 'zipper,
             }
         }
-        zipped.push_back(Rc::new(Object::List(entry)));
+        zipped.push_back(Object::List(entry));
     }
 
     Ok(Rc::new(Object::List(zipped)))
@@ -836,7 +836,7 @@ builtin! {
     zip(collection, ..collections) [evaluator, source] match {
         (_, Object::List(collections)) => {
             let mut collections = collections.clone();
-            collections.push_front(Rc::clone(collection));
+            collections.push_front((**collection).clone());
 
             if let Some(zipped) = lazy_zipper(&collections) {
                 return Ok(zipped);
@@ -850,7 +850,7 @@ builtin! {
 builtin! {
     keys(dictionary) [evaluator, source] match {
         Object::Dictionary(map) => {
-            Ok(Rc::new(Object::List(map.iter().map(|(key, _)| Rc::clone(key)).collect::<Vector<_>>())))
+            Ok(Rc::new(Object::List(map.iter().map(|(key, _)| key.clone()).collect::<Vector<_>>())))
         }
     }
 }
@@ -858,7 +858,7 @@ builtin! {
 builtin! {
     values(dictionary) [evaluator, source] match {
         Object::Dictionary(map) => {
-            Ok(Rc::new(Object::List(map.iter().map(|(_, value)| Rc::clone(value)).collect::<Vector<_>>())))
+            Ok(Rc::new(Object::List(map.iter().map(|(_, value)| value.clone()).collect::<Vector<_>>())))
         }
     }
 }
@@ -867,13 +867,13 @@ builtin! {
     first(collection) [evaluator, source] match {
         Object::List(list) => {
             if let Some(first) = list.front() {
-                return Ok(Rc::clone(first));
+                return Ok(Rc::new(first.clone()));
             }
             Ok(Rc::new(Object::Nil))
         }
         Object::Set(set) => {
             if let Some(first) = set.iter().next() {
-                return Ok(Rc::clone(first));
+                return Ok(Rc::new(first.clone()));
             }
             Ok(Rc::new(Object::Nil))
         }
@@ -897,7 +897,7 @@ builtin! {
     second(collection) [evaluator, source] match {
         Object::List(list) => {
             if let Some(second) = list.get(1) {
-                return Ok(Rc::clone(second));
+                return Ok(Rc::new(second.clone()));
             }
             Ok(Rc::new(Object::Nil))
         }
@@ -905,7 +905,7 @@ builtin! {
             let mut iterator = set.iter();
             iterator.next();
             if let Some(second) = iterator.next() {
-                return Ok(Rc::clone(second));
+                return Ok(Rc::new(second.clone()));
             }
             Ok(Rc::new(Object::Nil))
         }
@@ -1015,7 +1015,7 @@ builtin! {
     any(predicate, collection) [evaluator, source] match {
         (Object::Function(predicate), Object::List(list)) => {
             for element in list.iter() {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
                 }
             }
@@ -1023,7 +1023,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::Set(set)) => {
             for element in set.iter() {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
                 }
             }
@@ -1031,7 +1031,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map.iter() {
-                if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
+                if predicate.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
                 }
             }
@@ -1061,7 +1061,7 @@ builtin! {
     all(predicate, collection) [evaluator, source] match {
         (Object::Function(predicate), Object::List(list)) => {
             for element in list.iter() {
-                if !predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                if !predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
                 }
             }
@@ -1069,7 +1069,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::Set(set)) => {
             for element in set.iter() {
-                if !predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+                if !predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
                 }
             }
@@ -1077,7 +1077,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map.iter() {
-                if !predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
+                if !predicate.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
                 }
             }
@@ -1112,7 +1112,7 @@ builtin! {
             sorted_list.sort_by(|a, b| {
                 // Note: Comparator errors during sort will panic. This is a limitation of sort_by.
                 // TODO: Consider implementing a fallible sorting mechanism.
-                match &*comparator.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(a), Rc::clone(b)], source)
+                match &*comparator.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::new(a.clone()), Rc::new(b.clone())], source)
                     .expect("Comparator function should not error during sort") {
                     Object::Integer(comparison) => comparison.cmp(&0),
                     comparison => if comparison.is_truthy() {
@@ -1132,7 +1132,7 @@ builtin! {
     union(..values) [evaluator, source] {
         let list = if let Object::List(list) = &**values {
             if list.len() == 1 {
-                if let Object::List(list) = &*list[0] {
+                if let Object::List(list) = &list[0] {
                     list.clone()
                 } else {
                     return Err(RuntimeErr {
@@ -1155,7 +1155,7 @@ builtin! {
         let mut elements = list.iter();
         let mut accumulator = match elements.next() {
             Some(element) => {
-                match &**element {
+                match element {
                     Object::List(list) => {
                         let mut elements = HashSet::default();
                         for element in list {
@@ -1166,7 +1166,7 @@ builtin! {
                                     trace: evaluator.get_trace()
                                 });
                             }
-                            elements.insert(Rc::clone(element));
+                            elements.insert(element.clone());
                         }
                         elements
                     }
@@ -1183,12 +1183,12 @@ builtin! {
                                     trace: evaluator.get_trace()
                                 });
                             }
-                            elements.insert(Rc::clone(&element));
+                            elements.insert((*element).clone());
                         }
                         elements
                     }
                     Object::String(string) => {
-                        string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>()
+                        string.chars().map(|character| Object::String(character.to_string())).collect()
                     }
                     _ => {
                         return Err(RuntimeErr {
@@ -1206,7 +1206,7 @@ builtin! {
             })
         };
         for element in elements {
-            let element = match &**element {
+            let element = match element {
                 Object::List(list) => {
                     let mut elements = HashSet::default();
                     for element in list {
@@ -1217,7 +1217,7 @@ builtin! {
                                 trace: evaluator.get_trace()
                             });
                         }
-                        elements.insert(Rc::clone(element));
+                        elements.insert(element.clone());
                     }
                     elements
                 }
@@ -1234,12 +1234,12 @@ builtin! {
                                 trace: evaluator.get_trace()
                             });
                         }
-                        elements.insert(Rc::clone(&element));
+                        elements.insert((*element).clone());
                     }
                     elements
                 }
                 Object::String(string) => {
-                    string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>()
+                    string.chars().map(|character| Object::String(character.to_string())).collect()
                 }
                 _ => {
                     return Err(RuntimeErr {
@@ -1259,7 +1259,7 @@ builtin! {
     intersection(..values) [evaluator, source] {
         let list = if let Object::List(list) = &**values {
             if list.len() == 1 {
-                if let Object::List(list) = &*list[0] {
+                if let Object::List(list) = &list[0] {
                     list.clone()
                 } else {
                     return Err(RuntimeErr {
@@ -1282,7 +1282,7 @@ builtin! {
         let mut elements = list.iter();
         let mut accumulator = match elements.next() {
             Some(element) => {
-                match &**element {
+                match element {
                     Object::List(list) => {
                         let mut elements = HashSet::default();
                         for element in list {
@@ -1293,7 +1293,7 @@ builtin! {
                                     trace: evaluator.get_trace()
                                 });
                             }
-                            elements.insert(Rc::clone(element));
+                            elements.insert(element.clone());
                         }
                         elements
                     }
@@ -1310,12 +1310,12 @@ builtin! {
                                     trace: evaluator.get_trace()
                                 });
                             }
-                            elements.insert(Rc::clone(&element));
+                            elements.insert((*element).clone());
                         }
                         elements
                     }
                     Object::String(string) => {
-                        string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>()
+                        string.chars().map(|character| Object::String(character.to_string())).collect()
                     }
                     _ => {
                         return Err(RuntimeErr {
@@ -1333,7 +1333,7 @@ builtin! {
             })
         };
         for element in elements {
-            let element = match &**element {
+            let element = match element {
                 Object::List(list) => {
                     let mut elements = HashSet::default();
                     for element in list {
@@ -1344,7 +1344,7 @@ builtin! {
                                 trace: evaluator.get_trace()
                             });
                         }
-                        elements.insert(Rc::clone(element));
+                        elements.insert(element.clone());
                     }
                     elements
                 }
@@ -1361,12 +1361,12 @@ builtin! {
                                 trace: evaluator.get_trace()
                             });
                         }
-                        elements.insert(Rc::clone(&element));
+                        elements.insert((*element).clone());
                     }
                     elements
                 }
                 Object::String(string) => {
-                    string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>()
+                    string.chars().map(|character| Object::String(character.to_string())).collect()
                 }
                 _ => {
                     return Err(RuntimeErr {
@@ -1386,52 +1386,52 @@ builtin! {
     scan(initial, folder, collection) [evaluator, source] match {
         (_, Object::Function(folder), Object::List(list)) => {
             let mut elements = Vector::new();
-            elements.push_back(Rc::clone(initial));
+            elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for element in list {
-                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(element)], source)?;
-                elements.push_back(Rc::clone(&previous));
+                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(element.clone())], source)?;
+                elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
         }
         (_, Object::Function(folder), Object::Set(set)) => {
             let mut elements = Vector::new();
-            elements.push_back(Rc::clone(initial));
+            elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for element in set {
-                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(element)], source)?;
-                elements.push_back(Rc::clone(&previous));
+                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(element.clone())], source)?;
+                elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
         }
         (_, Object::Function(folder), Object::Dictionary(map)) => {
             let mut elements = Vector::new();
-            elements.push_back(Rc::clone(initial));
+            elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for (key, value) in map {
-                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(value), Rc::clone(key)], source)?;
-                elements.push_back(Rc::clone(&previous));
+                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
+                elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
         }
         (_, Object::Function(folder), Object::LazySequence(sequence)) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             let mut elements = Vector::new();
-            elements.push_back(Rc::clone(initial));
+            elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                previous = folder.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&previous), Rc::clone(&element)], source)?;
-                elements.push_back(Rc::clone(&previous));
+                previous = folder.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&previous), element], source)?;
+                elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
         }
         (_, Object::Function(folder), Object::String(string)) => {
             let mut elements = Vector::new();
-            elements.push_back(Rc::clone(initial));
+            elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for character in string.chars() {
                 previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(Object::String(character.to_string()))], source)?;
-                elements.push_back(Rc::clone(&previous));
+                elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
         }
@@ -1444,7 +1444,7 @@ builtin! {
             Ok(Rc::new(Object::List(list.clone().into_iter().rev().collect())))
         }
         Object::LazySequence(sequence) => {
-            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).collect::<Vector<Rc<Object>>>().into_iter().rev().collect())))
+            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).map(|obj| (*obj).clone()).collect::<Vector<Object>>().into_iter().rev().collect())))
         }
         Object::String(string) => {
             Ok(Rc::new(Object::String(string.chars().rev().collect())))
@@ -1457,9 +1457,9 @@ builtin! {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                let mapped = mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?;
                 if mapped.is_truthy() {
-                    elements.push_back(mapped);
+                    elements.push_back((*mapped).clone());
                 }
             }
             Ok(Rc::new(Object::List(elements)))
@@ -1467,7 +1467,7 @@ builtin! {
         (Object::Function(mapper), Object::Set(set)) => {
             let mut elements = HashSet::default();
             for element in set {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                let mapped = mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?;
                 if !mapped.is_hashable() {
                     return Err(RuntimeErr {
                         message: format!("Unable to include a {} within an Set", element.name()),
@@ -1476,7 +1476,7 @@ builtin! {
                     });
                 }
                 if mapped.is_truthy() {
-                    elements.insert(mapped);
+                    elements.insert((*mapped).clone());
                 }
             }
             Ok(Rc::new(Object::Set(elements)))
@@ -1484,9 +1484,9 @@ builtin! {
         (Object::Function(mapper), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
             for (key, value) in map {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
+                let mapped = mapper.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if mapped.is_truthy() {
-                    elements.insert(Rc::clone(key), mapped);
+                    elements.insert(key.clone(), (*mapped).clone());
                 }
             }
             Ok(Rc::new(Object::Dictionary(elements)))
@@ -1499,7 +1499,7 @@ builtin! {
             for character in string.chars() {
                 let mapped = mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
                 if mapped.is_truthy() {
-                    elements.push_back(mapped);
+                    elements.push_back((*mapped).clone());
                 }
             }
             Ok(Rc::new(Object::List(elements)))
@@ -1511,7 +1511,7 @@ builtin! {
     find_map(mapper, collection) [evaluator, source] match {
         (Object::Function(mapper), Object::List(list)) => {
             for element in list {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                let mapped = mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?;
                 if mapped.is_truthy() {
                     return Ok(mapped);
                 }
@@ -1520,7 +1520,7 @@ builtin! {
         }
         (Object::Function(mapper), Object::Set(set)) => {
             for element in set {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                let mapped = mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?;
                 if mapped.is_truthy() {
                     return Ok(mapped);
                 }
@@ -1529,7 +1529,7 @@ builtin! {
         }
         (Object::Function(mapper), Object::Dictionary(map)) => {
             for (key, value) in map {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
+                let mapped = mapper.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if mapped.is_truthy() {
                     return Ok(mapped);
                 }
@@ -1564,13 +1564,13 @@ builtin! {
             let mut associated = list.clone();
             if *index as usize >= list.len()  {
                 for _ in 0..=*index as usize-list.len() {
-                    associated.push_back(Rc::new(Object::Nil));
+                    associated.push_back(Object::Nil);
                 }
             }
-            Ok(Rc::new(Object::List(associated.update(*index as usize, Rc::clone(value)))))
+            Ok(Rc::new(Object::List(associated.update(*index as usize, (**value).clone()))))
         }
         (_, _, Object::Dictionary(map)) => {
-            Ok(Rc::new(Object::Dictionary(map.update(Rc::clone(key), Rc::clone(value)))))
+            Ok(Rc::new(Object::Dictionary(map.update((**key).clone(), (**value).clone()))))
         }
     }
 }
@@ -1582,21 +1582,21 @@ builtin! {
             let index = *index as usize;
             if index >= list.len()  {
                 for _ in 0..=index-list.len() {
-                    updated.push_back(Rc::new(Object::Nil));
+                    updated.push_back(Object::Nil);
                 }
             }
             let previous = match updated.get(index) {
-                Some(value) => Rc::clone(value),
+                Some(value) => Rc::new(value.clone()),
                 None => Rc::new(Object::Nil),
             };
-            Ok(Rc::new(Object::List(updated.update(index, updater.apply(evaluator, vec![Rc::clone(&previous)], source)?))))
+            Ok(Rc::new(Object::List(updated.update(index, (*updater.apply(evaluator, vec![Rc::clone(&previous)], source)?).clone()))))
         }
         (_, Object::Function(updater), Object::Dictionary(map)) => {
             let previous = match map.get(key) {
-                Some(value) => Rc::clone(value),
+                Some(value) => Rc::new(value.clone()),
                 None => Rc::new(Object::Nil),
             };
-            Ok(Rc::new(Object::Dictionary(map.update(Rc::clone(key), updater.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(key)], source)?))))
+            Ok(Rc::new(Object::Dictionary(map.update((**key).clone(), (*updater.apply(evaluator, vec![Rc::clone(&previous), Rc::new((**key).clone())], source)?).clone()))))
         }
     }
 }
@@ -1607,22 +1607,22 @@ builtin! {
             let mut updated = list.clone();
             let index = *index as usize;
             let previous = match updated.get(index) {
-                Some(value) => Rc::clone(value),
+                Some(value) => Rc::new(value.clone()),
                 None => Rc::clone(default),
             };
             if index >= list.len()  {
                 for _ in 0..=index-list.len() {
-                    updated.push_back(Rc::new(Object::Nil));
+                    updated.push_back(Object::Nil);
                 }
             }
-            Ok(Rc::new(Object::List(updated.update(index, updater.apply(evaluator, vec![Rc::clone(&previous)], source)?))))
+            Ok(Rc::new(Object::List(updated.update(index, (*updater.apply(evaluator, vec![Rc::clone(&previous)], source)?).clone()))))
         }
         (_, _,Object::Function(updater), Object::Dictionary(map)) => {
             let previous = match map.get(key) {
-                Some(value) => Rc::clone(value),
+                Some(value) => Rc::new(value.clone()),
                 None => Rc::clone(default),
             };
-            Ok(Rc::new(Object::Dictionary(map.update(Rc::clone(key), updater.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(key)], source)?))))
+            Ok(Rc::new(Object::Dictionary(map.update((**key).clone(), (*updater.apply(evaluator, vec![Rc::clone(&previous), Rc::new((**key).clone())], source)?).clone()))))
         }
     }
 }
@@ -1632,14 +1632,14 @@ builtin! {
         (_, Object::Function(folder), Object::List(list)) => {
             let mut accumulator = Rc::clone(initial);
             for element in list {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
-                    return Ok(Rc::clone(value));
+                    return Ok(Rc::new((**value).clone()));
                 }
             }
             if let Object::List(accumulated) = &*accumulator {
                 if let Some(value) = accumulated.get(0) {
-                    return Ok(Rc::clone(value));
+                    return Ok(Rc::new(value.clone()));
                 }
             }
             Err(RuntimeErr {
@@ -1651,14 +1651,14 @@ builtin! {
         (_, Object::Function(folder), Object::Set(set)) => {
             let mut accumulator = Rc::clone(initial);
             for element in set {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(element)], source)?;
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
-                    return Ok(Rc::clone(value));
+                    return Ok(Rc::new((**value).clone()));
                 }
             }
             if let Object::List(accumulated) = &*accumulator {
                 if let Some(value) = accumulated.get(0) {
-                    return Ok(Rc::clone(value));
+                    return Ok(Rc::new(value.clone()));
                 }
             }
             Err(RuntimeErr {
@@ -1670,14 +1670,14 @@ builtin! {
         (_, Object::Function(folder), Object::Dictionary(map)) => {
             let mut accumulator = Rc::clone(initial);
             for (key, value) in map {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::clone(value), Rc::clone(key)], source)?;
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
-                    return Ok(Rc::clone(value));
+                    return Ok(Rc::new((**value).clone()));
                 }
             }
             if let Object::List(accumulated) = &*accumulator {
                 if let Some(value) = accumulated.get(0) {
-                    return Ok(Rc::clone(value));
+                    return Ok(Rc::new(value.clone()));
                 }
             }
             Err(RuntimeErr {
@@ -1690,14 +1690,14 @@ builtin! {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             let mut accumulator = Rc::clone(initial);
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                accumulator = folder.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&accumulator), Rc::clone(&element)], source)?;
+                accumulator = folder.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&accumulator), element], source)?;
                 if let Object::Break(value) = &*accumulator {
-                    return Ok(Rc::clone(value));
+                    return Ok(Rc::new((**value).clone()));
                 }
             }
             if let Object::List(accumulated) = &*accumulator {
                 if let Some(value) = accumulated.get(0) {
-                    return Ok(Rc::clone(value));
+                    return Ok(Rc::new(value.clone()));
                 }
             }
             let trace = shared_evaluator.borrow().get_trace();
@@ -1712,12 +1712,12 @@ builtin! {
             for character in string.chars() {
                 accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
                 if let Object::Break(value) = &*accumulator {
-                    return Ok(Rc::clone(value));
+                    return Ok(Rc::new((**value).clone()));
                 }
             }
             if let Object::List(accumulated) = &*accumulator {
                 if let Some(value) = accumulated.get(0) {
-                    return Ok(Rc::clone(value));
+                    return Ok(Rc::new(value.clone()));
                 }
             }
             Err(RuntimeErr {
@@ -1756,18 +1756,18 @@ builtin! {
 builtin! {
     chunk(size, collection) [evaluator, source] match {
         (Object::Integer(size), Object::List(list)) => {
-            let mut chunked: Vector<Rc<Object>> = Vector::new();
+            let mut chunked: Vector<Object> = Vector::new();
             let mut remaining_elements = list.clone().into_iter().peekable();
             while remaining_elements.peek().is_some() {
-                chunked.push_back(Rc::new(Object::List(remaining_elements.by_ref().take(*size as usize).collect())));
+                chunked.push_back(Object::List(remaining_elements.by_ref().take(*size as usize).collect()));
             }
             Ok(Rc::new(Object::List(chunked)))
         }
         (Object::Integer(size), Object::String(string)) => {
-            let mut chunked: Vector<Rc<Object>> = Vector::new();
-            let mut remaining_elements = string.chars().map(|character| Rc::new(Object::String(character.to_string()))).peekable();
+            let mut chunked: Vector<Object> = Vector::new();
+            let mut remaining_elements = string.chars().map(|character| Object::String(character.to_string())).peekable();
             while remaining_elements.peek().is_some() {
-                chunked.push_back(Rc::new(Object::List(remaining_elements.by_ref().take(*size as usize).collect())));
+                chunked.push_back(Object::List(remaining_elements.by_ref().take(*size as usize).collect()));
             }
             Ok(Rc::new(Object::List(chunked)))
         }
@@ -1777,7 +1777,8 @@ builtin! {
 builtin! {
     combinations(size, collection) [evaluator, source] match {
         (Object::Integer(size), Object::List(list)) => {
-            Ok(Rc::new(Object::LazySequence(LazySequence::combinations(*size as u32, list.clone()))))
+            let rc_list = list.iter().map(|obj| Rc::new(obj.clone())).collect();
+            Ok(Rc::new(Object::LazySequence(LazySequence::combinations(*size as u32, rc_list))))
         }
     }
 }

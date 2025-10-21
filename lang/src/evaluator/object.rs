@@ -18,9 +18,9 @@ pub enum Object {
     Boolean(bool),
     String(String),
 
-    List(Vector<Rc<Object>>),
-    Set(HashSet<Rc<Object>, BuildHasherDefault<DefaultHasher>>),
-    Dictionary(HashMap<Rc<Object>, Rc<Object>, BuildHasherDefault<DefaultHasher>>),
+    List(Vector<Object>),
+    Set(HashSet<Object, BuildHasherDefault<DefaultHasher>>),
+    Dictionary(HashMap<Object, Object, BuildHasherDefault<DefaultHasher>>),
     LazySequence(LazySequence),
 
     Function(Function),

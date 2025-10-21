@@ -26,7 +26,7 @@ pub fn apply(
                         source: right.source,
                     },
                 ],
-                body: Statement {
+                body: Rc::new(Statement {
                     kind: StatementKind::Expression(Box::new(Expression {
                         kind: ExpressionKind::Infix {
                             left: Box::new(Expression {
@@ -42,7 +42,7 @@ pub fn apply(
                         source,
                     })),
                     source,
-                },
+                }),
                 environment: evaluator.environment(),
             })))
         }
@@ -52,7 +52,7 @@ pub fn apply(
                     kind: ExpressionKind::Identifier("a".to_owned()),
                     source: left.source,
                 }],
-                body: Statement {
+                body: Rc::new(Statement {
                     kind: StatementKind::Expression(Box::new(Expression {
                         kind: ExpressionKind::Infix {
                             left: Box::new(Expression {
@@ -65,7 +65,7 @@ pub fn apply(
                         source,
                     })),
                     source,
-                },
+                }),
                 environment: evaluator.environment(),
             })))
         }
@@ -75,7 +75,7 @@ pub fn apply(
                     kind: ExpressionKind::Identifier("b".to_owned()),
                     source: left.source,
                 }],
-                body: Statement {
+                body: Rc::new(Statement {
                     kind: StatementKind::Expression(Box::new(Expression {
                         kind: ExpressionKind::Infix {
                             left: Box::new(left.clone()),
@@ -88,7 +88,7 @@ pub fn apply(
                         source,
                     })),
                     source,
-                },
+                }),
                 environment: evaluator.environment(),
             })))
         }
