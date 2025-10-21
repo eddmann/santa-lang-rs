@@ -1,4 +1,4 @@
-FROM rust:1.70.0-bullseye AS builder
+FROM rust:1.90.0-bullseye AS builder
 COPY . /app
 RUN cd /app && cargo build --release --bin santa-jupyter --target x86_64-unknown-linux-gnu
 
