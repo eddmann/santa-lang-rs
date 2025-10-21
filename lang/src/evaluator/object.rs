@@ -33,6 +33,7 @@ pub enum Object {
 }
 
 impl Object {
+    #[inline]
     pub fn name(&self) -> &str {
         match self {
             Self::Nil => "Nil",
@@ -54,6 +55,7 @@ impl Object {
         }
     }
 
+    #[inline]
     pub fn is_truthy(&self) -> bool {
         match self {
             Self::Nil => false,
@@ -75,6 +77,7 @@ impl Object {
         }
     }
 
+    #[inline]
     pub fn is_hashable(&self) -> bool {
         match self {
             Self::Nil | Self::Integer(_) | Self::Decimal(_) | Self::Boolean(_) | Self::String(_) | Self::Set(_) => true,
@@ -135,6 +138,7 @@ fn init_small_int_cache() -> [Rc<Object>; SMALL_INT_CACHE_SIZE] {
 }
 
 /// Create an Rc<Object::Integer>, using the cache for small integers
+#[inline]
 pub fn new_integer(value: i64) -> Rc<Object> {
     if value >= SMALL_INT_MIN && value <= SMALL_INT_MAX {
         SMALL_INT_CACHE.with(|cache| {
@@ -155,6 +159,7 @@ thread_local! {
 
 /// Create an Rc<Object::String>, using interning for small strings
 /// Interns strings ≤ 64 characters for better memory efficiency
+#[inline]
 pub fn new_string(value: String) -> Rc<Object> {
     // Only intern small strings to avoid caching large data
     if value.len() <= 64 {
