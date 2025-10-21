@@ -45,7 +45,7 @@ pub enum Frame {
         environment: EnvironmentRef,
     },
     Block {
-        source: Location,
+        _source: Location,
         environment: EnvironmentRef,
     },
     ClosureCall {
@@ -194,7 +194,7 @@ impl Evaluator {
             StatementKind::Expression(expression) => self.eval_expression(expression),
             StatementKind::Block(statements) => {
                 self.push_frame(Frame::Block {
-                    source: statement.source,
+                    _source: statement.source,
                     environment: Environment::from(self.environment()),
                 });
                 let result = self.eval_statement_block(statements)?;

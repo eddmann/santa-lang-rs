@@ -15,7 +15,7 @@ pub fn matcher(evaluator: &mut Evaluator, subject: &Expression, cases: &[MatchCa
         match &case.pattern.kind {
             ExpressionKind::Identifier(name) => {
                 evaluator.push_frame(Frame::Block {
-                    source: case.pattern.source,
+                    _source: case.pattern.source,
                     environment: Environment::from(evaluator.environment()),
                 });
                 match evaluator
@@ -52,7 +52,7 @@ pub fn matcher(evaluator: &mut Evaluator, subject: &Expression, cases: &[MatchCa
             }
             ExpressionKind::ListMatchPattern(pattern) => {
                 evaluator.push_frame(Frame::Block {
-                    source: case.pattern.source,
+                    _source: case.pattern.source,
                     environment: Environment::from(evaluator.environment()),
                 });
                 if !destructure_match_list_pattern(evaluator, pattern, Rc::clone(&evaluated_subject))? {

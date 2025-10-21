@@ -245,10 +245,11 @@ fn aoc_test(source_path: &str) -> Result<()> {
     }
 }
 
-fn print_error(source_path: &str, source: &str, error: RunErr) {
+fn print_error(_source_path: &str, _source: &str, error: RunErr) {
     println!("\x1b[31m{}\x1b[0m\n", error.message);
 }
 
+#[allow(dead_code)]
 fn calculate_line_column(source: &str, location: Location) -> (usize, usize) {
     let mut line = 0;
     let mut column = 0;
