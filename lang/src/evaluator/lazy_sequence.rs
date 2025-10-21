@@ -29,7 +29,7 @@ enum LazyValue {
     },
     Cycle {
         index: usize,
-        list: Vector<Rc<Object>>,
+        list: Vector<Object>,
     },
     Iterate {
         current: Rc<Object>,
@@ -39,7 +39,7 @@ enum LazyValue {
         size: u32,
         min: usize,
         mask: usize,
-        collection: Vector<Rc<Object>>,
+        collection: Vector<Object>,
     },
 }
 
@@ -121,7 +121,7 @@ impl LazySequence {
         }
     }
 
-    pub fn cycle(list: Vector<Rc<Object>>) -> Self {
+    pub fn cycle(list: Vector<Object>) -> Self {
         Self {
             value: LazyValue::Cycle { index: 0, list },
             functions: vec![],
@@ -138,7 +138,7 @@ impl LazySequence {
         }
     }
 
-    pub fn combinations(size: u32, collection: Vector<Rc<Object>>) -> Self {
+    pub fn combinations(size: u32, collection: Vector<Object>) -> Self {
         let collection_len = collection.len();
         let min = 2_usize.pow(size) - 1;
         let max = if collection_len >= size as usize {
@@ -231,7 +231,7 @@ impl LazySequenceIter<'_> {
                 ref mut index,
                 ref list,
             } => {
-                let next = Rc::clone(list.get(*index)?);
+                let next = Rc::new(list.get(*index)?.clone());
                 *index = (*index + 1) % list.len();
                 Some(next)
             }
@@ -260,7 +260,7 @@ impl LazySequenceIter<'_> {
                             .chars()
                             .enumerate()
                             .filter(|&(_, e)| e == '1')
-                            .map(|(i, _)| (*collection[i]).clone())
+                            .map(|(i, _)| collection[i].clone())
                             .collect::<Vector<Object>>();
                         *mask -= 1;
                         return Some(Rc::new(Object::List(res)));

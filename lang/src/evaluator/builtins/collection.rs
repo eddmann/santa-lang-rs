@@ -754,10 +754,10 @@ builtin! {
 builtin! {
     cycle(list) match {
         Object::List(list) => {
-            Ok(Rc::new(Object::LazySequence(LazySequence::cycle(list.clone().into_iter().map(|obj| Rc::new(obj)).collect()))))
+            Ok(Rc::new(Object::LazySequence(LazySequence::cycle(list.clone()))))
         }
         Object::String(string) => {
-            let characters = string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<Vector<Rc<Object>>>();
+            let characters = string.chars().map(|character| Object::String(character.to_string())).collect::<Vector<Object>>();
             Ok(Rc::new(Object::LazySequence(LazySequence::cycle(characters))))
         }
     }
@@ -1777,8 +1777,7 @@ builtin! {
 builtin! {
     combinations(size, collection) [evaluator, source] match {
         (Object::Integer(size), Object::List(list)) => {
-            let rc_list = list.iter().map(|obj| Rc::new(obj.clone())).collect();
-            Ok(Rc::new(Object::LazySequence(LazySequence::combinations(*size as u32, rc_list))))
+            Ok(Rc::new(Object::LazySequence(LazySequence::combinations(*size as u32, list.clone()))))
         }
     }
 }
