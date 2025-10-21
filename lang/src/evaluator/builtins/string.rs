@@ -33,7 +33,8 @@ builtin! {
 builtin! {
     ints(value) match {
         Object::String(value) => {
-            let pattern = Regex::new(r"(-?[0-9]+)").unwrap();
+            let pattern = Regex::new(r"(-?[0-9]+)")
+                .expect("Hardcoded regex pattern should always compile");
 
             let mut ints = Vector::new();
             for capture in pattern.captures_iter(value) {
@@ -76,7 +77,7 @@ builtin! {
                             matched
                                 .iter()
                                 .skip(1)
-                                .map(|matched| Rc::new(Object::String(matched.unwrap().as_str().to_owned())))
+                                .filter_map(|matched| matched.map(|m| Rc::new(Object::String(m.as_str().to_owned()))))
                                 .collect()
                             )
                         ));
@@ -103,7 +104,7 @@ builtin! {
                     Ok(Rc::new(Object::List(
                         compiled_pattern
                             .captures_iter(value)
-                            .map(|matched| Rc::new(Object::String(matched.get(0).unwrap().as_str().to_owned())))
+                            .filter_map(|matched| matched.get(0).map(|m| Rc::new(Object::String(m.as_str().to_owned()))))
                             .collect()
                     )))
                 }

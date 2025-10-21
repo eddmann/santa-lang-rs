@@ -20,7 +20,7 @@ pub fn definitions() -> Vec<ExternalFnDef> {
 }
 
 fn puts(arguments: Arguments, _source: Location) -> Evaluation {
-    match &**arguments.get("values").unwrap() {
+    match &**arguments.get("values").expect("Parameter guaranteed by function signature") {
         Object::List(values) => {
             for value in values {
                 print!("{} ", value);
@@ -33,12 +33,19 @@ fn puts(arguments: Arguments, _source: Location) -> Evaluation {
 }
 
 fn read(arguments: Arguments, source: Location) -> Evaluation {
-    match &**arguments.get("path").unwrap() {
+    match &**arguments.get("path").expect("Parameter guaranteed by function signature") {
         Object::String(path) => match Url::parse(path) {
             Ok(uri) if uri.scheme() == "aoc" => {
+                let host = uri.host_str()
+                    .ok_or_else(|| RuntimeErr {
+                        message: format!("Invalid AoC URI: missing host in {}", path),
+                        source,
+                        trace: vec![],
+                    })?;
+
                 let cache = format!(
                     "aoc{}_day{:0>2}.input",
-                    uri.host().unwrap(),
+                    host,
                     uri.path().replace('/', "")
                 );
 
@@ -47,7 +54,11 @@ fn read(arguments: Arguments, source: Location) -> Evaluation {
                 }
 
                 let token = match env::var_os("SANTA_CLI_SESSION_TOKEN") {
-                    Some(token) => token.into_string().unwrap(),
+                    Some(token) => token.into_string().map_err(|_| RuntimeErr {
+                        message: "SANTA_CLI_SESSION_TOKEN contains invalid UTF-8".to_owned(),
+                        source,
+                        trace: vec![],
+                    })?,
                     None => {
                         return Err(RuntimeErr {
                             message: "Missing SANTA_CLI_SESSION_TOKEN environment variable".to_owned(),
@@ -59,7 +70,7 @@ fn read(arguments: Arguments, source: Location) -> Evaluation {
 
                 let request = ureq::get(&format!(
                     "https://adventofcode.com/{}/day{}/input",
-                    uri.host().unwrap(),
+                    host,
                     uri.path()
                 ))
                 .set("Cookie", &format!("session={}", token));

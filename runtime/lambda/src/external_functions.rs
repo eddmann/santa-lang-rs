@@ -18,7 +18,7 @@ pub fn definitions() -> Vec<ExternalFnDef> {
 }
 
 fn puts(arguments: Arguments, _source: Location) -> Evaluation {
-    match &**arguments.get("values").unwrap() {
+    match &**arguments.get("values").expect("Parameter guaranteed by function signature") {
         Object::List(values) => {
             for value in values {
                 print!("{} ", value);
@@ -31,7 +31,7 @@ fn puts(arguments: Arguments, _source: Location) -> Evaluation {
 }
 
 fn read(arguments: Arguments, source: Location) -> Evaluation {
-    match &**arguments.get("path").unwrap() {
+    match &**arguments.get("path").expect("Parameter guaranteed by function signature") {
         Object::String(path) => {
             if let Ok(content) = fs::read_to_string(path) {
                 return Ok(Rc::new(Object::String(content)));

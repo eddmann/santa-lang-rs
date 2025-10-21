@@ -1110,7 +1110,10 @@ builtin! {
 
             let mut sorted_list = list.clone();
             sorted_list.sort_by(|a, b| {
-                match &*comparator.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(a), Rc::clone(b)], source).unwrap() {
+                // Note: Comparator errors during sort will panic. This is a limitation of sort_by.
+                // TODO: Consider implementing a fallible sorting mechanism.
+                match &*comparator.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(a), Rc::clone(b)], source)
+                    .expect("Comparator function should not error during sort") {
                     Object::Integer(comparison) => comparison.cmp(&0),
                     comparison => if comparison.is_truthy() {
                         std::cmp::Ordering::Greater
@@ -1736,10 +1739,12 @@ builtin! {
             let backwards = *steps < 0;
             for _ in 0..steps.abs() {
                 if backwards {
-                    let front = rotated.pop_front().unwrap();
+                    let front = rotated.pop_front()
+                        .expect("List should not be empty during rotation");
                     rotated.push_back(front);
                 } else {
-                    let back = rotated.pop_back().unwrap();
+                    let back = rotated.pop_back()
+                        .expect("List should not be empty during rotation");
                     rotated.push_front(back);
                 }
             }

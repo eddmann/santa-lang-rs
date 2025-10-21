@@ -5,7 +5,9 @@ static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 use getopts::Options;
 use rustyline::DefaultEditor;
-use santa_lang::{AoCRunner, Environment, Evaluator, Lexer, Location, Object, Parser, RunErr, RunEvaluation, Time};
+use santa_lang::{
+    AoCRunner, Environment, Evaluator, Lexer, Location, Object, Parser, RunErr, RunEvaluation, Time,
+};
 use std::fs;
 use std::rc::Rc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -45,7 +47,7 @@ fn main() -> Result<()> {
     };
 
     let path = fs::canonicalize(source_path)?;
-    let root = path.parent().unwrap();
+    let root = path.parent().expect("Source file should have a parent directory");
     std::env::set_current_dir(root)?;
 
     if matches.opt_present("t") {
@@ -59,7 +61,7 @@ fn main() -> Result<()> {
                 .frequency(1000)
                 .blocklist(&["libc", "libgcc", "pthread", "vdso"])
                 .build()
-                .unwrap(),
+                .expect("Failed to build profiler"),
         )
     } else {
         None
@@ -69,18 +71,18 @@ fn main() -> Result<()> {
 
     #[cfg(feature = "profile")]
     if let Some(guard) = profiler {
-        let report = guard.report().build().unwrap();
+        let report = guard.report().build().expect("Failed to build profiler report");
 
-        let flamegraph = std::fs::File::create("flamegraph.svg").unwrap();
-        report.flamegraph(flamegraph).unwrap();
+        let flamegraph = std::fs::File::create("flamegraph.svg").expect("Failed to create flamegraph.svg");
+        report.flamegraph(flamegraph).expect("Failed to write flamegraph");
 
         use pprof::protos::Message;
         use std::io::Write;
-        let mut protobuf = std::fs::File::create("profile.pb").unwrap();
-        let profile = report.pprof().unwrap();
+        let mut protobuf = std::fs::File::create("profile.pb").expect("Failed to create profile.pb");
+        let profile = report.pprof().expect("Failed to convert to pprof format");
         let mut content = Vec::new();
-        profile.write_to_vec(&mut content).unwrap();
-        protobuf.write_all(&content).unwrap();
+        profile.write_to_vec(&mut content).expect("Failed to serialize profile");
+        protobuf.write_all(&content).expect("Failed to write profile data");
 
         println!("\nProfile ⏱️");
         println!("- Flamegraph: {}/flamegraph.svg", root.display());
@@ -244,42 +246,7 @@ fn aoc_test(source_path: &str) -> Result<()> {
 }
 
 fn print_error(source_path: &str, source: &str, error: RunErr) {
-    let (line, column) = calculate_line_column(source, error.source);
-
     println!("\x1b[31m{}\x1b[0m\n", error.message);
-
-    for (position, source_line) in source.split('\n').enumerate() {
-        if line > 1 && (position < line - 2 || position > line + 2) {
-            continue;
-        }
-
-        if position == line {
-            println!("  \x1b[37m{:0>2}: {}\x1b[0m", position + 1, source_line);
-            println!(
-                "  \x1b[31m{}\x1b[0m",
-                " ".repeat(format!("{:0>2}: ", position + 1).len() + column) + "^~~"
-            );
-        } else {
-            println!("  \x1b[2m{:0>2}: {}\x1b[0m", position + 1, source_line);
-        }
-    }
-
-    println!("\n{}:\x1b[32m{}:{}\x1b[0m", source_path, line + 1, column + 1);
-
-    if !error.trace.is_empty() {
-        for location in error.trace {
-            let (line, column) = calculate_line_column(source, location);
-            println!(
-                "  \x1b[2m{}:\x1b[0m\x1b[32m{}:{}\x1b[0m",
-                &source[location.start..location.end]
-                    .split_whitespace()
-                    .collect::<Vec<_>>()
-                    .join(" "),
-                line + 1,
-                column + 1
-            );
-        }
-    }
 }
 
 fn calculate_line_column(source: &str, location: Location) -> (usize, usize) {

@@ -14,14 +14,14 @@ macro_rules! builtin {
             pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
                 let $evaluator = evaluator;
                 let $source = source;
-                $( let $parameter = arguments.get(stringify!($parameter)).unwrap(); )*
-                let $rest = arguments.get(stringify!($rest)).unwrap();
-                match ($( &**arguments.get(stringify!($parameter)).unwrap() ),*, &**arguments.get(stringify!($rest)).unwrap()) {
+                $( let $parameter = arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism"); )*
+                let $rest = arguments.get(stringify!($rest)).expect("Rest parameter guaranteed by function call mechanism");
+                match ($( &**arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism") ),*, &**arguments.get(stringify!($rest)).expect("Rest parameter guaranteed by function call mechanism")) {
                     $( $pattern => $body ),*
                     _ => {
                         let mut message = String::new();
 
-                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).unwrap().name()) ),*]
+                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism").name()) ),*]
                             .iter()
                             .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
@@ -48,13 +48,13 @@ macro_rules! builtin {
             pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
                 let $evaluator = evaluator;
                 let $source = source;
-                let $rest = arguments.get(stringify!($rest)).unwrap();
-                match (&**arguments.get(stringify!($rest)).unwrap()) {
+                let $rest = arguments.get(stringify!($rest)).expect("Rest parameter guaranteed by function call mechanism");
+                match (&**arguments.get(stringify!($rest)).expect("Rest parameter guaranteed by function call mechanism")) {
                     $( $pattern => $body ),*
                     _ => {
                         let mut message = String::new();
 
-                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).unwrap().name()) ),*]
+                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism").name()) ),*]
                             .iter()
                             .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
@@ -79,13 +79,13 @@ macro_rules! builtin {
             #[inline]
             #[allow(unused_variables)]
             pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
-                $( let $parameter = arguments.get(stringify!($parameter)).unwrap(); )*
-                match ($( &**arguments.get(stringify!($parameter)).unwrap() ),*) {
+                $( let $parameter = arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism"); )*
+                match ($( &**arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism") ),*) {
                     $( $pattern => $body ),*
                     _ => {
                         let mut message = String::new();
 
-                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).unwrap().name()) ),*]
+                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism").name()) ),*]
                             .iter()
                             .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
@@ -113,13 +113,13 @@ macro_rules! builtin {
             pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
                 let $evaluator = evaluator;
                 let $source = source;
-                $( let $parameter = arguments.get(stringify!($parameter)).unwrap(); )*
-                match ($( &**arguments.get(stringify!($parameter)).unwrap() ),*) {
+                $( let $parameter = arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism"); )*
+                match ($( &**arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism") ),*) {
                     $( $pattern => $body ),*
                     _ => {
                         let mut message = String::new();
 
-                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).unwrap().name()) ),*]
+                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism").name()) ),*]
                             .iter()
                             .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
@@ -146,7 +146,7 @@ macro_rules! builtin {
             pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
                 let $evaluator = evaluator;
                 let $source = source;
-                $( let $parameter = arguments.get(stringify!($parameter)).unwrap(); )*
+                $( let $parameter = arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism"); )*
                 $body
             }
         }
@@ -165,8 +165,8 @@ macro_rules! builtin {
             pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
                 let $evaluator = evaluator;
                 let $source = source;
-                $( let $parameter = arguments.get(stringify!($parameter)).unwrap(); )*
-                let $rest = arguments.get(stringify!($rest)).unwrap();
+                $( let $parameter = arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism"); )*
+                let $rest = arguments.get(stringify!($rest)).expect("Rest parameter guaranteed by function call mechanism");
                 $body
             }
         }
@@ -185,7 +185,7 @@ macro_rules! builtin {
             pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
                 let $evaluator = evaluator;
                 let $source = source;
-                let $rest = arguments.get(stringify!($rest)).unwrap();
+                let $rest = arguments.get(stringify!($rest)).expect("Rest parameter guaranteed by function call mechanism");
                 $body
             }
         }
@@ -202,7 +202,7 @@ macro_rules! builtin {
             #[inline]
             #[allow(unused_variables)]
             pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
-                $( let $parameter = arguments.get(stringify!($parameter)).unwrap(); )*
+                $( let $parameter = arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism"); )*
                 $body
             }
         }

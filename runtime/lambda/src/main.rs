@@ -22,8 +22,8 @@ fn main() -> ! {
                     "errorType": error.name,
                     "errorMessage": error.message,
                 }))
-                .expect("Failed to send error to Lambda API");
-            panic!("Failed to initialise");
+                .expect("Failed to send initialization error to Lambda API");
+            panic!("Lambda handler initialization failed: {} - {}", error.name, error.message);
         }
     };
 

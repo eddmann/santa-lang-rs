@@ -26,8 +26,8 @@ pub fn aoc_run(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
         AoCRunner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions));
 
     match runner.run(source) {
-        Ok(result) => Ok(serde_wasm_bindgen::to_value(&result).unwrap()),
-        Err(error) => Err(serde_wasm_bindgen::to_value(&error).unwrap()),
+        Ok(result) => Ok(serde_wasm_bindgen::to_value(&result).expect("Failed to serialize result to JsValue")),
+        Err(error) => Err(serde_wasm_bindgen::to_value(&error).expect("Failed to serialize error to JsValue")),
     }
 }
 
@@ -40,10 +40,10 @@ pub fn aoc_test(source: &str, js_functions: Object) -> Result<JsValue, JsValue> 
         Ok(test_cases) => Ok(JsValue::from(
             test_cases
                 .iter()
-                .map(|test_case| serde_wasm_bindgen::to_value(test_case).unwrap())
+                .map(|test_case| serde_wasm_bindgen::to_value(test_case).expect("Failed to serialize test case to JsValue"))
                 .collect::<Array>(),
         )),
-        Err(error) => Err(serde_wasm_bindgen::to_value(&error).unwrap()),
+        Err(error) => Err(serde_wasm_bindgen::to_value(&error).expect("Failed to serialize error to JsValue")),
     }
 }
 
@@ -60,11 +60,11 @@ pub fn evaluate(expression: &str, js_functions: Option<Object>) -> Result<JsValu
     let mut parser = Parser::new(lexer);
     let program = match parser.parse() {
         Ok(parsed) => parsed,
-        Err(error) => return Err(serde_wasm_bindgen::to_value(&error).unwrap()),
+        Err(error) => return Err(serde_wasm_bindgen::to_value(&error).expect("Failed to serialize parse error to JsValue")),
     };
 
     match evaluator.evaluate_with_environment(&program, Environment::new()) {
         Ok(evaluated) => Ok(JsValue::from(evaluated.to_string())),
-        Err(error) => Err(serde_wasm_bindgen::to_value(&error).unwrap()),
+        Err(error) => Err(serde_wasm_bindgen::to_value(&error).expect("Failed to serialize runtime error to JsValue")),
     }
 }

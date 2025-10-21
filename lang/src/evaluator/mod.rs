@@ -114,12 +114,19 @@ impl Evaluator {
     }
 
     fn environment(&self) -> EnvironmentRef {
-        match &self.frames.last().unwrap() {
-            Frame::Program { environment } => Rc::clone(environment),
-            Frame::Block { environment, .. } => Rc::clone(environment),
-            Frame::ClosureCall { environment, .. } => Rc::clone(environment),
-            _ => panic!(),
+        // Walk up the frame stack to find the first frame with an environment.
+        // BuiltinCall and ExternalCall frames don't have environments, so we skip them.
+        for frame in self.frames.iter().rev() {
+            match frame {
+                Frame::Program { environment } => return Rc::clone(environment),
+                Frame::Block { environment, .. } => return Rc::clone(environment),
+                Frame::ClosureCall { environment, .. } => return Rc::clone(environment),
+                Frame::BuiltinCall { .. } | Frame::ExternalCall { .. } => continue,
+            }
         }
+
+        // This should never happen as the bottom frame is always Program with an environment
+        panic!("No frame with environment found in stack - this indicates a bug in the evaluator");
     }
 
     fn eval_statement_block(&mut self, block: &[Statement]) -> Evaluation {
@@ -227,11 +234,15 @@ impl Evaluator {
                 })
             }
             ExpressionKind::Integer(value) => {
-                Ok(Rc::new(Object::Integer(value.replace('_', "").parse::<i64>().unwrap())))
+                let parsed = value.replace('_', "").parse::<i64>()
+                    .expect("Integer literal should be valid as guaranteed by lexer");
+                Ok(Rc::new(Object::Integer(parsed)))
             }
-            ExpressionKind::Decimal(value) => Ok(Rc::new(Object::Decimal(
-                value.replace('_', "").parse::<OrderedFloat<f64>>().unwrap(),
-            ))),
+            ExpressionKind::Decimal(value) => {
+                let parsed = value.replace('_', "").parse::<OrderedFloat<f64>>()
+                    .expect("Decimal literal should be valid as guaranteed by lexer");
+                Ok(Rc::new(Object::Decimal(parsed)))
+            }
             ExpressionKind::String(value) => Ok(Rc::new(Object::String(value.to_owned()))),
             ExpressionKind::Boolean(value) => Ok(Rc::new(Object::Boolean(*value))),
             ExpressionKind::If {
