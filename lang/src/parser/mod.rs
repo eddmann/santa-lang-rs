@@ -6,6 +6,7 @@ mod tests;
 use super::lexer::{Lexer, Location, Token, TokenKind};
 use crate::T;
 use ast::*;
+use ordered_float::OrderedFloat;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[repr(u8)]
@@ -435,7 +436,12 @@ impl<'a> Parser<'a> {
 
     fn parse_integer_expression(&mut self) -> RExpression {
         let token = self.expect(T![INT])?;
-        let value = self.lexer.get_source(&token).to_string();
+        let source_str = self.lexer.get_source(&token);
+        let value = source_str.replace('_', "").parse::<i64>()
+            .map_err(|_| ParserErr {
+                message: format!("Invalid integer literal: {}", source_str),
+                source: token.source,
+            })?;
 
         Ok(Expression {
             kind: ExpressionKind::Integer(value),
@@ -445,10 +451,15 @@ impl<'a> Parser<'a> {
 
     fn parse_decimal_expression(&mut self) -> RExpression {
         let token = self.expect(T![DEC])?;
-        let value = self.lexer.get_source(&token).to_string();
+        let source_str = self.lexer.get_source(&token);
+        let value = source_str.replace('_', "").parse::<f64>()
+            .map_err(|_| ParserErr {
+                message: format!("Invalid decimal literal: {}", source_str),
+                source: token.source,
+            })?;
 
         Ok(Expression {
-            kind: ExpressionKind::Decimal(value),
+            kind: ExpressionKind::Decimal(OrderedFloat(value)),
             source: token.source,
         })
     }

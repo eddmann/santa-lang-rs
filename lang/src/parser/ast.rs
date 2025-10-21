@@ -1,4 +1,5 @@
 use crate::lexer::Location;
+use ordered_float::OrderedFloat;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -127,8 +128,8 @@ pub enum ExpressionKind {
         functions: Vec<Expression>,
     },
     FunctionComposition(Vec<Expression>),
-    Integer(String),
-    Decimal(String),
+    Integer(i64),
+    Decimal(OrderedFloat<f64>),
     String(String),
     Boolean(bool),
     Spread(Box<Expression>),

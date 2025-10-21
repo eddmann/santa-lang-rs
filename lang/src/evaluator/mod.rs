@@ -18,7 +18,6 @@ pub use crate::evaluator::object::Object;
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Prefix, Program, Statement, StatementKind};
 use im_rc::{HashMap, HashSet, Vector};
-use ordered_float::OrderedFloat;
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -233,16 +232,8 @@ impl Evaluator {
                     trace: self.get_trace(),
                 })
             }
-            ExpressionKind::Integer(value) => {
-                let parsed = value.replace('_', "").parse::<i64>()
-                    .expect("Integer literal should be valid as guaranteed by lexer");
-                Ok(Rc::new(Object::Integer(parsed)))
-            }
-            ExpressionKind::Decimal(value) => {
-                let parsed = value.replace('_', "").parse::<OrderedFloat<f64>>()
-                    .expect("Decimal literal should be valid as guaranteed by lexer");
-                Ok(Rc::new(Object::Decimal(parsed)))
-            }
+            ExpressionKind::Integer(value) => Ok(Rc::new(Object::Integer(*value))),
+            ExpressionKind::Decimal(value) => Ok(Rc::new(Object::Decimal(*value))),
             ExpressionKind::String(value) => Ok(Rc::new(Object::String(value.to_owned()))),
             ExpressionKind::Boolean(value) => Ok(Rc::new(Object::Boolean(*value))),
             ExpressionKind::If {

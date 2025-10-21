@@ -73,11 +73,7 @@ pub fn matcher(evaluator: &mut Evaluator, subject: &Expression, cases: &[MatchCa
                 if let (ExpressionKind::Integer(from), ExpressionKind::Integer(to), Object::Integer(index)) =
                     (&from.kind, &to.kind, &*evaluated_subject)
                 {
-                    let from_val = from.replace('_', "").parse::<i64>()
-                        .expect("Range bound should be valid integer as guaranteed by parser");
-                    let to_val = to.replace('_', "").parse::<i64>()
-                        .expect("Range bound should be valid integer as guaranteed by parser");
-                    if (from_val..=to_val).contains(index) {
+                    if (*from..=*to).contains(index) {
                         if let Some(guard) = &case.guard {
                             if !evaluator.eval_expression(guard)?.is_truthy() {
                                 continue;
@@ -91,11 +87,7 @@ pub fn matcher(evaluator: &mut Evaluator, subject: &Expression, cases: &[MatchCa
                 if let (ExpressionKind::Integer(from), ExpressionKind::Integer(until), Object::Integer(index)) =
                     (&from.kind, &until.kind, &*evaluated_subject)
                 {
-                    let from_val = from.replace('_', "").parse::<i64>()
-                        .expect("Range bound should be valid integer as guaranteed by parser");
-                    let until_val = until.replace('_', "").parse::<i64>()
-                        .expect("Range bound should be valid integer as guaranteed by parser");
-                    if (from_val..until_val).contains(index) {
+                    if (*from..*until).contains(index) {
                         if let Some(guard) = &case.guard {
                             if !evaluator.eval_expression(guard)?.is_truthy() {
                                 continue;
@@ -107,9 +99,7 @@ pub fn matcher(evaluator: &mut Evaluator, subject: &Expression, cases: &[MatchCa
             }
             ExpressionKind::UnboundedRange { from } => {
                 if let (ExpressionKind::Integer(from), Object::Integer(index)) = (&from.kind, &*evaluated_subject) {
-                    let from_val = from.replace('_', "").parse::<i64>()
-                        .expect("Range bound should be valid integer as guaranteed by parser");
-                    if (from_val..).contains(index) {
+                    if (*from..).contains(index) {
                         if let Some(guard) = &case.guard {
                             if !evaluator.eval_expression(guard)?.is_truthy() {
                                 continue;
@@ -203,11 +193,7 @@ fn destructure_match_list_pattern(
                 if let (ExpressionKind::Integer(from), ExpressionKind::Integer(to), Object::Integer(index)) =
                     (&from.kind, &to.kind, &*list[position])
                 {
-                    let from_val = from.replace('_', "").parse::<i64>()
-                        .expect("Range bound should be valid integer as guaranteed by parser");
-                    let to_val = to.replace('_', "").parse::<i64>()
-                        .expect("Range bound should be valid integer as guaranteed by parser");
-                    if !(from_val..=to_val).contains(index) {
+                    if !(*from..=*to).contains(index) {
                         return Ok(false);
                     }
                 }
@@ -216,20 +202,14 @@ fn destructure_match_list_pattern(
                 if let (ExpressionKind::Integer(from), ExpressionKind::Integer(until), Object::Integer(index)) =
                     (&from.kind, &until.kind, &*list[position])
                 {
-                    let from_val = from.replace('_', "").parse::<i64>()
-                        .expect("Range bound should be valid integer as guaranteed by parser");
-                    let until_val = until.replace('_', "").parse::<i64>()
-                        .expect("Range bound should be valid integer as guaranteed by parser");
-                    if !(from_val..until_val).contains(index) {
+                    if !(*from..*until).contains(index) {
                         return Ok(false);
                     }
                 }
             }
             ExpressionKind::UnboundedRange { from } => {
                 if let (ExpressionKind::Integer(from), Object::Integer(index)) = (&from.kind, &*list[position]) {
-                    let from_val = from.replace('_', "").parse::<i64>()
-                        .expect("Range bound should be valid integer as guaranteed by parser");
-                    if !(from_val..).contains(index) {
+                    if !(*from..).contains(index) {
                         return Ok(false);
                     }
                 }
