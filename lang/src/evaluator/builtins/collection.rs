@@ -1,5 +1,5 @@
 use crate::evaluator::lazy_sequence::{LazyFn, LazySequence};
-use crate::evaluator::object::Object;
+use crate::evaluator::object::{new_integer, Object};
 use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
 use crate::lexer::Location;
 use im_rc::{HashMap, HashSet, Vector};
@@ -24,19 +24,19 @@ builtin! {
 builtin! {
     size(collection) [evaluator, source] match {
         Object::List(list) => {
-            Ok(Rc::new(Object::Integer(list.len() as i64)))
+            Ok(new_integer(list.len() as i64))
         }
         Object::Set(set) => {
-            Ok(Rc::new(Object::Integer(set.len() as i64)))
+            Ok(new_integer(set.len() as i64))
         }
         Object::Dictionary(map) => {
-            Ok(Rc::new(Object::Integer(map.len() as i64)))
+            Ok(new_integer(map.len() as i64))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::Integer(string.len() as i64)))
+            Ok(new_integer(string.len() as i64))
         }
         Object::LazySequence(sequence) => {
-            Ok(Rc::new(Object::Integer(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).count() as i64)))
+            Ok(new_integer(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).count() as i64))
         }
     }
 }
@@ -403,7 +403,7 @@ builtin! {
                     count += 1;
                 }
             }
-            Ok(Rc::new(Object::Integer(count)))
+            Ok(new_integer(count))
         }
         (Object::Function(predicate), Object::Set(set)) => {
             let mut count = 0;
@@ -412,7 +412,7 @@ builtin! {
                     count += 1;
                 }
             }
-            Ok(Rc::new(Object::Integer(count)))
+            Ok(new_integer(count))
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             let mut count = 0;
@@ -421,7 +421,7 @@ builtin! {
                     count += 1;
                 }
             }
-            Ok(Rc::new(Object::Integer(count)))
+            Ok(new_integer(count))
         }
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
             let mut count = 0;
@@ -431,7 +431,7 @@ builtin! {
                     count += 1;
                 }
             }
-            Ok(Rc::new(Object::Integer(count)))
+            Ok(new_integer(count))
         }
         (Object::Function(predicate), Object::String(string)) => {
             let mut count = 0;
@@ -441,7 +441,7 @@ builtin! {
                     count += 1;
                 }
             }
-            Ok(Rc::new(Object::Integer(count)))
+            Ok(new_integer(count))
         }
     }
 }
@@ -455,7 +455,7 @@ builtin! {
                     sum += value;
                 }
             }
-            Ok(Rc::new(Object::Integer(sum)))
+            Ok(new_integer(sum))
         }
         Object::Set(set) => {
             let mut sum = 0;
@@ -464,7 +464,7 @@ builtin! {
                     sum += value;
                 }
             }
-            Ok(Rc::new(Object::Integer(sum)))
+            Ok(new_integer(sum))
         }
         Object::Dictionary(map) => {
             let mut sum = 0;
@@ -473,7 +473,7 @@ builtin! {
                     sum += value;
                 }
             }
-            Ok(Rc::new(Object::Integer(sum)))
+            Ok(new_integer(sum))
         }
         Object::LazySequence(sequence) => {
             let mut sum = 0;
@@ -482,7 +482,7 @@ builtin! {
                     sum += value;
                 }
             }
-            Ok(Rc::new(Object::Integer(sum)))
+            Ok(new_integer(sum))
         }
     }
 }

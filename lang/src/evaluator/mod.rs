@@ -14,6 +14,7 @@ pub use crate::evaluator::environment::{Environment, EnvironmentErr, Environment
 use crate::evaluator::function::Function;
 pub use crate::evaluator::function::{Arguments, ExternalFnDef};
 use crate::evaluator::lazy_sequence::LazySequence;
+use crate::evaluator::object::new_integer;
 pub use crate::evaluator::object::Object;
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Prefix, Program, Statement, StatementKind};
@@ -232,7 +233,7 @@ impl Evaluator {
                     trace: self.get_trace(),
                 })
             }
-            ExpressionKind::Integer(value) => Ok(Rc::new(Object::Integer(*value))),
+            ExpressionKind::Integer(value) => Ok(new_integer(*value)),
             ExpressionKind::Decimal(value) => Ok(Rc::new(Object::Decimal(*value))),
             ExpressionKind::String(value) => Ok(Rc::new(Object::String(value.to_owned()))),
             ExpressionKind::Boolean(value) => Ok(Rc::new(Object::Boolean(*value))),
@@ -388,7 +389,7 @@ impl Evaluator {
             }
             ExpressionKind::Prefix { operator, right } => match (&operator, &*self.eval_expression(right)?) {
                 (Prefix::Bang, object) => Ok(Rc::new(Object::Boolean(!object.is_truthy()))),
-                (Prefix::Minus, Object::Integer(v)) => Ok(Rc::new(Object::Integer(-v))),
+                (Prefix::Minus, Object::Integer(v)) => Ok(new_integer(-v)),
                 (Prefix::Minus, Object::Decimal(v)) => Ok(Rc::new(Object::Decimal(-v))),
                 (Prefix::Minus, object) => Err(RuntimeErr {
                     message: format!("Unexpected prefix operation: -{}", object.name()),

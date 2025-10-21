@@ -1,3 +1,4 @@
+use crate::evaluator::object::new_integer;
 use crate::evaluator::{Evaluator, Function, Object};
 use crate::lexer::Location;
 use im_rc::Vector;
@@ -204,7 +205,7 @@ impl LazySequenceIter<'_> {
                 if (step > 0 && *current > to) || (step < 0 && *current < to) {
                     return None;
                 }
-                let next = Rc::new(Object::Integer(*current));
+                let next = new_integer(*current);
                 *current += step;
                 Some(next)
             }
@@ -216,12 +217,12 @@ impl LazySequenceIter<'_> {
                 if (step > 0 && *current >= until) || (step < 0 && *current <= until) {
                     return None;
                 }
-                let next = Rc::new(Object::Integer(*current));
+                let next = new_integer(*current);
                 *current += step;
                 Some(next)
             }
             LazyValue::UnboundedRange { ref mut current, step } => {
-                let next = Rc::new(Object::Integer(*current));
+                let next = new_integer(*current);
                 *current += step;
                 Some(next)
             }

@@ -1,4 +1,4 @@
-use crate::evaluator::object::Object;
+use crate::evaluator::object::{new_integer, Object};
 use crate::evaluator::RuntimeErr;
 use im_rc::Vector;
 use ordered_float::OrderedFloat;
@@ -8,24 +8,24 @@ use std::rc::Rc;
 builtin! {
     int(value) match {
         Object::Boolean(value) => {
-            Ok(Rc::new(Object::Integer(if *value { 1 } else { 0 })))
+            Ok(new_integer(if *value { 1 } else { 0 }))
         }
         Object::Integer(value) => {
-            Ok(Rc::new(Object::Integer(*value)))
+            Ok(new_integer(*value))
         }
         Object::Decimal(OrderedFloat(value)) => {
-            Ok(Rc::new(Object::Integer(value.round() as i64)))
+            Ok(new_integer(value.round() as i64))
         }
         Object::String(value) => {
             if let Ok(parsed) = value.trim().parse::<i64>() {
-                return Ok(Rc::new(Object::Integer(parsed)));
+                return Ok(new_integer(parsed));
             }
 
             if let Ok(parsed) = value.trim().parse::<f64>() {
-                return Ok(Rc::new(Object::Integer(parsed.round() as i64)))
+                return Ok(new_integer(parsed.round() as i64))
             }
 
-            Ok(Rc::new(Object::Integer(0)))
+            Ok(new_integer(0))
         }
     }
 }
