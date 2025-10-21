@@ -16,12 +16,12 @@ macro_rules! builtin {
                 let $source = source;
                 $( let $parameter = arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism"); )*
                 let $rest = arguments.get(stringify!($rest)).expect("Rest parameter guaranteed by function call mechanism");
-                match ($( &**arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism") ),*, &**arguments.get(stringify!($rest)).expect("Rest parameter guaranteed by function call mechanism")) {
+                match ($( &**$parameter ),*, &**$rest) {
                     $( $pattern => $body ),*
                     _ => {
                         let mut message = String::new();
 
-                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism").name()) ),*]
+                        let arguments = vec![$( (stringify!($parameter), $parameter.name()) ),*]
                             .iter()
                             .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
@@ -49,12 +49,12 @@ macro_rules! builtin {
                 let $evaluator = evaluator;
                 let $source = source;
                 let $rest = arguments.get(stringify!($rest)).expect("Rest parameter guaranteed by function call mechanism");
-                match (&**arguments.get(stringify!($rest)).expect("Rest parameter guaranteed by function call mechanism")) {
+                match &**$rest {
                     $( $pattern => $body ),*
                     _ => {
                         let mut message = String::new();
 
-                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism").name()) ),*]
+                        let arguments = vec![$( (stringify!($parameter), $parameter.name()) ),*]
                             .iter()
                             .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
@@ -80,12 +80,12 @@ macro_rules! builtin {
             #[allow(unused_variables)]
             pub fn body(evaluator: &mut $crate::evaluator::Evaluator, arguments: std::collections::HashMap<String, Rc<Object>>, source: $crate::lexer::Location) -> Result<std::rc::Rc<$crate::evaluator::object::Object>, $crate::evaluator::RuntimeErr> {
                 $( let $parameter = arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism"); )*
-                match ($( &**arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism") ),*) {
+                match ($( &**$parameter ),*) {
                     $( $pattern => $body ),*
                     _ => {
                         let mut message = String::new();
 
-                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism").name()) ),*]
+                        let arguments = vec![$( (stringify!($parameter), $parameter.name()) ),*]
                             .iter()
                             .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
@@ -114,12 +114,12 @@ macro_rules! builtin {
                 let $evaluator = evaluator;
                 let $source = source;
                 $( let $parameter = arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism"); )*
-                match ($( &**arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism") ),*) {
+                match ($( &**$parameter ),*) {
                     $( $pattern => $body ),*
                     _ => {
                         let mut message = String::new();
 
-                        let arguments = vec![$( (stringify!($parameter), arguments.get(stringify!($parameter)).expect("Parameter guaranteed by function call mechanism").name()) ),*]
+                        let arguments = vec![$( (stringify!($parameter), $parameter.name()) ),*]
                             .iter()
                             .map(|(parameter, argument)| format!("{}", argument))
                             .collect::<Vec<_>>()
