@@ -598,7 +598,7 @@ builtin! {
 builtin! {
     skip(total, collection) [evaluator, source] match {
         (Object::Integer(total), Object::List(list)) => {
-            Ok(Rc::new(Object::List(list.clone().into_iter().skip(*total as usize).collect())))
+            Ok(Rc::new(Object::List(list.iter().skip(*total as usize).cloned().collect())))
         }
         (Object::Integer(total), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Skip(*total as usize)))))
@@ -609,7 +609,7 @@ builtin! {
 builtin! {
     take(total, collection) [evaluator, source] match {
         (Object::Integer(total), Object::List(list)) => {
-            Ok(Rc::new(Object::List(list.clone().into_iter().take(*total as usize).collect())))
+            Ok(Rc::new(Object::List(list.iter().take(*total as usize).cloned().collect())))
         }
         (Object::Integer(total), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).take(*total as usize).map(|obj| (*obj).clone()).collect::<Vector<Object>>())))
@@ -623,11 +623,11 @@ builtin! {
             Ok(Rc::new(Object::List(list.clone())))
         }
         Object::Set(set) => {
-            Ok(Rc::new(Object::List(set.clone().into_iter().collect::<Vector<Object>>())))
+            Ok(Rc::new(Object::List(set.iter().cloned().collect::<Vector<Object>>())))
         }
         Object::Dictionary(map) => {
             let to_pairs = |(key, value)| Object::List(vec![key, value].into());
-            Ok(Rc::new(Object::List(map.clone().into_iter().map(to_pairs).collect::<Vector<Object>>())))
+            Ok(Rc::new(Object::List(map.iter().map(|(k, v)| to_pairs((k.clone(), v.clone()))).collect::<Vector<Object>>())))
         }
         Object::LazySequence(sequence) => {
             Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).map(|obj| (*obj).clone()).collect::<Vector<Object>>())))
@@ -682,8 +682,8 @@ builtin! {
         Object::List(list) => {
             let mut elements = HashMap::default();
 
-            for element in list.clone() {
-                if let Object::List(pair) = &element {
+            for element in list.iter() {
+                if let Object::List(pair) = element {
                     if pair.len() == 2 {
                         if !pair[0].is_hashable() {
                             return Err(RuntimeErr {
@@ -795,7 +795,7 @@ fn eager_zipper(sequences: Vector<Object>, evaluator: &mut Evaluator, source: Lo
     let mut iterators: Vec<Box<dyn Iterator<Item = Rc<Object>>>> = Vec::with_capacity(sequences.len());
     for sequence in &sequences {
         match sequence {
-            Object::List(list) => iterators.push(Box::new(list.clone().into_iter().map(|obj| Rc::new(obj)))),
+            Object::List(list) => iterators.push(Box::new(list.iter().map(|obj| Rc::new(obj.clone())))),
             Object::String(string) => iterators.push(Box::new(
                 string
                     .chars()
@@ -936,7 +936,7 @@ builtin! {
             Ok(Rc::new(Object::List(rest)))
         }
         Object::Set(set) => {
-            Ok(Rc::new(Object::Set(set.clone().into_iter().skip(1).collect())))
+            Ok(Rc::new(Object::Set(set.iter().skip(1).cloned().collect())))
         }
         Object::LazySequence(sequence) => {
             let mut iterator = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source);
@@ -1441,7 +1441,7 @@ builtin! {
 builtin! {
     reverse(collection) [evaluator, source] match {
         Object::List(list) => {
-            Ok(Rc::new(Object::List(list.clone().into_iter().rev().collect())))
+            Ok(Rc::new(Object::List(list.iter().rev().cloned().collect())))
         }
         Object::LazySequence(sequence) => {
             Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).map(|obj| (*obj).clone()).collect::<Vector<Object>>().into_iter().rev().collect())))
@@ -1757,7 +1757,7 @@ builtin! {
     chunk(size, collection) [evaluator, source] match {
         (Object::Integer(size), Object::List(list)) => {
             let mut chunked: Vector<Object> = Vector::new();
-            let mut remaining_elements = list.clone().into_iter().peekable();
+            let mut remaining_elements = list.iter().cloned().peekable();
             while remaining_elements.peek().is_some() {
                 chunked.push_back(Object::List(remaining_elements.by_ref().take(*size as usize).collect()));
             }
