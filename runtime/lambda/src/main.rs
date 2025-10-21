@@ -2,7 +2,6 @@ mod external_functions;
 mod handler;
 
 use santa_lang::Object;
-use std::collections::HashMap;
 use std::env;
 use std::rc::Rc;
 
@@ -38,12 +37,10 @@ fn main() -> ! {
 
         let event: Rc<Object> = response.into_json().expect("Failed to parse event");
 
-        let mut context_map: HashMap<Rc<Object>, Rc<Object>> = HashMap::new();
-        context_map.insert(
-            Rc::new(Object::String("request_id".to_owned())),
-            Rc::new(Object::String(request_id.to_owned())),
-        );
-        let context = Rc::new(Object::Dictionary(context_map.into()));
+        let context_map = [
+            (Object::String("request_id".to_owned()), Object::String(request_id.to_owned()))
+        ].into_iter().collect();
+        let context = Rc::new(Object::Dictionary(context_map));
 
         match handler(event, context) {
             Ok(response) => {
