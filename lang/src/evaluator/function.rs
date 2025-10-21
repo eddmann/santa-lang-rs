@@ -3,6 +3,7 @@ use crate::evaluator::{Evaluation, Evaluator, Frame, Object, RuntimeErr};
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Statement};
 use im_rc::Vector;
+use smallvec::{smallvec, SmallVec};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
@@ -11,21 +12,22 @@ use std::rc::Rc;
 
 pub type Arguments = HashMap<String, Rc<Object>>;
 pub type ExternalFnDef = (String, Vec<ExpressionKind>, ExternalFn);
+pub type FnArgs = SmallVec<[Rc<Object>; 4]>;
 
 type BuiltinFn = fn(&mut Evaluator, Arguments, Location) -> Evaluation;
 type ExternalFn = Rc<dyn Fn(Arguments, Location) -> Evaluation>;
-type MemoizedCache = Rc<RefCell<HashMap<Vec<Rc<Object>>, Rc<Object>>>>;
+type MemoizedCache = Rc<RefCell<HashMap<FnArgs, Rc<Object>>>>;
 
 #[derive(Clone)]
 pub enum Function {
     Closure {
         parameters: Vec<Expression>,
-        body: Statement,
+        body: Rc<Statement>,
         environment: EnvironmentRef,
     },
     MemoizedClosure {
         parameters: Vec<Expression>,
-        body: Statement,
+        body: Rc<Statement>,
         environment: EnvironmentRef,
         cache: MemoizedCache,
     },
@@ -43,12 +45,12 @@ pub enum Function {
         functions: Vec<Function>,
     },
     Continuation {
-        arguments: Vec<Rc<Object>>,
+        arguments: FnArgs,
     },
 }
 
 impl Function {
-    pub fn apply(&self, evaluator: &mut Evaluator, arguments: Vec<Rc<Object>>, source: Location) -> Evaluation {
+    pub fn apply(&self, evaluator: &mut Evaluator, arguments: FnArgs, source: Location) -> Evaluation {
         match self {
             Self::Closure {
                 parameters,
@@ -72,7 +74,7 @@ impl Function {
                     environment: Rc::clone(&enclosed_environment),
                 });
 
-                let mut result = evaluator.eval_statement(body)?;
+                let mut result = evaluator.eval_statement(&**body)?;
 
                 loop {
                     if let Object::Function(Function::Continuation { arguments }) = &*result {
@@ -88,7 +90,7 @@ impl Function {
                             break;
                         }
 
-                        result = evaluator.eval_statement(body)?;
+                        result = evaluator.eval_statement(&**body)?;
                         continue;
                     }
 
@@ -132,7 +134,7 @@ impl Function {
                     environment: Rc::clone(&enclosed_environment),
                 });
 
-                let mut result = evaluator.eval_statement(body)?;
+                let mut result = evaluator.eval_statement(&**body)?;
 
                 loop {
                     if let Object::Function(Function::Continuation { arguments }) = &*result {
@@ -148,7 +150,7 @@ impl Function {
                             break;
                         }
 
-                        result = evaluator.eval_statement(body)?;
+                        result = evaluator.eval_statement(&**body)?;
                         continue;
                     }
 
@@ -241,7 +243,7 @@ impl Function {
                 let mut result = Rc::clone(&arguments[0]);
 
                 for function in functions {
-                    result = function.apply(evaluator, vec![result], source)?;
+                    result = function.apply(evaluator, smallvec![result], source)?;
                     if let Object::Return(value) = &*result {
                         result = Rc::clone(value)
                     }
@@ -257,7 +259,7 @@ impl Function {
         &self,
         environment: EnvironmentRef,
         #[allow(clippy::ptr_arg)] parameters: &Vec<Expression>,
-        arguments: &Vec<Rc<Object>>,
+        arguments: &FnArgs,
     ) -> Result<Vec<Expression>, RuntimeErr> {
         let mut remaining_parameters = vec![];
 
@@ -274,7 +276,7 @@ impl Function {
                 ExpressionKind::RestIdentifier(name) => {
                     environment.borrow_mut().set_variable(
                         name,
-                        Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
+                        Rc::new(Object::List(arguments.clone().into_iter().skip(position).map(|obj| (*obj).clone()).collect())),
                     );
                     break;
                 }
@@ -308,7 +310,7 @@ impl Function {
         &self,
         evaluated_arguments: &mut Arguments,
         #[allow(clippy::ptr_arg)] parameters: &Vec<ExpressionKind>,
-        arguments: &Vec<Rc<Object>>,
+        arguments: &FnArgs,
     ) -> Result<Vec<ExpressionKind>, RuntimeErr> {
         let mut remaining_parameters = vec![];
 
@@ -325,7 +327,7 @@ impl Function {
                 ExpressionKind::RestIdentifier(name) => {
                     evaluated_arguments.insert(
                         name.to_owned(),
-                        Rc::new(Object::List(arguments.clone().into_iter().skip(position).collect())),
+                        Rc::new(Object::List(arguments.clone().into_iter().skip(position).map(|obj| (*obj).clone()).collect())),
                     );
                     break;
                 }
@@ -364,7 +366,7 @@ impl Function {
             match &parameter.kind {
                 ExpressionKind::Identifier(name) => {
                     let object = if let Some(value) = list.iter().nth(position) {
-                        Rc::clone(value)
+                        Rc::new(value.clone())
                     } else {
                         Rc::new(Object::Nil)
                     };
@@ -382,7 +384,7 @@ impl Function {
                 }
                 ExpressionKind::IdentifierListPattern(next_parameter) => {
                     let object = if let Some(value) = list.iter().nth(position) {
-                        Rc::clone(value)
+                        Rc::new(value.clone())
                     } else {
                         Rc::new(Object::List(Vector::new()))
                     };

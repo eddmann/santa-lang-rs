@@ -9,14 +9,17 @@ pub fn definitions(js_functions: &JsObject) -> Vec<ExternalFnDef> {
         .map(|value: JsValue| {
             let definition = JsArray::from(&value);
             (
-                definition.get(0).as_string().unwrap(),
+                definition.get(0).as_string().expect("External function name should be a string"),
                 vec![ExpressionKind::RestIdentifier("arguments".to_owned())],
                 Rc::new(move |arguments: Arguments, source: Location| -> Evaluation {
-                    let argument = serde_wasm_bindgen::to_value(arguments.get("arguments").unwrap()).unwrap();
+                    let args = arguments.get("arguments").expect("Arguments parameter guaranteed by function signature");
+                    let argument = serde_wasm_bindgen::to_value(args)
+                        .expect("Failed to serialize arguments to JsValue");
                     if let Ok(result) =
                         Function::from(definition.get(1)).apply(&JsValue::null(), &JsArray::from(&argument))
                     {
-                        Ok(Rc::new(serde_wasm_bindgen::from_value(result).unwrap()))
+                        Ok(Rc::new(serde_wasm_bindgen::from_value(result)
+                            .expect("Failed to deserialize result from JsValue")))
                     } else {
                         Err(RuntimeErr {
                             message: "Failed to execute external JavaScript function".to_owned(),

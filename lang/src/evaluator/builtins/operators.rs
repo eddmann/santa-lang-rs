@@ -1,4 +1,4 @@
-use crate::evaluator::object::Object;
+use crate::evaluator::object::{new_integer, new_string, Object};
 use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
 use crate::lexer::Location;
 use std::cell::RefCell;
@@ -7,13 +7,13 @@ use std::rc::Rc;
 #[inline]
 pub fn plus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
-        (Object::Integer(a), Object::Integer(b)) => Ok(Rc::new(Object::Integer(a + b))),
-        (Object::Integer(a), Object::Decimal(b)) => Ok(Rc::new(Object::Integer(a + (f64::from(*b) as i64)))),
+        (Object::Integer(a), Object::Integer(b)) => Ok(new_integer(a + b)),
+        (Object::Integer(a), Object::Decimal(b)) => Ok(new_integer(a + (f64::from(*b) as i64))),
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a + *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a + (*b as f64)))),
-        (Object::String(a), Object::String(b)) => Ok(Rc::new(Object::String(format!("{}{}", a, b)))),
-        (Object::String(a), Object::Integer(b)) => Ok(Rc::new(Object::String(format!("{}{}", a, b)))),
-        (Object::String(a), Object::Decimal(b)) => Ok(Rc::new(Object::String(format!("{}{}", a, b)))),
+        (Object::String(a), Object::String(b)) => Ok(new_string(format!("{}{}", a, b))),
+        (Object::String(a), Object::Integer(b)) => Ok(new_string(format!("{}{}", a, b))),
+        (Object::String(a), Object::Decimal(b)) => Ok(new_string(format!("{}{}", a, b))),
         (Object::List(a), Object::List(b)) => {
             let mut list = a.clone();
             list.append(b.clone());
@@ -22,14 +22,14 @@ pub fn plus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, so
         (Object::List(a), Object::Set(b)) => {
             let mut list = a.clone();
             for element in b {
-                list.push_back(Rc::clone(element));
+                list.push_back(element.clone());
             }
             Ok(Rc::new(Object::List(list)))
         }
         (Object::List(a), Object::LazySequence(b)) => {
             let mut list = a.clone();
             for element in b.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
-                list.push_back(Rc::clone(&element));
+                list.push_back((*element).clone());
             }
             Ok(Rc::new(Object::List(list)))
         }
@@ -37,14 +37,14 @@ pub fn plus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, so
         (Object::Set(a), Object::List(b)) => {
             let mut set = a.clone();
             for element in b {
-                set.insert(Rc::clone(element));
+                set.insert(element.clone());
             }
             Ok(Rc::new(Object::Set(set)))
         }
         (Object::Set(a), Object::LazySequence(b)) => {
             let mut set = a.clone();
             for element in b.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
-                set.insert(Rc::clone(&element));
+                set.insert((*element).clone());
             }
             Ok(Rc::new(Object::Set(set)))
         }
@@ -72,8 +72,8 @@ builtin! {
 #[inline]
 pub fn minus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
-        (Object::Integer(a), Object::Integer(b)) => Ok(Rc::new(Object::Integer(a - b))),
-        (Object::Integer(a), Object::Decimal(b)) => Ok(Rc::new(Object::Integer(a - (f64::from(*b) as i64)))),
+        (Object::Integer(a), Object::Integer(b)) => Ok(new_integer(a - b)),
+        (Object::Integer(a), Object::Decimal(b)) => Ok(new_integer(a - (f64::from(*b) as i64))),
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a - *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a - (*b as f64)))),
         (Object::List(a), Object::List(b)) => {
@@ -90,6 +90,7 @@ pub fn minus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, s
             let mut list = a.clone();
             let resolved_b = b
                 .resolve_iter(Rc::new(RefCell::new(evaluator)), source)
+                .map(|obj| (*obj).clone())
                 .collect::<Vec<_>>();
             list.retain(|element| !resolved_b.contains(element));
             Ok(Rc::new(Object::List(list)))
@@ -108,6 +109,7 @@ pub fn minus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, s
             let mut set = a.clone();
             let resolved_b = b
                 .resolve_iter(Rc::new(RefCell::new(evaluator)), source)
+                .map(|obj| (*obj).clone())
                 .collect::<Vec<_>>();
             set.retain(|element| !resolved_b.contains(element));
             Ok(Rc::new(Object::Set(set)))
@@ -129,11 +131,11 @@ builtin! {
 #[inline]
 pub fn asterisk(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
-        (Object::Integer(a), Object::Integer(b)) => Ok(Rc::new(Object::Integer(a * b))),
-        (Object::Integer(a), Object::Decimal(b)) => Ok(Rc::new(Object::Integer(a * (f64::from(*b) as i64)))),
+        (Object::Integer(a), Object::Integer(b)) => Ok(new_integer(a * b)),
+        (Object::Integer(a), Object::Decimal(b)) => Ok(new_integer(a * (f64::from(*b) as i64))),
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a * *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a * (*b as f64)))),
-        (Object::String(a), Object::Integer(b)) => Ok(Rc::new(Object::String(a.repeat(*b as usize)))),
+        (Object::String(a), Object::Integer(b)) => Ok(new_string(a.repeat(*b as usize))),
         (Object::List(a), Object::Integer(b)) => {
             let mut list = a.clone();
             for _ in 1..*b {
@@ -158,8 +160,8 @@ builtin! {
 #[inline]
 pub fn slash(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
-        (Object::Integer(a), Object::Integer(b)) => Ok(Rc::new(Object::Integer(a / b))),
-        (Object::Integer(a), Object::Decimal(b)) => Ok(Rc::new(Object::Integer(a / (f64::from(*b) as i64)))),
+        (Object::Integer(a), Object::Integer(b)) => Ok(new_integer(a / b)),
+        (Object::Integer(a), Object::Decimal(b)) => Ok(new_integer(a / (f64::from(*b) as i64))),
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a / *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a / (*b as f64)))),
         _ => Err(RuntimeErr {
@@ -187,7 +189,7 @@ pub fn modulo(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evalua
             } else {
                 remainder + b
             };
-            Ok(Rc::new(Object::Integer(result)))
+            Ok(new_integer(result))
         }
         _ => Err(RuntimeErr {
             message: format!("Unsupported operation: {} % {}", left.name(), right.name()),

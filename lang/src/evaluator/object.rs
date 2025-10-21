@@ -2,7 +2,9 @@ use crate::evaluator::lazy_sequence::LazySequence;
 use crate::evaluator::Function;
 use im_rc::{HashMap, HashSet, Vector};
 use ordered_float::OrderedFloat;
+use std::cell::{OnceCell, RefCell};
 use std::collections::hash_map::DefaultHasher;
+use std::collections::HashMap as StdHashMap;
 use std::fmt;
 use std::hash::BuildHasherDefault;
 use std::hash::Hash;
@@ -18,9 +20,9 @@ pub enum Object {
     Boolean(bool),
     String(String),
 
-    List(Vector<Rc<Object>>),
-    Set(HashSet<Rc<Object>, BuildHasherDefault<DefaultHasher>>),
-    Dictionary(HashMap<Rc<Object>, Rc<Object>, BuildHasherDefault<DefaultHasher>>),
+    List(Vector<Object>),
+    Set(HashSet<Object, BuildHasherDefault<DefaultHasher>>),
+    Dictionary(HashMap<Object, Object, BuildHasherDefault<DefaultHasher>>),
     LazySequence(LazySequence),
 
     Function(Function),
@@ -31,6 +33,7 @@ pub enum Object {
 }
 
 impl Object {
+    #[inline]
     pub fn name(&self) -> &str {
         match self {
             Self::Nil => "Nil",
@@ -52,6 +55,7 @@ impl Object {
         }
     }
 
+    #[inline]
     pub fn is_truthy(&self) -> bool {
         match self {
             Self::Nil => false,
@@ -73,6 +77,7 @@ impl Object {
         }
     }
 
+    #[inline]
     pub fn is_hashable(&self) -> bool {
         match self {
             Self::Nil | Self::Integer(_) | Self::Decimal(_) | Self::Boolean(_) | Self::String(_) | Self::Set(_) => true,
@@ -112,5 +117,63 @@ impl fmt::Display for Object {
             Self::Break(v) => format!("{}", v),
         };
         write!(f, "{}", s)
+    }
+}
+
+// Small integer cache for commonly used integers (-128 to 127)
+// Avoids repeated Rc allocations for small integers used in loops
+const SMALL_INT_MIN: i64 = -128;
+const SMALL_INT_MAX: i64 = 127;
+const SMALL_INT_CACHE_SIZE: usize = (SMALL_INT_MAX - SMALL_INT_MIN + 1) as usize;
+
+thread_local! {
+    static SMALL_INT_CACHE: OnceCell<[Rc<Object>; SMALL_INT_CACHE_SIZE]> = OnceCell::new();
+}
+
+fn init_small_int_cache() -> [Rc<Object>; SMALL_INT_CACHE_SIZE] {
+    std::array::from_fn(|i| {
+        let value = SMALL_INT_MIN + i as i64;
+        Rc::new(Object::Integer(value))
+    })
+}
+
+/// Create an Rc<Object::Integer>, using the cache for small integers
+#[inline]
+pub fn new_integer(value: i64) -> Rc<Object> {
+    if value >= SMALL_INT_MIN && value <= SMALL_INT_MAX {
+        SMALL_INT_CACHE.with(|cache| {
+            let cache = cache.get_or_init(init_small_int_cache);
+            let index = (value - SMALL_INT_MIN) as usize;
+            Rc::clone(&cache[index])
+        })
+    } else {
+        Rc::new(Object::Integer(value))
+    }
+}
+
+// String interning cache for commonly used strings (≤ 64 chars)
+// Reduces allocations for repeated strings like single characters, keywords, etc.
+thread_local! {
+    static STRING_CACHE: RefCell<StdHashMap<String, Rc<Object>>> = RefCell::new(StdHashMap::new());
+}
+
+/// Create an Rc<Object::String>, using interning for small strings
+/// Interns strings ≤ 64 characters for better memory efficiency
+#[inline]
+pub fn new_string(value: String) -> Rc<Object> {
+    // Only intern small strings to avoid caching large data
+    if value.len() <= 64 {
+        STRING_CACHE.with(|cache| {
+            let mut cache = cache.borrow_mut();
+            if let Some(cached) = cache.get(&value) {
+                Rc::clone(cached)
+            } else {
+                let obj = Rc::new(Object::String(value.clone()));
+                cache.insert(value, Rc::clone(&obj));
+                obj
+            }
+        })
+    } else {
+        Rc::new(Object::String(value))
     }
 }

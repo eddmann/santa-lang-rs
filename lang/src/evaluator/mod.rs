@@ -14,11 +14,12 @@ pub use crate::evaluator::environment::{Environment, EnvironmentErr, Environment
 use crate::evaluator::function::Function;
 pub use crate::evaluator::function::{Arguments, ExternalFnDef};
 use crate::evaluator::lazy_sequence::LazySequence;
+use crate::evaluator::object::{new_integer, new_string};
 pub use crate::evaluator::object::Object;
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Prefix, Program, Statement, StatementKind};
 use im_rc::{HashMap, HashSet, Vector};
-use ordered_float::OrderedFloat;
+use smallvec::smallvec;
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -44,7 +45,7 @@ pub enum Frame {
         environment: EnvironmentRef,
     },
     Block {
-        source: Location,
+        _source: Location,
         environment: EnvironmentRef,
     },
     ClosureCall {
@@ -114,12 +115,19 @@ impl Evaluator {
     }
 
     fn environment(&self) -> EnvironmentRef {
-        match &self.frames.last().unwrap() {
-            Frame::Program { environment } => Rc::clone(environment),
-            Frame::Block { environment, .. } => Rc::clone(environment),
-            Frame::ClosureCall { environment, .. } => Rc::clone(environment),
-            _ => panic!(),
+        // Walk up the frame stack to find the first frame with an environment.
+        // BuiltinCall and ExternalCall frames don't have environments, so we skip them.
+        for frame in self.frames.iter().rev() {
+            match frame {
+                Frame::Program { environment } => return Rc::clone(environment),
+                Frame::Block { environment, .. } => return Rc::clone(environment),
+                Frame::ClosureCall { environment, .. } => return Rc::clone(environment),
+                Frame::BuiltinCall { .. } | Frame::ExternalCall { .. } => continue,
+            }
         }
+
+        // This should never happen as the bottom frame is always Program with an environment
+        panic!("No frame with environment found in stack - this indicates a bug in the evaluator");
     }
 
     fn eval_statement_block(&mut self, block: &[Statement]) -> Evaluation {
@@ -136,7 +144,7 @@ impl Evaluator {
                         if let Frame::ClosureCall { source, .. } = &frame {
                             if function.source == *source {
                                 return Ok(Rc::new(Object::Function(Function::Continuation {
-                                    arguments: self.eval_expressions(arguments)?,
+                                    arguments: self.eval_expressions(arguments)?.into(),
                                 })));
                             }
                             break;
@@ -152,7 +160,7 @@ impl Evaluator {
                             if let Frame::ClosureCall { source, .. } = &frame {
                                 if function.source == *source {
                                     return Ok(Rc::new(Object::Function(Function::Continuation {
-                                        arguments: self.eval_expressions(arguments)?,
+                                        arguments: self.eval_expressions(arguments)?.into(),
                                     })));
                                 }
                                 break;
@@ -186,7 +194,7 @@ impl Evaluator {
             StatementKind::Expression(expression) => self.eval_expression(expression),
             StatementKind::Block(statements) => {
                 self.push_frame(Frame::Block {
-                    source: statement.source,
+                    _source: statement.source,
                     environment: Environment::from(self.environment()),
                 });
                 let result = self.eval_statement_block(statements)?;
@@ -226,13 +234,9 @@ impl Evaluator {
                     trace: self.get_trace(),
                 })
             }
-            ExpressionKind::Integer(value) => {
-                Ok(Rc::new(Object::Integer(value.replace('_', "").parse::<i64>().unwrap())))
-            }
-            ExpressionKind::Decimal(value) => Ok(Rc::new(Object::Decimal(
-                value.replace('_', "").parse::<OrderedFloat<f64>>().unwrap(),
-            ))),
-            ExpressionKind::String(value) => Ok(Rc::new(Object::String(value.to_owned()))),
+            ExpressionKind::Integer(value) => Ok(new_integer(*value)),
+            ExpressionKind::Decimal(value) => Ok(Rc::new(Object::Decimal(*value))),
+            ExpressionKind::String(value) => Ok(new_string(value.to_owned())),
             ExpressionKind::Boolean(value) => Ok(Rc::new(Object::Boolean(*value))),
             ExpressionKind::If {
                 condition,
@@ -242,7 +246,7 @@ impl Evaluator {
             ExpressionKind::Match { subject, cases } => crate::evaluator::matcher::matcher(self, subject, cases),
             ExpressionKind::Function { parameters, body } => Ok(Rc::new(Object::Function(Function::Closure {
                 parameters: parameters.clone(),
-                body: *body.clone(),
+                body: Rc::clone(body),
                 environment: Rc::clone(&self.environment()),
             }))),
             ExpressionKind::Call { function, arguments } => {
@@ -250,7 +254,7 @@ impl Evaluator {
 
                 if let Object::Function(func) = &*evaluated_function {
                     let evaluated_arguments = self.eval_expressions(arguments)?;
-                    return func.apply(self, evaluated_arguments, function.source);
+                    return func.apply(self, evaluated_arguments.into(), function.source);
                 }
 
                 Err(RuntimeErr {
@@ -259,7 +263,12 @@ impl Evaluator {
                     trace: self.get_trace(),
                 })
             }
-            ExpressionKind::List(list) => Ok(Rc::new(Object::List(Vector::from(self.eval_expressions(list)?)))),
+            ExpressionKind::List(list) => Ok(Rc::new(Object::List(Vector::from(
+                self.eval_expressions(list)?
+                    .into_iter()
+                    .map(|obj| (*obj).clone())
+                    .collect::<Vec<_>>()
+            )))),
             ExpressionKind::Set(set) => {
                 let mut elements = HashSet::default();
                 for element in self.eval_expressions(set)? {
@@ -270,7 +279,7 @@ impl Evaluator {
                             trace: self.get_trace(),
                         });
                     }
-                    elements.insert(element);
+                    elements.insert((*element).clone());
                 }
                 Ok(Rc::new(Object::Set(elements)))
             }
@@ -285,7 +294,7 @@ impl Evaluator {
                             trace: self.get_trace(),
                         });
                     }
-                    elements.insert(evaluated_key, self.eval_expression(value)?);
+                    elements.insert((*evaluated_key).clone(), (*self.eval_expression(value)?).clone());
                 }
                 Ok(Rc::new(Object::Dictionary(elements)))
             }
@@ -301,7 +310,7 @@ impl Evaluator {
                     let evaluated_function = self.eval_expression(function)?;
 
                     if let Object::Function(f) = &*evaluated_function {
-                        result = f.apply(self, vec![result], function.source)?;
+                        result = f.apply(self, smallvec![result], function.source)?;
                         continue;
                     }
 
@@ -381,7 +390,7 @@ impl Evaluator {
             }
             ExpressionKind::Prefix { operator, right } => match (&operator, &*self.eval_expression(right)?) {
                 (Prefix::Bang, object) => Ok(Rc::new(Object::Boolean(!object.is_truthy()))),
-                (Prefix::Minus, Object::Integer(v)) => Ok(Rc::new(Object::Integer(-v))),
+                (Prefix::Minus, Object::Integer(v)) => Ok(new_integer(-v)),
                 (Prefix::Minus, Object::Decimal(v)) => Ok(Rc::new(Object::Decimal(-v))),
                 (Prefix::Minus, object) => Err(RuntimeErr {
                     message: format!("Unexpected prefix operation: -{}", object.name()),
@@ -508,7 +517,7 @@ impl Evaluator {
             if let ExpressionKind::Spread(value) = &expression.kind {
                 if let Object::List(list) = &*self.eval_expression(value)? {
                     for element in list {
-                        results.push(Rc::clone(element));
+                        results.push(Rc::new(element.clone()));
                     }
                     continue;
                 }
@@ -549,7 +558,7 @@ impl Evaluator {
                 ExpressionKind::Identifier(name) => {
                     match self.environment().borrow_mut().declare_variable(
                         name,
-                        Rc::clone(list.iter().nth(position).unwrap_or(&Rc::new(Object::Nil))),
+                        Rc::new(list.iter().nth(position).unwrap_or(&Object::Nil).clone()),
                         is_mutable,
                     ) {
                         Ok(_) => {}
@@ -584,7 +593,7 @@ impl Evaluator {
                 }
                 ExpressionKind::IdentifierListPattern(next_pattern) => {
                     let object = if let Some(value) = list.iter().nth(position) {
-                        Rc::clone(value)
+                        Rc::new(value.clone())
                     } else {
                         Rc::new(Object::List(Vector::new()))
                     };

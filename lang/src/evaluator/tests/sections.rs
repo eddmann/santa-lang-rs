@@ -112,7 +112,7 @@ fn multiple_sections_with_same_name() {
                             kind: Expression(
                                 Expression {
                                     kind: Integer(
-                                        "1",
+                                        1,
                                     ),
                                     source: 27..28,
                                 },
@@ -128,7 +128,7 @@ fn multiple_sections_with_same_name() {
                             kind: Expression(
                                 Expression {
                                     kind: Integer(
-                                        "2",
+                                        2,
                                     ),
                                     source: 58..59,
                                 },

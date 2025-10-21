@@ -18,7 +18,7 @@ impl Time for PhpTime {
 #[php_function(optional = "cwd")]
 pub fn santa_aoc_run(source: &str, cwd: Option<String>) -> PhpResult<Zval> {
     if let Some(dir) = cwd {
-        std::env::set_current_dir(dir).unwrap();
+        std::env::set_current_dir(dir).expect("Failed to change working directory");
     }
 
     let mut runner = AoCRunner::new_with_external_functions(PhpTime {}, &crate::external_functions::definitions());
@@ -61,7 +61,7 @@ pub fn santa_aoc_run(source: &str, cwd: Option<String>) -> PhpResult<Zval> {
 #[php_function(optional = "cwd")]
 pub fn santa_aoc_test(source: &str, cwd: Option<String>) -> PhpResult<Zval> {
     if let Some(dir) = cwd {
-        std::env::set_current_dir(dir).unwrap();
+        std::env::set_current_dir(dir).expect("Failed to change working directory");
     }
 
     let mut runner = AoCRunner::new_with_external_functions(PhpTime {}, &crate::external_functions::definitions());
@@ -103,7 +103,7 @@ pub fn santa_aoc_test(source: &str, cwd: Option<String>) -> PhpResult<Zval> {
 #[php_function(optional = "cwd")]
 pub fn santa_evaluate(expression: &str, cwd: Option<String>) -> PhpResult<String> {
     if let Some(dir) = cwd {
-        std::env::set_current_dir(dir).unwrap();
+        std::env::set_current_dir(dir).expect("Failed to change working directory");
     }
 
     let mut evaluator = Evaluator::new_with_external_functions(&crate::external_functions::definitions());

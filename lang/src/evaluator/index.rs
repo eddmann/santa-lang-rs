@@ -1,4 +1,4 @@
-use crate::evaluator::object::Object;
+use crate::evaluator::object::{new_string, Object};
 use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
 use crate::lexer::Location;
 use im_rc::Vector;
@@ -21,7 +21,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
                         break;
                     }
                     match list_lookup(list, *index) {
-                        Some(object) => result.push_back(object),
+                        Some(object) => result.push_back((*object).clone()),
                         None => break,
                     }
                 } else {
@@ -42,14 +42,14 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
         })),
         (Object::Dictionary(map), index) => {
             if let Some(value) = map.get(index) {
-                Ok(Rc::clone(value))
+                Ok(Rc::new(value.clone()))
             } else {
                 Ok(Rc::new(Object::Nil))
             }
         }
         (Object::String(string), Object::Integer(index)) => {
             if let Some(character) = string_lookup(string, *index) {
-                Ok(Rc::new(Object::String(character.to_string())))
+                Ok(new_string(character.to_string()))
             } else {
                 Ok(Rc::new(Object::Nil))
             }
@@ -84,7 +84,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
                 }
             }
 
-            Ok(Rc::new(Object::String(result)))
+            Ok(new_string(result))
         }
         (_, _) => Err(RuntimeErr {
             message: format!(
@@ -98,7 +98,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
     }
 }
 
-fn list_lookup(list: &Vector<Rc<Object>>, index: i64) -> Option<Rc<Object>> {
+fn list_lookup(list: &Vector<Object>, index: i64) -> Option<Rc<Object>> {
     if index > 0 && index as usize >= list.len() {
         return None;
     }
@@ -108,9 +108,9 @@ fn list_lookup(list: &Vector<Rc<Object>>, index: i64) -> Option<Rc<Object>> {
     }
 
     if index < 0 {
-        Some(Rc::clone(&list[(list.len() as i64 + index) as usize]))
+        Some(Rc::new(list[(list.len() as i64 + index) as usize].clone()))
     } else {
-        Some(Rc::clone(&list[index as usize]))
+        Some(Rc::new(list[index as usize].clone()))
     }
 }
 

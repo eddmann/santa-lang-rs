@@ -1,4 +1,4 @@
-FROM joseluisq/rust-linux-darwin-builder:1.70.0 AS builder
+FROM joseluisq/rust-linux-darwin-builder:1.90.0 AS builder
 COPY . /app
 RUN cd /app && cargo build --release --bin santa-cli --target x86_64-unknown-linux-musl
 

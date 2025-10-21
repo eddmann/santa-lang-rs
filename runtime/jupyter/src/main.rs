@@ -25,29 +25,30 @@ impl JupyterKernelProtocol for Context {
     }
 
     async fn running(&mut self, code: ExecutionRequest) -> ExecutionReply {
-        let lexer = Lexer::new(&code.code);
-        let mut parser = Parser::new(lexer);
+        // Parse and evaluate in a single scope to ensure Rc values are dropped before await
+        let (result, success) = {
+            let lexer = Lexer::new(&code.code);
+            let mut parser = Parser::new(lexer);
 
-        let program = match parser.parse() {
-            Ok(parsed) => parsed,
-            Err(error) => {
-                self.sockets.send_executed(error.message).await;
-                return ExecutionReply::new(false, code.execution_count);
+            match parser.parse() {
+                Ok(program) => {
+                    let environment = self.environment.0.clone();
+                    let evaluator = Evaluator::new().evaluate_with_environment(&program, environment);
+                    let result = match evaluator {
+                        Ok(result) => result.to_string(),
+                        Err(error) => error.message,
+                    };
+                    (result, true)
+                }
+                Err(error) => {
+                    (error.message, false)
+                }
             }
-        };
-
-        let result = {
-            let environment = self.environment.0.clone();
-            let evaluator = Evaluator::new().evaluate_with_environment(&program, environment);
-            match evaluator {
-                Ok(result) => result.to_string(),
-                Err(error) => error.message,
-            }
+            // All Rc values (parser, program, evaluator) are dropped here
         };
 
         self.sockets.send_executed(result).await;
-
-        ExecutionReply::new(true, code.execution_count)
+        ExecutionReply::new(success, code.execution_count)
     }
 
     async fn bind_execution_socket(&self, sender: UnboundedSender<ExecutionResult>) {

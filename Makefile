@@ -1,4 +1,4 @@
-IMAGE = rust:1.70.0-bullseye
+IMAGE = rust:1.90.0-bullseye
 DOCKER = docker run --rm -e CARGO_HOME=/app/.cargo -v $(PWD):/app -w /app
 
 .PHONY: shell
@@ -76,5 +76,5 @@ jupyter/run:
 	docker run --rm -it -p 8888:8888 ghcr.io/eddmann/santa-lang-jupyter:latest
 
 cli/build/%:
-	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.70.0 \
+	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.90.0 \
 		sh -c "cargo build --release --bin santa-cli --target $*"

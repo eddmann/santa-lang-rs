@@ -16,7 +16,7 @@ fn integers() {
                         kind: Expression(
                             Expression {
                                 kind: Integer(
-                                    "1",
+                                    1,
                                 ),
                                 source: 0..1,
                             },
@@ -27,7 +27,7 @@ fn integers() {
                         kind: Expression(
                             Expression {
                                 kind: Integer(
-                                    "1_000_000",
+                                    1000000,
                                 ),
                                 source: 15..24,
                             },
@@ -54,7 +54,7 @@ fn decimals() {
                         kind: Expression(
                             Expression {
                                 kind: Decimal(
-                                    "1.5",
+                                    1.5,
                                 ),
                                 source: 0..3,
                             },
@@ -65,7 +65,7 @@ fn decimals() {
                         kind: Expression(
                             Expression {
                                 kind: Decimal(
-                                    "1_000_000.50",
+                                    1000000.5,
                                 ),
                                 source: 17..29,
                             },
@@ -208,7 +208,7 @@ fn comments() {
                         kind: Expression(
                             Expression {
                                 kind: Integer(
-                                    "1",
+                                    1,
                                 ),
                                 source: 33..34,
                             },
@@ -243,13 +243,13 @@ fn list() {
                                     [
                                         Expression {
                                             kind: Integer(
-                                                "1",
+                                                1,
                                             ),
                                             source: 1..2,
                                         },
                                         Expression {
                                             kind: Decimal(
-                                                "2.5",
+                                                2.5,
                                             ),
                                             source: 4..7,
                                         },
@@ -347,7 +347,7 @@ fn dictionary() {
                                         (
                                             Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 25..26,
                                             },
@@ -364,13 +364,13 @@ fn dictionary() {
                                                     [
                                                         Expression {
                                                             kind: Integer(
-                                                                "1",
+                                                                1,
                                                             ),
                                                             source: 34..35,
                                                         },
                                                         Expression {
                                                             kind: Integer(
-                                                                "2",
+                                                                2,
                                                             ),
                                                             source: 37..38,
                                                         },
@@ -380,7 +380,7 @@ fn dictionary() {
                                             },
                                             Expression {
                                                 kind: Decimal(
-                                                    "1.4",
+                                                    1.4,
                                                 ),
                                                 source: 41..44,
                                             },
@@ -414,13 +414,13 @@ fn set() {
                                     [
                                         Expression {
                                             kind: Integer(
-                                                "1",
+                                                1,
                                             ),
                                             source: 1..2,
                                         },
                                         Expression {
                                             kind: Decimal(
-                                                "2.5",
+                                                2.5,
                                             ),
                                             source: 4..7,
                                         },
@@ -478,13 +478,13 @@ fn ranges() {
                                 kind: ExclusiveRange {
                                     from: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 0..1,
                                     },
                                     until: Expression {
                                         kind: Integer(
-                                            "10",
+                                            10,
                                         ),
                                         source: 3..5,
                                     },
@@ -525,7 +525,7 @@ fn ranges() {
                                             operator: Minus,
                                             right: Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 14..15,
                                             },
@@ -534,7 +534,7 @@ fn ranges() {
                                     },
                                     until: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 17..18,
                                     },
@@ -550,7 +550,7 @@ fn ranges() {
                                 kind: ExclusiveRange {
                                     from: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 20..21,
                                     },
@@ -559,7 +559,7 @@ fn ranges() {
                                             operator: Minus,
                                             right: Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 24..25,
                                             },
@@ -578,13 +578,13 @@ fn ranges() {
                                 kind: ExclusiveRange {
                                     from: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 28..29,
                                     },
                                     until: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 33..34,
                                     },
@@ -600,13 +600,13 @@ fn ranges() {
                                 kind: InclusiveRange {
                                     from: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 49..50,
                                     },
                                     to: Expression {
                                         kind: Integer(
-                                            "10",
+                                            10,
                                         ),
                                         source: 53..55,
                                     },
@@ -647,7 +647,7 @@ fn ranges() {
                                             operator: Minus,
                                             right: Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 65..66,
                                             },
@@ -656,7 +656,7 @@ fn ranges() {
                                     },
                                     to: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 69..70,
                                     },
@@ -672,7 +672,7 @@ fn ranges() {
                                 kind: InclusiveRange {
                                     from: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 72..73,
                                     },
@@ -681,7 +681,7 @@ fn ranges() {
                                             operator: Minus,
                                             right: Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 77..78,
                                             },
@@ -700,13 +700,13 @@ fn ranges() {
                                 kind: InclusiveRange {
                                     from: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 81..82,
                                     },
                                     to: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 87..88,
                                     },
@@ -722,7 +722,7 @@ fn ranges() {
                                 kind: UnboundedRange {
                                     from: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 103..104,
                                     },
@@ -757,7 +757,7 @@ fn ranges() {
                                             operator: Minus,
                                             right: Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 114..115,
                                             },
@@ -776,7 +776,7 @@ fn ranges() {
                                 kind: UnboundedRange {
                                     from: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 120..121,
                                     },
@@ -816,7 +816,7 @@ fn let_assignments() {
                                     },
                                     value: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 8..9,
                                     },
@@ -838,7 +838,7 @@ fn let_assignments() {
                                     },
                                     value: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 35..36,
                                     },
@@ -860,7 +860,7 @@ fn let_assignments() {
                                     },
                                     value: Expression {
                                         kind: Integer(
-                                            "2",
+                                            2,
                                         ),
                                         source: 54..55,
                                     },
@@ -923,13 +923,13 @@ fn let_assignments() {
                                             [
                                                 Expression {
                                                     kind: Integer(
-                                                        "1",
+                                                        1,
                                                     ),
                                                     source: 96..97,
                                                 },
                                                 Expression {
                                                     kind: Integer(
-                                                        "2",
+                                                        2,
                                                     ),
                                                     source: 99..100,
                                                 },
@@ -938,13 +938,13 @@ fn let_assignments() {
                                                         [
                                                             Expression {
                                                                 kind: Integer(
-                                                                    "3",
+                                                                    3,
                                                                 ),
                                                                 source: 103..104,
                                                             },
                                                             Expression {
                                                                 kind: Integer(
-                                                                    "4",
+                                                                    4,
                                                                 ),
                                                                 source: 106..107,
                                                             },
@@ -954,7 +954,7 @@ fn let_assignments() {
                                                 },
                                                 Expression {
                                                     kind: Integer(
-                                                        "5",
+                                                        5,
                                                     ),
                                                     source: 110..111,
                                                 },
@@ -990,21 +990,9 @@ fn if_expressions() {
                             Expression {
                                 kind: If {
                                     condition: Expression {
-                                        kind: Infix {
-                                            operator: LessThan,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    "2",
-                                                ),
-                                                source: 3..4,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    "5",
-                                                ),
-                                                source: 7..8,
-                                            },
-                                        },
+                                        kind: Boolean(
+                                            true,
+                                        ),
                                         source: 5..9,
                                     },
                                     consequence: Statement {
@@ -1014,7 +1002,7 @@ fn if_expressions() {
                                                     kind: Expression(
                                                         Expression {
                                                             kind: Integer(
-                                                                "1",
+                                                                1,
                                                             ),
                                                             source: 11..12,
                                                         },
@@ -1037,21 +1025,9 @@ fn if_expressions() {
                             Expression {
                                 kind: If {
                                     condition: Expression {
-                                        kind: Infix {
-                                            operator: GreaterThan,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    "3",
-                                                ),
-                                                source: 30..31,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    "5",
-                                                ),
-                                                source: 34..35,
-                                            },
-                                        },
+                                        kind: Boolean(
+                                            false,
+                                        ),
                                         source: 32..36,
                                     },
                                     consequence: Statement {
@@ -1061,7 +1037,7 @@ fn if_expressions() {
                                                     kind: Expression(
                                                         Expression {
                                                             kind: Integer(
-                                                                "1",
+                                                                1,
                                                             ),
                                                             source: 38..39,
                                                         },
@@ -1080,7 +1056,7 @@ fn if_expressions() {
                                                         kind: Expression(
                                                             Expression {
                                                                 kind: Integer(
-                                                                    "2",
+                                                                    2,
                                                                 ),
                                                                 source: 49..50,
                                                             },
@@ -1112,7 +1088,7 @@ fn if_expressions() {
                                             },
                                             value: Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 76..77,
                                             },
@@ -1170,7 +1146,7 @@ fn prefix_operators() {
                                     operator: Minus,
                                     right: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 1..2,
                                     },
@@ -1190,7 +1166,7 @@ fn prefix_operators() {
                                             operator: Minus,
                                             right: Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 18..19,
                                             },
@@ -1210,7 +1186,7 @@ fn prefix_operators() {
                                     operator: Minus,
                                     left: Expression {
                                         kind: Integer(
-                                            "4",
+                                            4,
                                         ),
                                         source: 33..34,
                                     },
@@ -1219,7 +1195,7 @@ fn prefix_operators() {
                                             operator: Minus,
                                             right: Expression {
                                                 kind: Integer(
-                                                    "4",
+                                                    4,
                                                 ),
                                                 source: 38..39,
                                             },
@@ -1296,21 +1272,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: Plus,
-                                    left: Expression {
-                                        kind: Integer(
-                                            "1",
-                                        ),
-                                        source: 0..1,
-                                    },
-                                    right: Expression {
-                                        kind: Integer(
-                                            "1",
-                                        ),
-                                        source: 4..5,
-                                    },
-                                },
+                                kind: Integer(
+                                    2,
+                                ),
                                 source: 2..5,
                             },
                         ),
@@ -1319,21 +1283,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: Minus,
-                                    left: Expression {
-                                        kind: Integer(
-                                            "1",
-                                        ),
-                                        source: 19..20,
-                                    },
-                                    right: Expression {
-                                        kind: Integer(
-                                            "2",
-                                        ),
-                                        source: 23..24,
-                                    },
-                                },
+                                kind: Integer(
+                                    -1,
+                                ),
                                 source: 21..24,
                             },
                         ),
@@ -1342,21 +1294,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: Slash,
-                                    left: Expression {
-                                        kind: Integer(
-                                            "1",
-                                        ),
-                                        source: 38..39,
-                                    },
-                                    right: Expression {
-                                        kind: Integer(
-                                            "2",
-                                        ),
-                                        source: 42..43,
-                                    },
-                                },
+                                kind: Integer(
+                                    0,
+                                ),
                                 source: 40..43,
                             },
                         ),
@@ -1365,21 +1305,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: Modulo,
-                                    left: Expression {
-                                        kind: Integer(
-                                            "3",
-                                        ),
-                                        source: 57..58,
-                                    },
-                                    right: Expression {
-                                        kind: Integer(
-                                            "4",
-                                        ),
-                                        source: 61..62,
-                                    },
-                                },
+                                kind: Integer(
+                                    3,
+                                ),
                                 source: 59..62,
                             },
                         ),
@@ -1388,45 +1316,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: Or,
-                                    left: Expression {
-                                        kind: Infix {
-                                            operator: Equal,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    "4",
-                                                ),
-                                                source: 76..77,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    "5",
-                                                ),
-                                                source: 81..82,
-                                            },
-                                        },
-                                        source: 78..83,
-                                    },
-                                    right: Expression {
-                                        kind: Infix {
-                                            operator: NotEqual,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    "4",
-                                                ),
-                                                source: 86..87,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    "7",
-                                                ),
-                                                source: 91..92,
-                                            },
-                                        },
-                                        source: 88..92,
-                                    },
-                                },
+                                kind: Boolean(
+                                    true,
+                                ),
                                 source: 83..92,
                             },
                         ),
@@ -1435,45 +1327,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: And,
-                                    left: Expression {
-                                        kind: Infix {
-                                            operator: GreaterThan,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    "5",
-                                                ),
-                                                source: 106..107,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    "10",
-                                                ),
-                                                source: 110..112,
-                                            },
-                                        },
-                                        source: 108..113,
-                                    },
-                                    right: Expression {
-                                        kind: Infix {
-                                            operator: LessThan,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    "4",
-                                                ),
-                                                source: 116..117,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    "8",
-                                                ),
-                                                source: 120..121,
-                                            },
-                                        },
-                                        source: 118..121,
-                                    },
-                                },
+                                kind: Boolean(
+                                    false,
+                                ),
                                 source: 113..121,
                             },
                         ),
@@ -1482,45 +1338,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: And,
-                                    left: Expression {
-                                        kind: Infix {
-                                            operator: GreaterThanEqual,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    "5",
-                                                ),
-                                                source: 135..136,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    "3",
-                                                ),
-                                                source: 140..141,
-                                            },
-                                        },
-                                        source: 137..142,
-                                    },
-                                    right: Expression {
-                                        kind: Infix {
-                                            operator: LessThanEqual,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    "4",
-                                                ),
-                                                source: 145..146,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    "2",
-                                                ),
-                                                source: 150..151,
-                                            },
-                                        },
-                                        source: 147..151,
-                                    },
-                                },
+                                kind: Boolean(
+                                    false,
+                                ),
                                 source: 142..151,
                             },
                         ),
@@ -1744,13 +1564,13 @@ fn call_expressions() {
                                     arguments: [
                                         Expression {
                                             kind: Integer(
-                                                "1",
+                                                1,
                                             ),
                                             source: 4..5,
                                         },
                                         Expression {
                                             kind: Integer(
-                                                "2",
+                                                2,
                                             ),
                                             source: 7..8,
                                         },
@@ -1792,7 +1612,7 @@ fn call_expressions() {
                                         },
                                         Expression {
                                             kind: Integer(
-                                                "3",
+                                                3,
                                             ),
                                             source: 34..35,
                                         },
@@ -1846,13 +1666,13 @@ fn call_expressions() {
                                     ),
                                     left: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 73..74,
                                     },
                                     right: Expression {
                                         kind: Integer(
-                                            "2",
+                                            2,
                                         ),
                                         source: 81..82,
                                     },
@@ -1923,7 +1743,7 @@ fn partial_application_using_placeholders() {
                                     },
                                     right: Expression {
                                         kind: Integer(
-                                            "2",
+                                            2,
                                         ),
                                         source: 4..5,
                                     },
@@ -1940,7 +1760,7 @@ fn partial_application_using_placeholders() {
                                     operator: Plus,
                                     left: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 19..20,
                                     },
@@ -1971,7 +1791,7 @@ fn partial_application_using_placeholders() {
                                         },
                                         Expression {
                                             kind: Integer(
-                                                "2",
+                                                2,
                                             ),
                                             source: 43..44,
                                         },
@@ -1995,7 +1815,7 @@ fn partial_application_using_placeholders() {
                                     arguments: [
                                         Expression {
                                             kind: Integer(
-                                                "1",
+                                                1,
                                             ),
                                             source: 61..62,
                                         },
@@ -2028,7 +1848,7 @@ fn partial_application_using_placeholders() {
                                     },
                                     right: Expression {
                                         kind: Integer(
-                                            "2",
+                                            2,
                                         ),
                                         source: 87..88,
                                     },
@@ -2052,7 +1872,7 @@ fn partial_application_using_placeholders() {
                                     ),
                                     left: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 102..103,
                                     },
@@ -2182,7 +2002,7 @@ fn function_composition() {
                                                 },
                                                 right: Expression {
                                                     kind: Integer(
-                                                        "1",
+                                                        1,
                                                     ),
                                                     source: 11..12,
                                                 },
@@ -2200,7 +2020,7 @@ fn function_composition() {
                                                 arguments: [
                                                     Expression {
                                                         kind: Integer(
-                                                            "1",
+                                                            1,
                                                         ),
                                                         source: 20..21,
                                                     },
@@ -2240,19 +2060,19 @@ fn function_threading() {
                                             [
                                                 Expression {
                                                     kind: Integer(
-                                                        "1",
+                                                        1,
                                                     ),
                                                     source: 1..2,
                                                 },
                                                 Expression {
                                                     kind: Integer(
-                                                        "2",
+                                                        2,
                                                     ),
                                                     source: 4..5,
                                                 },
                                                 Expression {
                                                     kind: Integer(
-                                                        "3",
+                                                        3,
                                                     ),
                                                     source: 7..8,
                                                 },
@@ -2296,7 +2116,7 @@ fn function_threading() {
                                                                                         },
                                                                                         right: Expression {
                                                                                             kind: Integer(
-                                                                                                "1",
+                                                                                                1,
                                                                                             ),
                                                                                             source: 25..26,
                                                                                         },
@@ -2330,7 +2150,7 @@ fn function_threading() {
                                 kind: FunctionThread {
                                     initial: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 41..42,
                                     },
@@ -2346,7 +2166,7 @@ fn function_threading() {
                                                 arguments: [
                                                     Expression {
                                                         kind: Integer(
-                                                            "1",
+                                                            1,
                                                         ),
                                                         source: 50..51,
                                                     },
@@ -2380,7 +2200,7 @@ fn function_threading() {
                                                                             },
                                                                             right: Expression {
                                                                                 kind: Integer(
-                                                                                    "1",
+                                                                                    1,
                                                                                 ),
                                                                                 source: 66..67,
                                                                             },
@@ -2412,7 +2232,7 @@ fn function_threading() {
                                                 },
                                                 right: Expression {
                                                     kind: Integer(
-                                                        "1",
+                                                        1,
                                                     ),
                                                     source: 84..85,
                                                 },
@@ -2506,19 +2326,19 @@ fn trailing_lambdas() {
                                             [
                                                 Expression {
                                                     kind: Integer(
-                                                        "1",
+                                                        1,
                                                     ),
                                                     source: 33..34,
                                                 },
                                                 Expression {
                                                     kind: Integer(
-                                                        "2",
+                                                        2,
                                                     ),
                                                     source: 36..37,
                                                 },
                                                 Expression {
                                                     kind: Integer(
-                                                        "3",
+                                                        3,
                                                     ),
                                                     source: 39..40,
                                                 },
@@ -2625,7 +2445,7 @@ fn collection_indexing() {
                                     },
                                     index: Expression {
                                         kind: Integer(
-                                            "1",
+                                            1,
                                         ),
                                         source: 4..5,
                                     },
@@ -2650,7 +2470,7 @@ fn collection_indexing() {
                                             operator: Minus,
                                             right: Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 25..26,
                                             },
@@ -2677,13 +2497,13 @@ fn collection_indexing() {
                                         kind: InclusiveRange {
                                             from: Expression {
                                                 kind: Integer(
-                                                    "2",
+                                                    2,
                                                 ),
                                                 source: 45..46,
                                             },
                                             to: Expression {
                                                 kind: Integer(
-                                                    "5",
+                                                    5,
                                                 ),
                                                 source: 49..50,
                                             },
@@ -2710,13 +2530,13 @@ fn collection_indexing() {
                                         kind: ExclusiveRange {
                                             from: Expression {
                                                 kind: Integer(
-                                                    "2",
+                                                    2,
                                                 ),
                                                 source: 69..70,
                                             },
                                             until: Expression {
                                                 kind: Integer(
-                                                    "5",
+                                                    5,
                                                 ),
                                                 source: 72..73,
                                             },
@@ -2746,7 +2566,7 @@ fn collection_indexing() {
                                                     operator: Minus,
                                                     right: Expression {
                                                         kind: Integer(
-                                                            "2",
+                                                            2,
                                                         ),
                                                         source: 93..94,
                                                     },
@@ -2776,7 +2596,7 @@ fn collection_indexing() {
                                         kind: InclusiveRange {
                                             from: Expression {
                                                 kind: Integer(
-                                                    "0",
+                                                    0,
                                                 ),
                                                 source: 115..116,
                                             },
@@ -2785,7 +2605,7 @@ fn collection_indexing() {
                                                     operator: Minus,
                                                     right: Expression {
                                                         kind: Integer(
-                                                            "2",
+                                                            2,
                                                         ),
                                                         source: 120..121,
                                                     },
@@ -2815,7 +2635,7 @@ fn collection_indexing() {
                                         kind: ExclusiveRange {
                                             from: Expression {
                                                 kind: Integer(
-                                                    "0",
+                                                    0,
                                                 ),
                                                 source: 140..141,
                                             },
@@ -2824,7 +2644,7 @@ fn collection_indexing() {
                                                     operator: Minus,
                                                     right: Expression {
                                                         kind: Integer(
-                                                            "2",
+                                                            2,
                                                         ),
                                                         source: 144..145,
                                                     },
@@ -2992,7 +2812,7 @@ fn match_with_primitives() {
                                         MatchCase {
                                             pattern: Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 26..27,
                                             },
@@ -3019,7 +2839,7 @@ fn match_with_primitives() {
                                         MatchCase {
                                             pattern: Expression {
                                                 kind: Decimal(
-                                                    "2.0",
+                                                    2.0,
                                                 ),
                                                 source: 55..58,
                                             },
@@ -3085,7 +2905,7 @@ fn match_with_primitives() {
                                                             kind: Expression(
                                                                 Expression {
                                                                     kind: Integer(
-                                                                        "4",
+                                                                        4,
                                                                     ),
                                                                     source: 129..130,
                                                                 },
@@ -3139,13 +2959,13 @@ fn match_with_ranges() {
                                                 kind: ExclusiveRange {
                                                     from: Expression {
                                                         kind: Integer(
-                                                            "1",
+                                                            1,
                                                         ),
                                                         source: 26..27,
                                                     },
                                                     until: Expression {
                                                         kind: Integer(
-                                                            "3",
+                                                            3,
                                                         ),
                                                         source: 29..30,
                                                     },
@@ -3177,13 +2997,13 @@ fn match_with_ranges() {
                                                 kind: InclusiveRange {
                                                     from: Expression {
                                                         kind: Integer(
-                                                            "3",
+                                                            3,
                                                         ),
                                                         source: 58..59,
                                                     },
                                                     to: Expression {
                                                         kind: Integer(
-                                                            "5",
+                                                            5,
                                                         ),
                                                         source: 62..63,
                                                     },
@@ -3215,7 +3035,7 @@ fn match_with_ranges() {
                                                 kind: UnboundedRange {
                                                     from: Expression {
                                                         kind: Integer(
-                                                            "6",
+                                                            6,
                                                         ),
                                                         source: 91..92,
                                                     },
@@ -3282,27 +3102,15 @@ fn match_with_if_guards() {
                                         MatchCase {
                                             pattern: Expression {
                                                 kind: Integer(
-                                                    "1",
+                                                    1,
                                                 ),
                                                 source: 26..27,
                                             },
                                             guard: Some(
                                                 Expression {
-                                                    kind: Infix {
-                                                        operator: NotEqual,
-                                                        left: Expression {
-                                                            kind: Integer(
-                                                                "1",
-                                                            ),
-                                                            source: 31..32,
-                                                        },
-                                                        right: Expression {
-                                                            kind: Integer(
-                                                                "2",
-                                                            ),
-                                                            source: 36..37,
-                                                        },
-                                                    },
+                                                    kind: Boolean(
+                                                        true,
+                                                    ),
                                                     source: 33..38,
                                                 },
                                             ),
@@ -3328,7 +3136,7 @@ fn match_with_if_guards() {
                                         MatchCase {
                                             pattern: Expression {
                                                 kind: Decimal(
-                                                    "2.0",
+                                                    2.0,
                                                 ),
                                                 source: 65..68,
                                             },
@@ -3396,7 +3204,7 @@ fn match_with_if_guards() {
                                                         },
                                                         right: Expression {
                                                             kind: Integer(
-                                                                "3",
+                                                                3,
                                                             ),
                                                             source: 123..124,
                                                         },
@@ -3617,20 +3425,20 @@ fn infix_precedence() {
     case("a * b / c", "((a * b) / c)");
     case("a + b / c", "(a + (b / c))");
     case("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)");
-    case("3 + 4; -5 * 5", "(3 + 4)\n((-5) * 5)");
-    case("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))");
-    case("5 >= 4 == 3 <= 4", "((5 >= 4) == (3 <= 4))");
-    case("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))");
-    case("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))");
-    case("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)");
-    case("(5 + 5) * 2", "((5 + 5) * 2)");
-    case("2 / (5 + 5)", "(2 / (5 + 5))");
-    case("-(5 + 5)", "(-(5 + 5))");
-    case("!(true == true)", "(!(true == true))");
+    case("3 + 4; -5 * 5", "7\n((-5) * 5)");
+    case("5 > 4 == 3 < 4", "true");
+    case("5 >= 4 == 3 <= 4", "true");
+    case("5 < 4 != 3 > 4", "false");
+    case("3 + 4 * 5 == 3 * 1 + 4 * 5", "true");
+    case("1 + (2 + 3) + 4", "10");
+    case("(5 + 5) * 2", "20");
+    case("2 / (5 + 5)", "0");
+    case("-(5 + 5)", "(-10)");
+    case("!(true == true)", "(!true)");
     case("a + add(b * c) + d", "((a + add((b * c))) + d)");
     case(
         "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
-        "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+        "add(a, b, 1, 6, 9, add(6, 56))",
     );
     case("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))");
     case("a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)");

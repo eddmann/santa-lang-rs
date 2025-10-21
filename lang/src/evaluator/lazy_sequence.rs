@@ -1,6 +1,8 @@
+use crate::evaluator::object::new_integer;
 use crate::evaluator::{Evaluator, Function, Object};
 use crate::lexer::Location;
 use im_rc::Vector;
+use smallvec::smallvec;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
@@ -28,7 +30,7 @@ enum LazyValue {
     },
     Cycle {
         index: usize,
-        list: Vector<Rc<Object>>,
+        list: Vector<Object>,
     },
     Iterate {
         current: Rc<Object>,
@@ -38,7 +40,7 @@ enum LazyValue {
         size: u32,
         min: usize,
         mask: usize,
-        collection: Vector<Rc<Object>>,
+        collection: Vector<Object>,
     },
 }
 
@@ -120,7 +122,7 @@ impl LazySequence {
         }
     }
 
-    pub fn cycle(list: Vector<Rc<Object>>) -> Self {
+    pub fn cycle(list: Vector<Object>) -> Self {
         Self {
             value: LazyValue::Cycle { index: 0, list },
             functions: vec![],
@@ -137,7 +139,7 @@ impl LazySequence {
         }
     }
 
-    pub fn combinations(size: u32, collection: Vector<Rc<Object>>) -> Self {
+    pub fn combinations(size: u32, collection: Vector<Object>) -> Self {
         let collection_len = collection.len();
         let min = 2_usize.pow(size) - 1;
         let max = if collection_len >= size as usize {
@@ -167,7 +169,7 @@ impl LazySequence {
         }
     }
 
-    pub fn resolve_iter<'a>(&'a self, evaluator: Rc<RefCell<&'a mut Evaluator>>, source: Location) -> LazySequenceIter {
+    pub fn resolve_iter<'a>(&'a self, evaluator: Rc<RefCell<&'a mut Evaluator>>, source: Location) -> LazySequenceIter<'a> {
         LazySequenceIter {
             value: self.value.clone(),
             functions: self.functions.clone(),
@@ -204,7 +206,7 @@ impl LazySequenceIter<'_> {
                 if (step > 0 && *current > to) || (step < 0 && *current < to) {
                     return None;
                 }
-                let next = Rc::new(Object::Integer(*current));
+                let next = new_integer(*current);
                 *current += step;
                 Some(next)
             }
@@ -216,12 +218,12 @@ impl LazySequenceIter<'_> {
                 if (step > 0 && *current >= until) || (step < 0 && *current <= until) {
                     return None;
                 }
-                let next = Rc::new(Object::Integer(*current));
+                let next = new_integer(*current);
                 *current += step;
                 Some(next)
             }
             LazyValue::UnboundedRange { ref mut current, step } => {
-                let next = Rc::new(Object::Integer(*current));
+                let next = new_integer(*current);
                 *current += step;
                 Some(next)
             }
@@ -230,7 +232,7 @@ impl LazySequenceIter<'_> {
                 ref mut index,
                 ref list,
             } => {
-                let next = Rc::clone(list.get(*index)?);
+                let next = Rc::new(list.get(*index)?.clone());
                 *index = (*index + 1) % list.len();
                 Some(next)
             }
@@ -241,7 +243,7 @@ impl LazySequenceIter<'_> {
                 let next = Rc::clone(current);
 
                 *current = generator
-                    .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(current)], self.source)
+                    .apply(&mut self.evaluator.borrow_mut(), smallvec![Rc::clone(current)], self.source)
                     .ok()?;
 
                 Some(next)
@@ -259,8 +261,8 @@ impl LazySequenceIter<'_> {
                             .chars()
                             .enumerate()
                             .filter(|&(_, e)| e == '1')
-                            .map(|(i, _)| Rc::clone(&collection[i]))
-                            .collect::<Vector<Rc<Object>>>();
+                            .map(|(i, _)| collection[i].clone())
+                            .collect::<Vector<Object>>();
                         *mask -= 1;
                         return Some(Rc::new(Object::List(res)));
                     }
@@ -290,12 +292,12 @@ impl Iterator for LazySequenceIter<'_> {
                 match function {
                     LazyFn::Map(mapper) => {
                         next = mapper
-                            .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
+                            .apply(&mut self.evaluator.borrow_mut(), smallvec![Rc::clone(&next)], self.source)
                             .ok()?;
                     }
                     LazyFn::Filter(predicate) => {
                         if !predicate
-                            .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
+                            .apply(&mut self.evaluator.borrow_mut(), smallvec![Rc::clone(&next)], self.source)
                             .ok()?
                             .is_truthy()
                         {
@@ -304,7 +306,7 @@ impl Iterator for LazySequenceIter<'_> {
                     }
                     LazyFn::FilterMap(mapper) => {
                         next = mapper
-                            .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
+                            .apply(&mut self.evaluator.borrow_mut(), smallvec![Rc::clone(&next)], self.source)
                             .ok()?;
                         if !next.is_truthy() {
                             continue 'next;
@@ -318,7 +320,7 @@ impl Iterator for LazySequenceIter<'_> {
                     }
                     LazyFn::Zip(sequences) => {
                         let mut entry = Vector::new();
-                        entry.push_back(next);
+                        entry.push_back((*next).clone());
 
                         let iterators = self
                             .zip_iterators
@@ -338,7 +340,7 @@ impl Iterator for LazySequenceIter<'_> {
 
                         for iterator in iterators.iter_mut() {
                             match iterator.next() {
-                                Some(element) => entry.push_back(element),
+                                Some(element) => entry.push_back((*element).clone()),
                                 None => return None,
                             }
                         }

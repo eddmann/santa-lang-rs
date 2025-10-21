@@ -6,6 +6,8 @@ mod tests;
 use super::lexer::{Lexer, Location, Token, TokenKind};
 use crate::T;
 use ast::*;
+use ordered_float::OrderedFloat;
+use std::rc::Rc;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[repr(u8)]
@@ -363,6 +365,15 @@ impl<'a> Parser<'a> {
         self.next_token();
 
         let right = Box::new(self.parse_expression(infix_binding_precedence(&token.kind))?);
+        let source = token.source_range(&self.current_token);
+
+        // Attempt constant folding
+        if let Some(folded) = self.fold_constant_infix(&left.kind, &operator, &right.kind) {
+            return Ok(Expression {
+                kind: folded,
+                source,
+            });
+        }
 
         Ok(Expression {
             kind: ExpressionKind::Infix {
@@ -370,8 +381,112 @@ impl<'a> Parser<'a> {
                 left: Box::new(left),
                 right,
             },
-            source: token.source_range(&self.current_token),
+            source,
         })
+    }
+
+    fn fold_constant_infix(&self, left: &ExpressionKind, operator: &Infix, right: &ExpressionKind) -> Option<ExpressionKind> {
+        match (left, operator, right) {
+            // Integer arithmetic
+            (ExpressionKind::Integer(l), Infix::Plus, ExpressionKind::Integer(r)) => {
+                Some(ExpressionKind::Integer(l.checked_add(*r)?))
+            }
+            (ExpressionKind::Integer(l), Infix::Minus, ExpressionKind::Integer(r)) => {
+                Some(ExpressionKind::Integer(l.checked_sub(*r)?))
+            }
+            (ExpressionKind::Integer(l), Infix::Asterisk, ExpressionKind::Integer(r)) => {
+                Some(ExpressionKind::Integer(l.checked_mul(*r)?))
+            }
+            (ExpressionKind::Integer(l), Infix::Slash, ExpressionKind::Integer(r)) if *r != 0 => {
+                Some(ExpressionKind::Integer(l.checked_div(*r)?))
+            }
+            (ExpressionKind::Integer(l), Infix::Modulo, ExpressionKind::Integer(r)) if *r != 0 => {
+                Some(ExpressionKind::Integer(l.checked_rem(*r)?))
+            }
+
+            // Integer comparisons
+            (ExpressionKind::Integer(l), Infix::Equal, ExpressionKind::Integer(r)) => {
+                Some(ExpressionKind::Boolean(l == r))
+            }
+            (ExpressionKind::Integer(l), Infix::NotEqual, ExpressionKind::Integer(r)) => {
+                Some(ExpressionKind::Boolean(l != r))
+            }
+            (ExpressionKind::Integer(l), Infix::LessThan, ExpressionKind::Integer(r)) => {
+                Some(ExpressionKind::Boolean(l < r))
+            }
+            (ExpressionKind::Integer(l), Infix::LessThanEqual, ExpressionKind::Integer(r)) => {
+                Some(ExpressionKind::Boolean(l <= r))
+            }
+            (ExpressionKind::Integer(l), Infix::GreaterThan, ExpressionKind::Integer(r)) => {
+                Some(ExpressionKind::Boolean(l > r))
+            }
+            (ExpressionKind::Integer(l), Infix::GreaterThanEqual, ExpressionKind::Integer(r)) => {
+                Some(ExpressionKind::Boolean(l >= r))
+            }
+
+            // Decimal arithmetic
+            (ExpressionKind::Decimal(l), Infix::Plus, ExpressionKind::Decimal(r)) => {
+                Some(ExpressionKind::Decimal(OrderedFloat(l.0 + r.0)))
+            }
+            (ExpressionKind::Decimal(l), Infix::Minus, ExpressionKind::Decimal(r)) => {
+                Some(ExpressionKind::Decimal(OrderedFloat(l.0 - r.0)))
+            }
+            (ExpressionKind::Decimal(l), Infix::Asterisk, ExpressionKind::Decimal(r)) => {
+                Some(ExpressionKind::Decimal(OrderedFloat(l.0 * r.0)))
+            }
+            (ExpressionKind::Decimal(l), Infix::Slash, ExpressionKind::Decimal(r)) if r.0 != 0.0 => {
+                Some(ExpressionKind::Decimal(OrderedFloat(l.0 / r.0)))
+            }
+
+            // Decimal comparisons
+            (ExpressionKind::Decimal(l), Infix::Equal, ExpressionKind::Decimal(r)) => {
+                Some(ExpressionKind::Boolean(l == r))
+            }
+            (ExpressionKind::Decimal(l), Infix::NotEqual, ExpressionKind::Decimal(r)) => {
+                Some(ExpressionKind::Boolean(l != r))
+            }
+            (ExpressionKind::Decimal(l), Infix::LessThan, ExpressionKind::Decimal(r)) => {
+                Some(ExpressionKind::Boolean(l < r))
+            }
+            (ExpressionKind::Decimal(l), Infix::LessThanEqual, ExpressionKind::Decimal(r)) => {
+                Some(ExpressionKind::Boolean(l <= r))
+            }
+            (ExpressionKind::Decimal(l), Infix::GreaterThan, ExpressionKind::Decimal(r)) => {
+                Some(ExpressionKind::Boolean(l > r))
+            }
+            (ExpressionKind::Decimal(l), Infix::GreaterThanEqual, ExpressionKind::Decimal(r)) => {
+                Some(ExpressionKind::Boolean(l >= r))
+            }
+
+            // String concatenation
+            (ExpressionKind::String(l), Infix::Plus, ExpressionKind::String(r)) => {
+                Some(ExpressionKind::String(format!("{}{}", l, r)))
+            }
+
+            // String comparisons
+            (ExpressionKind::String(l), Infix::Equal, ExpressionKind::String(r)) => {
+                Some(ExpressionKind::Boolean(l == r))
+            }
+            (ExpressionKind::String(l), Infix::NotEqual, ExpressionKind::String(r)) => {
+                Some(ExpressionKind::Boolean(l != r))
+            }
+
+            // Boolean operations
+            (ExpressionKind::Boolean(l), Infix::And, ExpressionKind::Boolean(r)) => {
+                Some(ExpressionKind::Boolean(*l && *r))
+            }
+            (ExpressionKind::Boolean(l), Infix::Or, ExpressionKind::Boolean(r)) => {
+                Some(ExpressionKind::Boolean(*l || *r))
+            }
+            (ExpressionKind::Boolean(l), Infix::Equal, ExpressionKind::Boolean(r)) => {
+                Some(ExpressionKind::Boolean(l == r))
+            }
+            (ExpressionKind::Boolean(l), Infix::NotEqual, ExpressionKind::Boolean(r)) => {
+                Some(ExpressionKind::Boolean(l != r))
+            }
+
+            _ => None,
+        }
     }
 
     fn parse_call_expression(&mut self, function: Expression) -> RExpression {
@@ -435,7 +550,12 @@ impl<'a> Parser<'a> {
 
     fn parse_integer_expression(&mut self) -> RExpression {
         let token = self.expect(T![INT])?;
-        let value = self.lexer.get_source(&token).to_string();
+        let source_str = self.lexer.get_source(&token);
+        let value = source_str.replace('_', "").parse::<i64>()
+            .map_err(|_| ParserErr {
+                message: format!("Invalid integer literal: {}", source_str),
+                source: token.source,
+            })?;
 
         Ok(Expression {
             kind: ExpressionKind::Integer(value),
@@ -445,10 +565,15 @@ impl<'a> Parser<'a> {
 
     fn parse_decimal_expression(&mut self) -> RExpression {
         let token = self.expect(T![DEC])?;
-        let value = self.lexer.get_source(&token).to_string();
+        let source_str = self.lexer.get_source(&token);
+        let value = source_str.replace('_', "").parse::<f64>()
+            .map_err(|_| ParserErr {
+                message: format!("Invalid decimal literal: {}", source_str),
+                source: token.source,
+            })?;
 
         Ok(Expression {
-            kind: ExpressionKind::Decimal(value),
+            kind: ExpressionKind::Decimal(OrderedFloat(value)),
             source: token.source,
         })
     }
@@ -602,7 +727,7 @@ impl<'a> Parser<'a> {
             self.expect(T![||])?;
             vec![]
         };
-        let body = Box::new(self.parse_block_statement()?);
+        let body = Rc::new(self.parse_block_statement()?);
 
         Ok(Expression {
             kind: ExpressionKind::Function { parameters, body },
