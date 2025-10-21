@@ -990,21 +990,9 @@ fn if_expressions() {
                             Expression {
                                 kind: If {
                                     condition: Expression {
-                                        kind: Infix {
-                                            operator: LessThan,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    2,
-                                                ),
-                                                source: 3..4,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    5,
-                                                ),
-                                                source: 7..8,
-                                            },
-                                        },
+                                        kind: Boolean(
+                                            true,
+                                        ),
                                         source: 5..9,
                                     },
                                     consequence: Statement {
@@ -1037,21 +1025,9 @@ fn if_expressions() {
                             Expression {
                                 kind: If {
                                     condition: Expression {
-                                        kind: Infix {
-                                            operator: GreaterThan,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    3,
-                                                ),
-                                                source: 30..31,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    5,
-                                                ),
-                                                source: 34..35,
-                                            },
-                                        },
+                                        kind: Boolean(
+                                            false,
+                                        ),
                                         source: 32..36,
                                     },
                                     consequence: Statement {
@@ -1296,21 +1272,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: Plus,
-                                    left: Expression {
-                                        kind: Integer(
-                                            1,
-                                        ),
-                                        source: 0..1,
-                                    },
-                                    right: Expression {
-                                        kind: Integer(
-                                            1,
-                                        ),
-                                        source: 4..5,
-                                    },
-                                },
+                                kind: Integer(
+                                    2,
+                                ),
                                 source: 2..5,
                             },
                         ),
@@ -1319,21 +1283,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: Minus,
-                                    left: Expression {
-                                        kind: Integer(
-                                            1,
-                                        ),
-                                        source: 19..20,
-                                    },
-                                    right: Expression {
-                                        kind: Integer(
-                                            2,
-                                        ),
-                                        source: 23..24,
-                                    },
-                                },
+                                kind: Integer(
+                                    -1,
+                                ),
                                 source: 21..24,
                             },
                         ),
@@ -1342,21 +1294,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: Slash,
-                                    left: Expression {
-                                        kind: Integer(
-                                            1,
-                                        ),
-                                        source: 38..39,
-                                    },
-                                    right: Expression {
-                                        kind: Integer(
-                                            2,
-                                        ),
-                                        source: 42..43,
-                                    },
-                                },
+                                kind: Integer(
+                                    0,
+                                ),
                                 source: 40..43,
                             },
                         ),
@@ -1365,21 +1305,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: Modulo,
-                                    left: Expression {
-                                        kind: Integer(
-                                            3,
-                                        ),
-                                        source: 57..58,
-                                    },
-                                    right: Expression {
-                                        kind: Integer(
-                                            4,
-                                        ),
-                                        source: 61..62,
-                                    },
-                                },
+                                kind: Integer(
+                                    3,
+                                ),
                                 source: 59..62,
                             },
                         ),
@@ -1388,45 +1316,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: Or,
-                                    left: Expression {
-                                        kind: Infix {
-                                            operator: Equal,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    4,
-                                                ),
-                                                source: 76..77,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    5,
-                                                ),
-                                                source: 81..82,
-                                            },
-                                        },
-                                        source: 78..83,
-                                    },
-                                    right: Expression {
-                                        kind: Infix {
-                                            operator: NotEqual,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    4,
-                                                ),
-                                                source: 86..87,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    7,
-                                                ),
-                                                source: 91..92,
-                                            },
-                                        },
-                                        source: 88..92,
-                                    },
-                                },
+                                kind: Boolean(
+                                    true,
+                                ),
                                 source: 83..92,
                             },
                         ),
@@ -1435,45 +1327,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: And,
-                                    left: Expression {
-                                        kind: Infix {
-                                            operator: GreaterThan,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    5,
-                                                ),
-                                                source: 106..107,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    10,
-                                                ),
-                                                source: 110..112,
-                                            },
-                                        },
-                                        source: 108..113,
-                                    },
-                                    right: Expression {
-                                        kind: Infix {
-                                            operator: LessThan,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    4,
-                                                ),
-                                                source: 116..117,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    8,
-                                                ),
-                                                source: 120..121,
-                                            },
-                                        },
-                                        source: 118..121,
-                                    },
-                                },
+                                kind: Boolean(
+                                    false,
+                                ),
                                 source: 113..121,
                             },
                         ),
@@ -1482,45 +1338,9 @@ fn infix_operators() {
                     Statement {
                         kind: Expression(
                             Expression {
-                                kind: Infix {
-                                    operator: And,
-                                    left: Expression {
-                                        kind: Infix {
-                                            operator: GreaterThanEqual,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    5,
-                                                ),
-                                                source: 135..136,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    3,
-                                                ),
-                                                source: 140..141,
-                                            },
-                                        },
-                                        source: 137..142,
-                                    },
-                                    right: Expression {
-                                        kind: Infix {
-                                            operator: LessThanEqual,
-                                            left: Expression {
-                                                kind: Integer(
-                                                    4,
-                                                ),
-                                                source: 145..146,
-                                            },
-                                            right: Expression {
-                                                kind: Integer(
-                                                    2,
-                                                ),
-                                                source: 150..151,
-                                            },
-                                        },
-                                        source: 147..151,
-                                    },
-                                },
+                                kind: Boolean(
+                                    false,
+                                ),
                                 source: 142..151,
                             },
                         ),
@@ -3288,21 +3108,9 @@ fn match_with_if_guards() {
                                             },
                                             guard: Some(
                                                 Expression {
-                                                    kind: Infix {
-                                                        operator: NotEqual,
-                                                        left: Expression {
-                                                            kind: Integer(
-                                                                1,
-                                                            ),
-                                                            source: 31..32,
-                                                        },
-                                                        right: Expression {
-                                                            kind: Integer(
-                                                                2,
-                                                            ),
-                                                            source: 36..37,
-                                                        },
-                                                    },
+                                                    kind: Boolean(
+                                                        true,
+                                                    ),
                                                     source: 33..38,
                                                 },
                                             ),
@@ -3617,20 +3425,20 @@ fn infix_precedence() {
     case("a * b / c", "((a * b) / c)");
     case("a + b / c", "(a + (b / c))");
     case("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)");
-    case("3 + 4; -5 * 5", "(3 + 4)\n((-5) * 5)");
-    case("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))");
-    case("5 >= 4 == 3 <= 4", "((5 >= 4) == (3 <= 4))");
-    case("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))");
-    case("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))");
-    case("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)");
-    case("(5 + 5) * 2", "((5 + 5) * 2)");
-    case("2 / (5 + 5)", "(2 / (5 + 5))");
-    case("-(5 + 5)", "(-(5 + 5))");
-    case("!(true == true)", "(!(true == true))");
+    case("3 + 4; -5 * 5", "7\n((-5) * 5)");
+    case("5 > 4 == 3 < 4", "true");
+    case("5 >= 4 == 3 <= 4", "true");
+    case("5 < 4 != 3 > 4", "false");
+    case("3 + 4 * 5 == 3 * 1 + 4 * 5", "true");
+    case("1 + (2 + 3) + 4", "10");
+    case("(5 + 5) * 2", "20");
+    case("2 / (5 + 5)", "0");
+    case("-(5 + 5)", "(-10)");
+    case("!(true == true)", "(!true)");
     case("a + add(b * c) + d", "((a + add((b * c))) + d)");
     case(
         "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
-        "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+        "add(a, b, 1, 6, 9, add(6, 56))",
     );
     case("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))");
     case("a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)");
