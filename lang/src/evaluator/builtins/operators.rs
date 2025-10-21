@@ -1,4 +1,4 @@
-use crate::evaluator::object::{new_integer, Object};
+use crate::evaluator::object::{new_integer, new_string, Object};
 use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
 use crate::lexer::Location;
 use std::cell::RefCell;
@@ -11,9 +11,9 @@ pub fn plus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, so
         (Object::Integer(a), Object::Decimal(b)) => Ok(new_integer(a + (f64::from(*b) as i64))),
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a + *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a + (*b as f64)))),
-        (Object::String(a), Object::String(b)) => Ok(Rc::new(Object::String(format!("{}{}", a, b)))),
-        (Object::String(a), Object::Integer(b)) => Ok(Rc::new(Object::String(format!("{}{}", a, b)))),
-        (Object::String(a), Object::Decimal(b)) => Ok(Rc::new(Object::String(format!("{}{}", a, b)))),
+        (Object::String(a), Object::String(b)) => Ok(new_string(format!("{}{}", a, b))),
+        (Object::String(a), Object::Integer(b)) => Ok(new_string(format!("{}{}", a, b))),
+        (Object::String(a), Object::Decimal(b)) => Ok(new_string(format!("{}{}", a, b))),
         (Object::List(a), Object::List(b)) => {
             let mut list = a.clone();
             list.append(b.clone());
@@ -135,7 +135,7 @@ pub fn asterisk(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Eval
         (Object::Integer(a), Object::Decimal(b)) => Ok(new_integer(a * (f64::from(*b) as i64))),
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a * *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a * (*b as f64)))),
-        (Object::String(a), Object::Integer(b)) => Ok(Rc::new(Object::String(a.repeat(*b as usize)))),
+        (Object::String(a), Object::Integer(b)) => Ok(new_string(a.repeat(*b as usize))),
         (Object::List(a), Object::Integer(b)) => {
             let mut list = a.clone();
             for _ in 1..*b {

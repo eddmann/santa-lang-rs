@@ -1,5 +1,5 @@
 use crate::evaluator::function::Function;
-use crate::evaluator::object::Object;
+use crate::evaluator::object::{new_string, Object};
 use crate::evaluator::LazySequence;
 use crate::evaluator::RuntimeErr;
 use std::cell::RefCell;
@@ -15,7 +15,7 @@ builtin! {
 
 builtin! {
     type_name(value) {
-        Ok(Rc::new(Object::String(value.name().to_owned())))
+        Ok(new_string(value.name().to_owned()))
     }
 }
 

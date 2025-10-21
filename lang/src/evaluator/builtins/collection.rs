@@ -1,5 +1,5 @@
 use crate::evaluator::lazy_sequence::{LazyFn, LazySequence};
-use crate::evaluator::object::{new_integer, Object};
+use crate::evaluator::object::{new_integer, new_string, Object};
 use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
 use crate::lexer::Location;
 use im_rc::{HashMap, HashSet, Vector};
@@ -78,7 +78,7 @@ builtin! {
         (Object::Function(mapper), Object::String(string)) => {
             let mut elements = Vector::new();
             for character in string.chars() {
-                elements.push_back((*mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?).clone());
+                elements.push_back((*mapper.apply(evaluator, vec![new_string(character.to_string())], source)?).clone());
             }
             Ok(Rc::new(Object::List(elements)))
         }
@@ -120,7 +120,7 @@ builtin! {
         (Object::Function(predicate), Object::String(string)) => {
             let mut elements = Vector::new();
             for character in string.chars() {
-                let object = Rc::new(Object::String(character.to_string()));
+                let object = new_string(character.to_string());
                 if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
                     elements.push_back((*object).clone());
                 }
@@ -176,7 +176,7 @@ builtin! {
         (_, Object::Function(folder), Object::String(string)) => {
             let mut accumulator = Rc::clone(initial);
             for character in string.chars() {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), new_string(character.to_string())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -227,7 +227,7 @@ builtin! {
         }
         (Object::Function(side_effect), Object::String(string)) => {
             for character in string.chars() {
-                let result = side_effect.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+                let result = side_effect.apply(evaluator, vec![new_string(character.to_string())], source)?;
                 if let Object::Break(_) = &*result {
                     break;
                 }
@@ -315,7 +315,7 @@ builtin! {
         (Object::Function(reducer), Object::String(string)) => {
             let mut characters = string.chars();
             let mut accumulator = match characters.next() {
-                Some(character) => Rc::new(Object::String(character.to_string())),
+                Some(character) => new_string(character.to_string()),
                 None => return Err(RuntimeErr {
                     message: "Unable to reduce an empty String".to_owned(),
                     source,
@@ -323,7 +323,7 @@ builtin! {
                 })
             };
             for character in characters {
-                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), new_string(character.to_string())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -384,7 +384,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::String(string)) => {
             for character in string.chars() {
-                let object = Rc::new(Object::String(character.to_string()));
+                let object = new_string(character.to_string());
                 if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
                     return Ok(Rc::clone(&object))
                 }
@@ -436,7 +436,7 @@ builtin! {
         (Object::Function(predicate), Object::String(string)) => {
             let mut count = 0;
             for character in string.chars() {
-                let object = Rc::new(Object::String(character.to_string()));
+                let object = new_string(character.to_string());
                 if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
                     count += 1;
                 }
@@ -799,7 +799,7 @@ fn eager_zipper(sequences: Vector<Object>, evaluator: &mut Evaluator, source: Lo
             Object::String(string) => iterators.push(Box::new(
                 string
                     .chars()
-                    .map(|character| Rc::new(Object::String(character.to_string()))),
+                    .map(|character| new_string(character.to_string())),
             )),
             Object::LazySequence(sequence) => {
                 iterators.push(Box::new(sequence.resolve_iter(Rc::clone(&shared_evaluator), source)));
@@ -886,7 +886,7 @@ builtin! {
         }
         Object::String(string) => {
             if let Some(first) = string.chars().next() {
-                return Ok(Rc::new(Object::String(first.to_string())));
+                return Ok(new_string(first.to_string()));
             }
             Ok(Rc::new(Object::Nil))
         }
@@ -921,7 +921,7 @@ builtin! {
             let mut iterator = string.chars();
             iterator.next();
             if let Some(second) = iterator.next() {
-                return Ok(Rc::new(Object::String(second.to_string())));
+                return Ok(new_string(second.to_string()));
             }
             Ok(Rc::new(Object::Nil))
         }
@@ -944,7 +944,7 @@ builtin! {
             Ok(Rc::new(Object::LazySequence(iterator.to_sequence())))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::String(string.chars().skip(1).collect())))
+            Ok(new_string(string.chars().skip(1).collect()))
         }
     }
 }
@@ -1048,7 +1048,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::String(string)) => {
             for character in string.chars() {
-                if predicate.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?.is_truthy() {
+                if predicate.apply(evaluator, vec![new_string(character.to_string())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
                 }
             }
@@ -1094,7 +1094,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::String(string)) => {
             for character in string.chars() {
-                if !predicate.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?.is_truthy() {
+                if !predicate.apply(evaluator, vec![new_string(character.to_string())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
                 }
             }
@@ -1430,7 +1430,7 @@ builtin! {
             elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for character in string.chars() {
-                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(Object::String(character.to_string()))], source)?;
+                previous = folder.apply(evaluator, vec![Rc::clone(&previous), new_string(character.to_string())], source)?;
                 elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
@@ -1447,7 +1447,7 @@ builtin! {
             Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).map(|obj| (*obj).clone()).collect::<Vector<Object>>().into_iter().rev().collect())))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::String(string.chars().rev().collect())))
+            Ok(new_string(string.chars().rev().collect()))
         }
     }
 }
@@ -1497,7 +1497,7 @@ builtin! {
         (Object::Function(mapper), Object::String(string)) => {
             let mut elements = Vector::new();
             for character in string.chars() {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+                let mapped = mapper.apply(evaluator, vec![new_string(character.to_string())], source)?;
                 if mapped.is_truthy() {
                     elements.push_back((*mapped).clone());
                 }
@@ -1548,7 +1548,7 @@ builtin! {
         }
         (Object::Function(mapper), Object::String(string)) => {
             for character in string.chars() {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+                let mapped = mapper.apply(evaluator, vec![new_string(character.to_string())], source)?;
                 if mapped.is_truthy() {
                     return Ok(mapped);
                 }
@@ -1710,7 +1710,7 @@ builtin! {
         (_, Object::Function(folder), Object::String(string)) => {
             let mut accumulator = Rc::clone(initial);
             for character in string.chars() {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), new_string(character.to_string())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::new((**value).clone()));
                 }

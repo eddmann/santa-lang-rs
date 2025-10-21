@@ -14,7 +14,7 @@ pub use crate::evaluator::environment::{Environment, EnvironmentErr, Environment
 use crate::evaluator::function::Function;
 pub use crate::evaluator::function::{Arguments, ExternalFnDef};
 use crate::evaluator::lazy_sequence::LazySequence;
-use crate::evaluator::object::new_integer;
+use crate::evaluator::object::{new_integer, new_string};
 pub use crate::evaluator::object::Object;
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Prefix, Program, Statement, StatementKind};
@@ -235,7 +235,7 @@ impl Evaluator {
             }
             ExpressionKind::Integer(value) => Ok(new_integer(*value)),
             ExpressionKind::Decimal(value) => Ok(Rc::new(Object::Decimal(*value))),
-            ExpressionKind::String(value) => Ok(Rc::new(Object::String(value.to_owned()))),
+            ExpressionKind::String(value) => Ok(new_string(value.to_owned())),
             ExpressionKind::Boolean(value) => Ok(Rc::new(Object::Boolean(*value))),
             ExpressionKind::If {
                 condition,

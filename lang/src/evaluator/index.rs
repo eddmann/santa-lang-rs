@@ -1,4 +1,4 @@
-use crate::evaluator::object::Object;
+use crate::evaluator::object::{new_string, Object};
 use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
 use crate::lexer::Location;
 use im_rc::Vector;
@@ -49,7 +49,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
         }
         (Object::String(string), Object::Integer(index)) => {
             if let Some(character) = string_lookup(string, *index) {
-                Ok(Rc::new(Object::String(character.to_string())))
+                Ok(new_string(character.to_string()))
             } else {
                 Ok(Rc::new(Object::Nil))
             }
@@ -84,7 +84,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
                 }
             }
 
-            Ok(Rc::new(Object::String(result)))
+            Ok(new_string(result))
         }
         (_, _) => Err(RuntimeErr {
             message: format!(

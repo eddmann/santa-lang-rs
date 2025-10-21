@@ -2,8 +2,9 @@ use crate::evaluator::lazy_sequence::LazySequence;
 use crate::evaluator::Function;
 use im_rc::{HashMap, HashSet, Vector};
 use ordered_float::OrderedFloat;
-use std::cell::OnceCell;
+use std::cell::{OnceCell, RefCell};
 use std::collections::hash_map::DefaultHasher;
+use std::collections::HashMap as StdHashMap;
 use std::fmt;
 use std::hash::BuildHasherDefault;
 use std::hash::Hash;
@@ -143,5 +144,31 @@ pub fn new_integer(value: i64) -> Rc<Object> {
         })
     } else {
         Rc::new(Object::Integer(value))
+    }
+}
+
+// String interning cache for commonly used strings (≤ 64 chars)
+// Reduces allocations for repeated strings like single characters, keywords, etc.
+thread_local! {
+    static STRING_CACHE: RefCell<StdHashMap<String, Rc<Object>>> = RefCell::new(StdHashMap::new());
+}
+
+/// Create an Rc<Object::String>, using interning for small strings
+/// Interns strings ≤ 64 characters for better memory efficiency
+pub fn new_string(value: String) -> Rc<Object> {
+    // Only intern small strings to avoid caching large data
+    if value.len() <= 64 {
+        STRING_CACHE.with(|cache| {
+            let mut cache = cache.borrow_mut();
+            if let Some(cached) = cache.get(&value) {
+                Rc::clone(cached)
+            } else {
+                let obj = Rc::new(Object::String(value.clone()));
+                cache.insert(value, Rc::clone(&obj));
+                obj
+            }
+        })
+    } else {
+        Rc::new(Object::String(value))
     }
 }
