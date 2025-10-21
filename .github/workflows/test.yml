@@ -45,12 +45,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           toolchain: 1.90.0
-          target: wasm32-unknown-unknown
-          override: true
+          targets: wasm32-unknown-unknown
       - name: Load Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Install wasm-pack
