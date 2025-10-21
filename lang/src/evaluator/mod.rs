@@ -19,6 +19,7 @@ pub use crate::evaluator::object::Object;
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Prefix, Program, Statement, StatementKind};
 use im_rc::{HashMap, HashSet, Vector};
+use smallvec::smallvec;
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -143,7 +144,7 @@ impl Evaluator {
                         if let Frame::ClosureCall { source, .. } = &frame {
                             if function.source == *source {
                                 return Ok(Rc::new(Object::Function(Function::Continuation {
-                                    arguments: self.eval_expressions(arguments)?,
+                                    arguments: self.eval_expressions(arguments)?.into(),
                                 })));
                             }
                             break;
@@ -159,7 +160,7 @@ impl Evaluator {
                             if let Frame::ClosureCall { source, .. } = &frame {
                                 if function.source == *source {
                                     return Ok(Rc::new(Object::Function(Function::Continuation {
-                                        arguments: self.eval_expressions(arguments)?,
+                                        arguments: self.eval_expressions(arguments)?.into(),
                                     })));
                                 }
                                 break;
@@ -253,7 +254,7 @@ impl Evaluator {
 
                 if let Object::Function(func) = &*evaluated_function {
                     let evaluated_arguments = self.eval_expressions(arguments)?;
-                    return func.apply(self, evaluated_arguments, function.source);
+                    return func.apply(self, evaluated_arguments.into(), function.source);
                 }
 
                 Err(RuntimeErr {
@@ -309,7 +310,7 @@ impl Evaluator {
                     let evaluated_function = self.eval_expression(function)?;
 
                     if let Object::Function(f) = &*evaluated_function {
-                        result = f.apply(self, vec![result], function.source)?;
+                        result = f.apply(self, smallvec![result], function.source)?;
                         continue;
                     }
 

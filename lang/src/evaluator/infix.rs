@@ -3,6 +3,7 @@ use crate::evaluator::object::Object;
 use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Infix, Statement, StatementKind};
+use smallvec::smallvec;
 use std::rc::Rc;
 
 #[inline]
@@ -112,7 +113,7 @@ pub fn apply(
             if let Object::Function(func) = &*evaluated_function {
                 let evaluated_left = evaluator.eval_expression(left)?;
                 let evaluated_right = evaluator.eval_expression(right)?;
-                return func.apply(evaluator, vec![evaluated_left, evaluated_right], function.source);
+                return func.apply(evaluator, smallvec![evaluated_left, evaluated_right], function.source);
             }
 
             return Err(RuntimeErr {

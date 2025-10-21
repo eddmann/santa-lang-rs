@@ -3,6 +3,7 @@ use crate::evaluator::{Evaluation, Evaluator, Frame, Object, RuntimeErr};
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Statement};
 use im_rc::Vector;
+use smallvec::{smallvec, SmallVec};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
@@ -11,10 +12,11 @@ use std::rc::Rc;
 
 pub type Arguments = HashMap<String, Rc<Object>>;
 pub type ExternalFnDef = (String, Vec<ExpressionKind>, ExternalFn);
+pub type FnArgs = SmallVec<[Rc<Object>; 4]>;
 
 type BuiltinFn = fn(&mut Evaluator, Arguments, Location) -> Evaluation;
 type ExternalFn = Rc<dyn Fn(Arguments, Location) -> Evaluation>;
-type MemoizedCache = Rc<RefCell<HashMap<Vec<Rc<Object>>, Rc<Object>>>>;
+type MemoizedCache = Rc<RefCell<HashMap<FnArgs, Rc<Object>>>>;
 
 #[derive(Clone)]
 pub enum Function {
@@ -43,12 +45,12 @@ pub enum Function {
         functions: Vec<Function>,
     },
     Continuation {
-        arguments: Vec<Rc<Object>>,
+        arguments: FnArgs,
     },
 }
 
 impl Function {
-    pub fn apply(&self, evaluator: &mut Evaluator, arguments: Vec<Rc<Object>>, source: Location) -> Evaluation {
+    pub fn apply(&self, evaluator: &mut Evaluator, arguments: FnArgs, source: Location) -> Evaluation {
         match self {
             Self::Closure {
                 parameters,
@@ -241,7 +243,7 @@ impl Function {
                 let mut result = Rc::clone(&arguments[0]);
 
                 for function in functions {
-                    result = function.apply(evaluator, vec![result], source)?;
+                    result = function.apply(evaluator, smallvec![result], source)?;
                     if let Object::Return(value) = &*result {
                         result = Rc::clone(value)
                     }
@@ -257,7 +259,7 @@ impl Function {
         &self,
         environment: EnvironmentRef,
         #[allow(clippy::ptr_arg)] parameters: &Vec<Expression>,
-        arguments: &Vec<Rc<Object>>,
+        arguments: &FnArgs,
     ) -> Result<Vec<Expression>, RuntimeErr> {
         let mut remaining_parameters = vec![];
 
@@ -308,7 +310,7 @@ impl Function {
         &self,
         evaluated_arguments: &mut Arguments,
         #[allow(clippy::ptr_arg)] parameters: &Vec<ExpressionKind>,
-        arguments: &Vec<Rc<Object>>,
+        arguments: &FnArgs,
     ) -> Result<Vec<ExpressionKind>, RuntimeErr> {
         let mut remaining_parameters = vec![];
 

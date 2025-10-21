@@ -3,6 +3,7 @@ use crate::evaluator::object::{new_integer, new_string, Object};
 use crate::evaluator::{Evaluation, Evaluator, RuntimeErr};
 use crate::lexer::Location;
 use im_rc::{HashMap, HashSet, Vector};
+use smallvec::smallvec;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -46,14 +47,14 @@ builtin! {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
-                elements.push_back((*mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?).clone());
+                elements.push_back((*mapper.apply(evaluator, smallvec![Rc::new(element.clone())], source)?).clone());
             }
             Ok(Rc::new(Object::List(elements)))
         }
         (Object::Function(mapper), Object::Set(set)) => {
             let mut elements = HashSet::default();
             for element in set {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?;
+                let mapped = mapper.apply(evaluator, smallvec![Rc::new(element.clone())], source)?;
                 if !mapped.is_hashable() {
                     return Err(RuntimeErr {
                         message: format!("Unable to include a {} within an Set", element.name()),
@@ -61,14 +62,14 @@ builtin! {
                         trace: evaluator.get_trace()
                     });
                 }
-                elements.insert((*mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?).clone());
+                elements.insert((*mapper.apply(evaluator, smallvec![Rc::new(element.clone())], source)?).clone());
             }
             Ok(Rc::new(Object::Set(elements)))
         }
         (Object::Function(mapper), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
             for (key, value) in map {
-                elements.insert(key.clone(), (*mapper.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?).clone());
+                elements.insert(key.clone(), (*mapper.apply(evaluator, smallvec![Rc::new(value.clone()), Rc::new(key.clone())], source)?).clone());
             }
             Ok(Rc::new(Object::Dictionary(elements)))
         }
@@ -78,7 +79,7 @@ builtin! {
         (Object::Function(mapper), Object::String(string)) => {
             let mut elements = Vector::new();
             for character in string.chars() {
-                elements.push_back((*mapper.apply(evaluator, vec![new_string(character.to_string())], source)?).clone());
+                elements.push_back((*mapper.apply(evaluator, smallvec![new_string(character.to_string())], source)?).clone());
             }
             Ok(Rc::new(Object::List(elements)))
         }
@@ -90,7 +91,7 @@ builtin! {
         (Object::Function(predicate), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
-                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(element.clone())], source)?.is_truthy() {
                     elements.push_back(element.clone());
                 }
             }
@@ -99,7 +100,7 @@ builtin! {
         (Object::Function(predicate), Object::Set(list)) => {
             let mut elements = HashSet::default();
             for element in list {
-                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(element.clone())], source)?.is_truthy() {
                     elements.insert(element.clone());
                 }
             }
@@ -108,7 +109,7 @@ builtin! {
         (Object::Function(predicate), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
             for (key, value) in map {
-                if predicate.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
                     elements.insert(key.clone(), value.clone());
                 }
             }
@@ -121,7 +122,7 @@ builtin! {
             let mut elements = Vector::new();
             for character in string.chars() {
                 let object = new_string(character.to_string());
-                if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::clone(&object)], source)?.is_truthy() {
                     elements.push_back((*object).clone());
                 }
             }
@@ -135,7 +136,7 @@ builtin! {
         (_, Object::Function(folder), Object::List(list)) => {
             let mut accumulator = Rc::clone(initial);
             for element in list {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
+                accumulator = folder.apply(evaluator, smallvec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -145,7 +146,7 @@ builtin! {
         (_, Object::Function(folder), Object::Set(set)) => {
             let mut accumulator = Rc::clone(initial);
             for element in set {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
+                accumulator = folder.apply(evaluator, smallvec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -155,7 +156,7 @@ builtin! {
         (_, Object::Function(folder), Object::Dictionary(map)) => {
             let mut accumulator = Rc::clone(initial);
             for (key, value) in map {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
+                accumulator = folder.apply(evaluator, smallvec![Rc::clone(&accumulator), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -166,7 +167,7 @@ builtin! {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             let mut accumulator = Rc::clone(initial);
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                accumulator = folder.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&accumulator), Rc::clone(&element)], source)?;
+                accumulator = folder.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::clone(&accumulator), Rc::clone(&element)], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -176,7 +177,7 @@ builtin! {
         (_, Object::Function(folder), Object::String(string)) => {
             let mut accumulator = Rc::clone(initial);
             for character in string.chars() {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), new_string(character.to_string())], source)?;
+                accumulator = folder.apply(evaluator, smallvec![Rc::clone(&accumulator), new_string(character.to_string())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -190,7 +191,7 @@ builtin! {
     each(side_effect, collection) [evaluator, source] match {
         (Object::Function(side_effect), Object::List(list)) => {
             for element in list {
-                let result = side_effect.apply(evaluator, vec![Rc::new(element.clone())], source)?;
+                let result = side_effect.apply(evaluator, smallvec![Rc::new(element.clone())], source)?;
                 if let Object::Break(_) = &*result {
                     break;
                 }
@@ -199,7 +200,7 @@ builtin! {
         }
         (Object::Function(side_effect), Object::Set(set)) => {
             for element in set {
-                let result = side_effect.apply(evaluator, vec![Rc::new(element.clone())], source)?;
+                let result = side_effect.apply(evaluator, smallvec![Rc::new(element.clone())], source)?;
                 if let Object::Break(_) = &*result {
                     break;
                 }
@@ -208,7 +209,7 @@ builtin! {
         }
         (Object::Function(side_effect), Object::Dictionary(map)) => {
             for (key, value) in map {
-                let result = side_effect.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?;
+                let result = side_effect.apply(evaluator, smallvec![Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if let Object::Break(_) = &*result {
                     break;
                 }
@@ -218,7 +219,7 @@ builtin! {
         (Object::Function(side_effect), Object::LazySequence(sequence)) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                let result = side_effect.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?;
+                let result = side_effect.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::clone(&element)], source)?;
                 if let Object::Break(_) = &*result {
                     break;
                 }
@@ -227,7 +228,7 @@ builtin! {
         }
         (Object::Function(side_effect), Object::String(string)) => {
             for character in string.chars() {
-                let result = side_effect.apply(evaluator, vec![new_string(character.to_string())], source)?;
+                let result = side_effect.apply(evaluator, smallvec![new_string(character.to_string())], source)?;
                 if let Object::Break(_) = &*result {
                     break;
                 }
@@ -250,7 +251,7 @@ builtin! {
                 })
             };
             for element in elements {
-                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
+                accumulator = reducer.apply(evaluator, smallvec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -268,7 +269,7 @@ builtin! {
                 })
             };
             for element in elements {
-                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
+                accumulator = reducer.apply(evaluator, smallvec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -286,7 +287,7 @@ builtin! {
                 })
             };
             for (key, value) in elements {
-                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
+                accumulator = reducer.apply(evaluator, smallvec![Rc::clone(&accumulator), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -305,7 +306,7 @@ builtin! {
                 })
             };
             for element in elements {
-                accumulator = reducer.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&accumulator), Rc::clone(&element)], source)?;
+                accumulator = reducer.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::clone(&accumulator), Rc::clone(&element)], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -323,7 +324,7 @@ builtin! {
                 })
             };
             for character in characters {
-                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), new_string(character.to_string())], source)?;
+                accumulator = reducer.apply(evaluator, smallvec![Rc::clone(&accumulator), new_string(character.to_string())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -338,7 +339,7 @@ builtin! {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
-                if let Object::List(other_elements) = &*mapper.apply(evaluator, vec![Rc::new(element.clone())], source)? {
+                if let Object::List(other_elements) = &*mapper.apply(evaluator, smallvec![Rc::new(element.clone())], source)? {
                     elements.append(other_elements.clone());
                 }
             }
@@ -351,7 +352,7 @@ builtin! {
     find(predicate, collection) [evaluator, source] match {
         (Object::Function(predicate), Object::List(list)) => {
             for element in list {
-                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(element.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(element.clone()))
                 }
             }
@@ -359,7 +360,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::Set(set)) => {
             for element in set {
-                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(element.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(element.clone()))
                 }
             }
@@ -367,7 +368,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map {
-                if predicate.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(value.clone()));
                 }
             }
@@ -376,7 +377,7 @@ builtin! {
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                if predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
+                if predicate.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::clone(&element)], source)?.is_truthy() {
                     return Ok(Rc::clone(&element))
                 }
             }
@@ -385,7 +386,7 @@ builtin! {
         (Object::Function(predicate), Object::String(string)) => {
             for character in string.chars() {
                 let object = new_string(character.to_string());
-                if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::clone(&object)], source)?.is_truthy() {
                     return Ok(Rc::clone(&object))
                 }
             }
@@ -399,7 +400,7 @@ builtin! {
         (Object::Function(predicate), Object::List(list)) => {
             let mut count = 0;
             for element in list {
-                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(element.clone())], source)?.is_truthy() {
                     count += 1;
                 }
             }
@@ -408,7 +409,7 @@ builtin! {
         (Object::Function(predicate), Object::Set(set)) => {
             let mut count = 0;
             for element in set {
-                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(element.clone())], source)?.is_truthy() {
                     count += 1;
                 }
             }
@@ -417,7 +418,7 @@ builtin! {
         (Object::Function(predicate), Object::Dictionary(map)) => {
             let mut count = 0;
             for (key, value) in map {
-                if predicate.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
                     count += 1;
                 }
             }
@@ -427,7 +428,7 @@ builtin! {
             let mut count = 0;
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                if predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
+                if predicate.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::clone(&element)], source)?.is_truthy() {
                     count += 1;
                 }
             }
@@ -437,7 +438,7 @@ builtin! {
             let mut count = 0;
             for character in string.chars() {
                 let object = new_string(character.to_string());
-                if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::clone(&object)], source)?.is_truthy() {
                     count += 1;
                 }
             }
@@ -1015,7 +1016,7 @@ builtin! {
     any(predicate, collection) [evaluator, source] match {
         (Object::Function(predicate), Object::List(list)) => {
             for element in list.iter() {
-                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(element.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
                 }
             }
@@ -1023,7 +1024,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::Set(set)) => {
             for element in set.iter() {
-                if predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(element.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
                 }
             }
@@ -1031,7 +1032,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map.iter() {
-                if predicate.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
                 }
             }
@@ -1040,7 +1041,7 @@ builtin! {
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                if predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
+                if predicate.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::clone(&element)], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
                 }
             }
@@ -1048,7 +1049,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::String(string)) => {
             for character in string.chars() {
-                if predicate.apply(evaluator, vec![new_string(character.to_string())], source)?.is_truthy() {
+                if predicate.apply(evaluator, smallvec![new_string(character.to_string())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
                 }
             }
@@ -1061,7 +1062,7 @@ builtin! {
     all(predicate, collection) [evaluator, source] match {
         (Object::Function(predicate), Object::List(list)) => {
             for element in list.iter() {
-                if !predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                if !predicate.apply(evaluator, smallvec![Rc::new(element.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
                 }
             }
@@ -1069,7 +1070,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::Set(set)) => {
             for element in set.iter() {
-                if !predicate.apply(evaluator, vec![Rc::new(element.clone())], source)?.is_truthy() {
+                if !predicate.apply(evaluator, smallvec![Rc::new(element.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
                 }
             }
@@ -1077,7 +1078,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map.iter() {
-                if !predicate.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
+                if !predicate.apply(evaluator, smallvec![Rc::new(value.clone()), Rc::new(key.clone())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
                 }
             }
@@ -1086,7 +1087,7 @@ builtin! {
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                if !predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
+                if !predicate.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::clone(&element)], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
                 }
             }
@@ -1094,7 +1095,7 @@ builtin! {
         }
         (Object::Function(predicate), Object::String(string)) => {
             for character in string.chars() {
-                if !predicate.apply(evaluator, vec![new_string(character.to_string())], source)?.is_truthy() {
+                if !predicate.apply(evaluator, smallvec![new_string(character.to_string())], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
                 }
             }
@@ -1112,7 +1113,7 @@ builtin! {
             sorted_list.sort_by(|a, b| {
                 // Note: Comparator errors during sort will panic. This is a limitation of sort_by.
                 // TODO: Consider implementing a fallible sorting mechanism.
-                match &*comparator.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::new(a.clone()), Rc::new(b.clone())], source)
+                match &*comparator.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::new(a.clone()), Rc::new(b.clone())], source)
                     .expect("Comparator function should not error during sort") {
                     Object::Integer(comparison) => comparison.cmp(&0),
                     comparison => if comparison.is_truthy() {
@@ -1389,7 +1390,7 @@ builtin! {
             elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for element in list {
-                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(element.clone())], source)?;
+                previous = folder.apply(evaluator, smallvec![Rc::clone(&previous), Rc::new(element.clone())], source)?;
                 elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
@@ -1399,7 +1400,7 @@ builtin! {
             elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for element in set {
-                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(element.clone())], source)?;
+                previous = folder.apply(evaluator, smallvec![Rc::clone(&previous), Rc::new(element.clone())], source)?;
                 elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
@@ -1409,7 +1410,7 @@ builtin! {
             elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for (key, value) in map {
-                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
+                previous = folder.apply(evaluator, smallvec![Rc::clone(&previous), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
@@ -1420,7 +1421,7 @@ builtin! {
             elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                previous = folder.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&previous), element], source)?;
+                previous = folder.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::clone(&previous), element], source)?;
                 elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
@@ -1430,7 +1431,7 @@ builtin! {
             elements.push_back((**initial).clone());
             let mut previous = Rc::clone(initial);
             for character in string.chars() {
-                previous = folder.apply(evaluator, vec![Rc::clone(&previous), new_string(character.to_string())], source)?;
+                previous = folder.apply(evaluator, smallvec![Rc::clone(&previous), new_string(character.to_string())], source)?;
                 elements.push_back((*previous).clone());
             }
             Ok(Rc::new(Object::List(elements)))
@@ -1457,7 +1458,7 @@ builtin! {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?;
+                let mapped = mapper.apply(evaluator, smallvec![Rc::new(element.clone())], source)?;
                 if mapped.is_truthy() {
                     elements.push_back((*mapped).clone());
                 }
@@ -1467,7 +1468,7 @@ builtin! {
         (Object::Function(mapper), Object::Set(set)) => {
             let mut elements = HashSet::default();
             for element in set {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?;
+                let mapped = mapper.apply(evaluator, smallvec![Rc::new(element.clone())], source)?;
                 if !mapped.is_hashable() {
                     return Err(RuntimeErr {
                         message: format!("Unable to include a {} within an Set", element.name()),
@@ -1484,7 +1485,7 @@ builtin! {
         (Object::Function(mapper), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
             for (key, value) in map {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?;
+                let mapped = mapper.apply(evaluator, smallvec![Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if mapped.is_truthy() {
                     elements.insert(key.clone(), (*mapped).clone());
                 }
@@ -1497,7 +1498,7 @@ builtin! {
         (Object::Function(mapper), Object::String(string)) => {
             let mut elements = Vector::new();
             for character in string.chars() {
-                let mapped = mapper.apply(evaluator, vec![new_string(character.to_string())], source)?;
+                let mapped = mapper.apply(evaluator, smallvec![new_string(character.to_string())], source)?;
                 if mapped.is_truthy() {
                     elements.push_back((*mapped).clone());
                 }
@@ -1511,7 +1512,7 @@ builtin! {
     find_map(mapper, collection) [evaluator, source] match {
         (Object::Function(mapper), Object::List(list)) => {
             for element in list {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?;
+                let mapped = mapper.apply(evaluator, smallvec![Rc::new(element.clone())], source)?;
                 if mapped.is_truthy() {
                     return Ok(mapped);
                 }
@@ -1520,7 +1521,7 @@ builtin! {
         }
         (Object::Function(mapper), Object::Set(set)) => {
             for element in set {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(element.clone())], source)?;
+                let mapped = mapper.apply(evaluator, smallvec![Rc::new(element.clone())], source)?;
                 if mapped.is_truthy() {
                     return Ok(mapped);
                 }
@@ -1529,7 +1530,7 @@ builtin! {
         }
         (Object::Function(mapper), Object::Dictionary(map)) => {
             for (key, value) in map {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(value.clone()), Rc::new(key.clone())], source)?;
+                let mapped = mapper.apply(evaluator, smallvec![Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if mapped.is_truthy() {
                     return Ok(mapped);
                 }
@@ -1539,7 +1540,7 @@ builtin! {
         (Object::Function(mapper), Object::LazySequence(sequence)) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                let mapped = mapper.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?;
+                let mapped = mapper.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::clone(&element)], source)?;
                 if mapped.is_truthy() {
                     return Ok(mapped);
                 }
@@ -1548,7 +1549,7 @@ builtin! {
         }
         (Object::Function(mapper), Object::String(string)) => {
             for character in string.chars() {
-                let mapped = mapper.apply(evaluator, vec![new_string(character.to_string())], source)?;
+                let mapped = mapper.apply(evaluator, smallvec![new_string(character.to_string())], source)?;
                 if mapped.is_truthy() {
                     return Ok(mapped);
                 }
@@ -1589,14 +1590,14 @@ builtin! {
                 Some(value) => Rc::new(value.clone()),
                 None => Rc::new(Object::Nil),
             };
-            Ok(Rc::new(Object::List(updated.update(index, (*updater.apply(evaluator, vec![Rc::clone(&previous)], source)?).clone()))))
+            Ok(Rc::new(Object::List(updated.update(index, (*updater.apply(evaluator, smallvec![Rc::clone(&previous)], source)?).clone()))))
         }
         (_, Object::Function(updater), Object::Dictionary(map)) => {
             let previous = match map.get(key) {
                 Some(value) => Rc::new(value.clone()),
                 None => Rc::new(Object::Nil),
             };
-            Ok(Rc::new(Object::Dictionary(map.update((**key).clone(), (*updater.apply(evaluator, vec![Rc::clone(&previous), Rc::new((**key).clone())], source)?).clone()))))
+            Ok(Rc::new(Object::Dictionary(map.update((**key).clone(), (*updater.apply(evaluator, smallvec![Rc::clone(&previous), Rc::new((**key).clone())], source)?).clone()))))
         }
     }
 }
@@ -1615,14 +1616,14 @@ builtin! {
                     updated.push_back(Object::Nil);
                 }
             }
-            Ok(Rc::new(Object::List(updated.update(index, (*updater.apply(evaluator, vec![Rc::clone(&previous)], source)?).clone()))))
+            Ok(Rc::new(Object::List(updated.update(index, (*updater.apply(evaluator, smallvec![Rc::clone(&previous)], source)?).clone()))))
         }
         (_, _,Object::Function(updater), Object::Dictionary(map)) => {
             let previous = match map.get(key) {
                 Some(value) => Rc::new(value.clone()),
                 None => Rc::clone(default),
             };
-            Ok(Rc::new(Object::Dictionary(map.update((**key).clone(), (*updater.apply(evaluator, vec![Rc::clone(&previous), Rc::new((**key).clone())], source)?).clone()))))
+            Ok(Rc::new(Object::Dictionary(map.update((**key).clone(), (*updater.apply(evaluator, smallvec![Rc::clone(&previous), Rc::new((**key).clone())], source)?).clone()))))
         }
     }
 }
@@ -1632,7 +1633,7 @@ builtin! {
         (_, Object::Function(folder), Object::List(list)) => {
             let mut accumulator = Rc::clone(initial);
             for element in list {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
+                accumulator = folder.apply(evaluator, smallvec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::new((**value).clone()));
                 }
@@ -1651,7 +1652,7 @@ builtin! {
         (_, Object::Function(folder), Object::Set(set)) => {
             let mut accumulator = Rc::clone(initial);
             for element in set {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
+                accumulator = folder.apply(evaluator, smallvec![Rc::clone(&accumulator), Rc::new(element.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::new((**value).clone()));
                 }
@@ -1670,7 +1671,7 @@ builtin! {
         (_, Object::Function(folder), Object::Dictionary(map)) => {
             let mut accumulator = Rc::clone(initial);
             for (key, value) in map {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
+                accumulator = folder.apply(evaluator, smallvec![Rc::clone(&accumulator), Rc::new(value.clone()), Rc::new(key.clone())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::new((**value).clone()));
                 }
@@ -1690,7 +1691,7 @@ builtin! {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             let mut accumulator = Rc::clone(initial);
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                accumulator = folder.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&accumulator), element], source)?;
+                accumulator = folder.apply(&mut shared_evaluator.borrow_mut(), smallvec![Rc::clone(&accumulator), element], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::new((**value).clone()));
                 }
@@ -1710,7 +1711,7 @@ builtin! {
         (_, Object::Function(folder), Object::String(string)) => {
             let mut accumulator = Rc::clone(initial);
             for character in string.chars() {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), new_string(character.to_string())], source)?;
+                accumulator = folder.apply(evaluator, smallvec![Rc::clone(&accumulator), new_string(character.to_string())], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::new((**value).clone()));
                 }

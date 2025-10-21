@@ -2,6 +2,7 @@ use crate::evaluator::object::new_integer;
 use crate::evaluator::{Evaluator, Function, Object};
 use crate::lexer::Location;
 use im_rc::Vector;
+use smallvec::smallvec;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
@@ -242,7 +243,7 @@ impl LazySequenceIter<'_> {
                 let next = Rc::clone(current);
 
                 *current = generator
-                    .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(current)], self.source)
+                    .apply(&mut self.evaluator.borrow_mut(), smallvec![Rc::clone(current)], self.source)
                     .ok()?;
 
                 Some(next)
@@ -291,12 +292,12 @@ impl Iterator for LazySequenceIter<'_> {
                 match function {
                     LazyFn::Map(mapper) => {
                         next = mapper
-                            .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
+                            .apply(&mut self.evaluator.borrow_mut(), smallvec![Rc::clone(&next)], self.source)
                             .ok()?;
                     }
                     LazyFn::Filter(predicate) => {
                         if !predicate
-                            .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
+                            .apply(&mut self.evaluator.borrow_mut(), smallvec![Rc::clone(&next)], self.source)
                             .ok()?
                             .is_truthy()
                         {
@@ -305,7 +306,7 @@ impl Iterator for LazySequenceIter<'_> {
                     }
                     LazyFn::FilterMap(mapper) => {
                         next = mapper
-                            .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
+                            .apply(&mut self.evaluator.borrow_mut(), smallvec![Rc::clone(&next)], self.source)
                             .ok()?;
                         if !next.is_truthy() {
                             continue 'next;
