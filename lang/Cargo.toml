@@ -3,7 +3,7 @@ name = "santa-lang"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 im-rc = { git = "https://github.com/eddmann/im-rs.git", features = ["pool"] }

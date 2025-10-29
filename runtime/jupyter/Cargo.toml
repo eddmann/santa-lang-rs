@@ -3,7 +3,7 @@ name = "santa-jupyter"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
-edition = "2021"
+edition = "2024"
 
 [[bin]]
 name = "santa-jupyter"

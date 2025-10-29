@@ -3,7 +3,7 @@ name = "santa-php-ext"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
-edition = "2021"
+edition = "2024"
 
 [lib]
 name = "santa_lang"
