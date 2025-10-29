@@ -10,7 +10,7 @@ concurrency: publish
 jobs:
   npm:
     name: Publish NPM package
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
@@ -36,7 +36,7 @@ jobs:
 
   docker:
     name: Publish Docker image
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,7 +57,7 @@ jobs:
 
   lambda:
     name: Publish Lambda layer
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
