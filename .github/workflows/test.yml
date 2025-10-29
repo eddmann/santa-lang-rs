@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Load cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./.cargo
           key: test-lang-cargo-${{ hashFiles('./Cargo.lock') }}
@@ -26,9 +26,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Load cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./.cargo
           key: test-cli-cargo-${{ hashFiles('./Cargo.lock') }}
@@ -43,14 +43,12 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: 1.70.0
-          target: wasm32-unknown-unknown
-          override: true
+          toolchain: 1.85.0
+          targets: wasm32-unknown-unknown
       - name: Load Rust cache
         uses: Swatinem/rust-cache@v2
       - name: Install wasm-pack
@@ -58,9 +56,9 @@ jobs:
         with:
           version: v0.11.0
       - name: Install Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.16.0
+          node-version: 22
       - name: Test
         run: make test/wasm
 
@@ -74,7 +72,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Update

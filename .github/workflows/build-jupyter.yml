@@ -29,24 +29,19 @@ jobs:
             os: macos-12
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set release version
         run: |
           sed -i.bak 's/version = "[0-9.]*"$/version = "${{ inputs.release-tag }}"/' Cargo.toml
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: 1.70.0
-          target: ${{ matrix.target }}
-          override: true
+          toolchain: 1.85.0
+          targets: ${{ matrix.target }}
       - name: Load cache
         uses: Swatinem/rust-cache@v2
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --bin santa-jupyter --target ${{ matrix.target }}
+        run: cargo build --release --bin santa-jupyter --target ${{ matrix.target }}
       - name: Upload
         run: |
           cp target/${{ matrix.target }}/release/santa-jupyter santa-lang-jupyter-${{ inputs.release-tag }}-${{ matrix.target }}
