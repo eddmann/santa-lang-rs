@@ -6,7 +6,7 @@ documentation.workspace = true
 edition = "2024"
 
 [lib]
-name = "santa_lang"
+name = "santa_lang_wasm"
 path = "src/lib.rs"
 crate-type = ["cdylib"]
 
