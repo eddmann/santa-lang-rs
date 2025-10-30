@@ -45,13 +45,21 @@ jobs:
       matrix:
         build:
           - x86_64-linux-gnu
+          - aarch64-linux-gnu
           - x86_64-macos
+          - aarch64-macos
         include:
           - build: x86_64-linux-gnu
             target: x86_64-unknown-linux-gnu
             os: ubuntu-24.04
+          - build: aarch64-linux-gnu
+            target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04
           - build: x86_64-macos
             target: x86_64-apple-darwin
+            os: macos-14
+          - build: aarch64-macos
+            target: aarch64-apple-darwin
             os: macos-14
     steps:
       - name: Checkout
@@ -59,6 +67,11 @@ jobs:
       - name: Set release version
         run: |
           sed -i.bak 's/version = "[0-9.]*"$/version = "${{ inputs.release-tag }}"/' Cargo.toml
+      - name: Install cross-compilation tools (ARM64 Linux)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -66,6 +79,11 @@ jobs:
           targets: ${{ matrix.target }}
       - name: Load cache
         uses: Swatinem/rust-cache@v2
+      - name: Configure cross-compilation (ARM64 Linux)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          echo "[target.aarch64-unknown-linux-gnu]" >> ~/.cargo/config.toml
+          echo "linker = \"aarch64-linux-gnu-gcc\"" >> ~/.cargo/config.toml
       - name: Build
         run: cargo build --release --bin santa-cli --target ${{ matrix.target }}
       - name: Upload
