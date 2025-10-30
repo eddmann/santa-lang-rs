@@ -38,7 +38,8 @@ fmt:
 
 .PHONY: lambda/build
 lambda/build:
-	@$(DOCKER) -e BIN=santa-lambda rustserverless/lambda-rust:0.4.0-rust-stable
+	@docker build -t local/santa-lambda-build -f runtime/lambda/build.Dockerfile .
+	@docker run --rm -v $(PWD)/target:/output local/santa-lambda-build cp -r /app/target/lambda /output/
 
 .PHONY: lambda/serve
 lambda/serve:
@@ -76,5 +77,5 @@ jupyter/run:
 	docker run --rm -it -p 8888:8888 ghcr.io/eddmann/santa-lang-jupyter:latest
 
 cli/build/%:
-	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.85.0 \
+	@$(DOCKER) joseluisq/rust-linux-darwin-builder:1.86.0 \
 		sh -c "cargo build --release --bin santa-cli --target $*"
