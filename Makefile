@@ -108,8 +108,17 @@ bench/compare:
 	fi
 	@echo "Comparing $(V1) vs $(V2) in Docker..."
 	@mkdir -p benchmarks/results/compare_$(BENCH_TIMESTAMP)
+	@echo "Preserving benchmark fixtures..."
+	@if [ -d "benchmarks/fixtures" ]; then \
+		cp -r benchmarks/fixtures /tmp/bench_fixtures_$(BENCH_TIMESTAMP); \
+	else \
+		echo "Error: benchmarks/fixtures directory not found"; \
+		exit 1; \
+	fi
 	@echo "Benchmarking $(V1)..."
 	@git checkout $(V1) 2>/dev/null || (echo "Failed to checkout $(V1)" && exit 1)
+	@mkdir -p benchmarks/fixtures
+	@cp -r /tmp/bench_fixtures_$(BENCH_TIMESTAMP)/* benchmarks/fixtures/
 	@$(BENCH_DOCKER) bash -c ' \
 		cargo build --release --bin santa-cli --quiet && \
 		for fixture in benchmarks/fixtures/*.santa; do \
@@ -122,6 +131,8 @@ bench/compare:
 	'
 	@echo "Benchmarking $(V2)..."
 	@git checkout $(V2) 2>/dev/null || (echo "Failed to checkout $(V2)" && exit 1)
+	@mkdir -p benchmarks/fixtures
+	@cp -r /tmp/bench_fixtures_$(BENCH_TIMESTAMP)/* benchmarks/fixtures/
 	@$(BENCH_DOCKER) bash -c ' \
 		cargo build --release --bin santa-cli --quiet && \
 		for fixture in benchmarks/fixtures/*.santa; do \
@@ -132,6 +143,7 @@ bench/compare:
 				"./target/release/santa-cli $$fixture" 2>/dev/null; \
 		done \
 	'
+	@rm -rf /tmp/bench_fixtures_$(BENCH_TIMESTAMP)
 	@git checkout - >/dev/null 2>&1
 	@echo ""
 	@echo "Generating comparison report..."
