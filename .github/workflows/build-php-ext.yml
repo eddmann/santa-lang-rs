@@ -18,7 +18,7 @@ jobs:
         run: make php-ext/build
       - name: Upload
         run: |
-          cp target/release/libsanta_lang.so santa-lang-php-ext-${{ inputs.release-tag }}-x86_64-linux.so
+          cp target/release/libsanta_lang_php.so santa-lang-php-ext-${{ inputs.release-tag }}-x86_64-linux.so
           gh release upload ${{ inputs.release-tag }} santa-lang-php-ext-${{ inputs.release-tag }}-x86_64-linux.so --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
