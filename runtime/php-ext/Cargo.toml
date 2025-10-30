@@ -3,15 +3,15 @@ name = "santa-php-ext"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
-edition = "2021"
+edition = "2024"
 
 [lib]
-name = "santa_lang"
+name = "santa_lang_php"
 path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-ext-php-rs = "0.10.0"
+ext-php-rs = "0.13.0"
 santa-lang = { path = "../../lang", version = "*" }
-ureq = "2.6.2"
-url = "2.3.1"
+ureq = "2.12.1"
+url = "2.5.4"

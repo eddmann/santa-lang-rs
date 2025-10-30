@@ -1,4 +1,4 @@
-FROM rust:1.70.0-bullseye
+FROM rust:1.85.0-bullseye
 
 RUN apt update \
  && apt -y install lsb-release apt-transport-https ca-certificates \

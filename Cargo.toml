@@ -1,6 +1,7 @@
 [workspace]
 members = ["lang", "runtime/*"]
 default-members = ["lang", "runtime/cli", "runtime/wasm", "runtime/lambda", "runtime/jupyter"]
+resolver = "2"
 
 [workspace.package]
 version = "0.0.1"

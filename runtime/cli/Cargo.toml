@@ -3,24 +3,24 @@ name = "santa-cli"
 version.workspace = true
 authors.workspace = true
 documentation.workspace = true
-edition = "2021"
+edition = "2024"
 
 [[bin]]
 name = "santa-cli"
 path = "src/main.rs"
 
 [dependencies]
-getopts = "0.2"
-rustyline = "11.0.0"
+getopts = "0.2.21"
+rustyline = "15.0.0"
 santa-lang = { path = "../../lang", version = "*" }
-tikv-jemallocator = "0.5.0"
-ureq = "2.6.2"
-url = "2.3.1"
-pprof = { version = "0.11.1", features = ["flamegraph", "protobuf-codec"], optional = true }
+tikv-jemallocator = "0.6.0"
+ureq = "2.12.1"
+url = "2.5.4"
+pprof = { version = "0.14.0", features = ["flamegraph", "protobuf-codec"], optional = true }
 
 [dev-dependencies]
-assert_cmd = "2.0.11"
-predicates = "3.0.3"
+assert_cmd = "2.0.16"
+predicates = "3.1.2"
 
 [features]
 profile = ["dep:pprof"]

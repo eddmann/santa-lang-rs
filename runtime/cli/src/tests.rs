@@ -3,6 +3,7 @@ use predicates::prelude::*;
 
 #[test]
 fn script() {
+    #[allow(deprecated)]
     let mut cmd = Command::cargo_bin("santa-cli").unwrap();
     let assert = cmd
         .arg(format!("{}/fixtures/script.santa", env!("CARGO_MANIFEST_DIR")))
@@ -12,6 +13,7 @@ fn script() {
 
 #[test]
 fn solution() {
+    #[allow(deprecated)]
     let mut cmd = Command::cargo_bin("santa-cli").unwrap();
     let assert = cmd
         .arg(format!("{}/fixtures/solution.santa", env!("CARGO_MANIFEST_DIR")))
@@ -24,6 +26,7 @@ fn solution() {
 
 #[test]
 fn test_solution() {
+    #[allow(deprecated)]
     let mut cmd = Command::cargo_bin("santa-cli").unwrap();
     let assert = cmd
         .arg("-t")
@@ -38,6 +41,7 @@ fn test_solution() {
 
 #[test]
 fn repl() {
+    #[allow(deprecated)]
     let mut cmd = Command::cargo_bin("santa-cli").unwrap();
     let assert = cmd.arg("-r").write_stdin("[1, 2] + [3]").assert();
     assert.success().stdout(predicate::str::contains("[1, 2, 3]"));
