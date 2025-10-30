@@ -8,30 +8,92 @@ on:
         type: string
 
 jobs:
-  docker:
-    name: Docker
+  docker-amd64:
+    name: Docker (AMD64)
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set release version
         run: |
           sed -i 's/version = "[0-9.]*"$/version = "${{ inputs.release-tag }}"/' Cargo.toml
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Build multi-arch image
+      - name: Build AMD64 image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: runtime/cli/build.Dockerfile
-          platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/eddmann/santa-lang-cli:latest
+          platforms: linux/amd64
+          tags: ghcr.io/eddmann/santa-lang-cli:${{ inputs.release-tag }}-amd64
           labels: org.opencontainers.image.source=https://github.com/eddmann/santa-lang-rs
-          outputs: type=oci,dest=/tmp/santa-lang-cli.tar
+          outputs: type=oci,dest=/tmp/santa-lang-cli-amd64.tar
+      - name: Upload AMD64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-amd64
+          path: /tmp/santa-lang-cli-amd64.tar
+          retention-days: 1
+
+  docker-arm64:
+    name: Docker (ARM64)
+    runs-on: ubuntu-24.04-arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set release version
+        run: |
+          sed -i 's/version = "[0-9.]*"$/version = "${{ inputs.release-tag }}"/' Cargo.toml
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build ARM64 image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: runtime/cli/build.Dockerfile
+          platforms: linux/arm64
+          tags: ghcr.io/eddmann/santa-lang-cli:${{ inputs.release-tag }}-arm64
+          labels: org.opencontainers.image.source=https://github.com/eddmann/santa-lang-rs
+          outputs: type=oci,dest=/tmp/santa-lang-cli-arm64.tar
+      - name: Upload ARM64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-arm64
+          path: /tmp/santa-lang-cli-arm64.tar
+          retention-days: 1
+
+  docker-manifest:
+    name: Docker (Multi-arch Manifest)
+    runs-on: ubuntu-24.04
+    needs: [docker-amd64, docker-arm64]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download AMD64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-amd64
+          path: /tmp
+      - name: Download ARM64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-arm64
+          path: /tmp
+      - name: Install regctl
+        run: |
+          curl -L https://github.com/regclient/regclient/releases/latest/download/regctl-linux-amd64 -o /tmp/regctl
+          chmod +x /tmp/regctl
+      - name: Merge multi-arch OCI tar
+        run: |
+          # Use regctl to merge the two single-arch OCI tars into a multi-arch OCI tar
+          /tmp/regctl image import ghcr.io/eddmann/santa-lang-cli:amd64 /tmp/santa-lang-cli-amd64.tar
+          /tmp/regctl image import ghcr.io/eddmann/santa-lang-cli:arm64 /tmp/santa-lang-cli-arm64.tar
+          /tmp/regctl image manifest create ghcr.io/eddmann/santa-lang-cli:latest \
+            ghcr.io/eddmann/santa-lang-cli:amd64 \
+            ghcr.io/eddmann/santa-lang-cli:arm64
+          /tmp/regctl image export ghcr.io/eddmann/santa-lang-cli:latest /tmp/santa-lang-cli.tar
       - name: Upload
         run: |
           mv /tmp/santa-lang-cli.tar santa-lang-cli-${{ inputs.release-tag }}-docker.tar
