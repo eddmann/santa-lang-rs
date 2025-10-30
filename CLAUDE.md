@@ -63,6 +63,38 @@ make jupyter/build
 make jupyter/run
 ```
 
+### Benchmarking
+
+All benchmarks run in Docker for reproducible, isolated results:
+
+```bash
+# Build benchmark Docker image
+make bench/build
+
+# Run hyperfine benchmarks
+make bench/run
+
+# Compare versions (in isolated containers)
+make bench/compare V1=main V2=HEAD
+
+# Run Criterion microbenchmarks
+make bench/criterion
+
+# Generate visualizations
+make bench/visualize RESULTS="benchmarks/results/*.json"
+
+# Interactive Docker shell
+make bench/shell
+
+# Clean results
+make bench/clean
+```
+
+**Automated CI Benchmarks:**
+Pull requests automatically trigger performance benchmarks that compare against the base branch. Benchmarks run in Docker containers and post results as PR comments with status indicators (✓ unchanged, 🚀 improved, ⚠️ regressed).
+
+See [benchmarks/README.md](benchmarks/README.md) for complete documentation.
+
 ### Docker Development
 
 ```bash
@@ -237,6 +269,7 @@ When making changes, maintain compatibility with these versions.
 
 GitHub Actions workflows in `.github/workflows/`:
 - **test.yml** - Runs on every push (test-lang, test-cli, test-wasm)
+- **benchmark.yml** - Runs on PRs affecting lang/CLI, compares performance vs base branch
 - **build.yml** - Triggered on draft-release branch (builds all runtimes)
 - **build-cli.yml** - Cross-compiles CLI for Linux/macOS
 - **build-lambda.yml** - Builds Lambda runtime
@@ -245,3 +278,13 @@ GitHub Actions workflows in `.github/workflows/`:
 - **build-jupyter.yml** - Builds Jupyter Docker image
 
 All use Ubuntu 24.04 or macOS 14 runners with build caching.
+
+**Performance Benchmarking:**
+The benchmark workflow automatically runs on PRs that modify core language or CLI code. It:
+- Builds and benchmarks both the PR and base branch
+- Compares execution times across all test fixtures
+- Posts results as a PR comment with ✓/🚀/⚠️ indicators
+- Uploads charts and detailed results as artifacts
+- Warns on significant regressions (>5% slower)
+
+See [benchmarks/README.md](benchmarks/README.md) for complete documentation.

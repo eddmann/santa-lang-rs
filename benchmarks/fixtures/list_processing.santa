@@ -1,0 +1,5 @@
+// List processing benchmark - pipeline operations
+1..10000
+  |> filter(|x| x % 2 == 0)
+  |> map(|x| x * x)
+  |> fold(0, |acc, x| acc + x)
