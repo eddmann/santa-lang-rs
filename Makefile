@@ -124,7 +124,7 @@ bench/compare:
 		for fixture in benchmarks/fixtures/*.santa; do \
 			name=$$(basename $$fixture .santa); \
 			echo "  $$name..."; \
-			hyperfine --warmup 3 --runs 10 \
+			hyperfine --warmup 3 --runs 10 --show-output \
 				--export-json /results/compare_$(BENCH_TIMESTAMP)/$${name}_v1.json \
 				"./target/release/santa-cli $$fixture"; \
 		done \
@@ -138,7 +138,7 @@ bench/compare:
 		for fixture in benchmarks/fixtures/*.santa; do \
 			name=$$(basename $$fixture .santa); \
 			echo "  $$name..."; \
-			hyperfine --warmup 3 --runs 10 \
+			hyperfine --warmup 3 --runs 10 --show-output \
 				--export-json /results/compare_$(BENCH_TIMESTAMP)/$${name}_v2.json \
 				"./target/release/santa-cli $$fixture"; \
 		done \
