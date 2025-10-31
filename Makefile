@@ -126,7 +126,7 @@ bench/compare:
 			echo "  $$name..."; \
 			hyperfine --warmup 3 --runs 10 \
 				--export-json /results/compare_$(BENCH_TIMESTAMP)/$${name}_v1.json \
-				"./target/release/santa-cli $$fixture" 2>/dev/null; \
+				"./target/release/santa-cli $$fixture"; \
 		done \
 	'
 	@echo "Benchmarking $(V2)..."
@@ -140,7 +140,7 @@ bench/compare:
 			echo "  $$name..."; \
 			hyperfine --warmup 3 --runs 10 \
 				--export-json /results/compare_$(BENCH_TIMESTAMP)/$${name}_v2.json \
-				"./target/release/santa-cli $$fixture" 2>/dev/null; \
+				"./target/release/santa-cli $$fixture"; \
 		done \
 	'
 	@rm -rf /tmp/bench_fixtures_$(BENCH_TIMESTAMP)
