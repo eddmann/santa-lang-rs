@@ -1,0 +1,17 @@
+[package]
+name = "santa-lang-benchmarks"
+version.workspace = true
+authors.workspace = true
+edition = "2024"
+
+[dependencies]
+santa-lang = { path = "../lang" }
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "language"
+harness = false
+
+[[bench]]
+name = "evaluator"
+harness = false

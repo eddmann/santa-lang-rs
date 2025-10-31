@@ -1,0 +1,11 @@
+# Benchmark results
+results/
+charts/
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Criterion output
+target/

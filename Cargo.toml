@@ -1,5 +1,5 @@
 [workspace]
-members = ["lang", "runtime/*"]
+members = ["lang", "runtime/*", "benchmarks"]
 default-members = ["lang", "runtime/cli", "runtime/wasm", "runtime/lambda", "runtime/jupyter"]
 resolver = "2"
 
