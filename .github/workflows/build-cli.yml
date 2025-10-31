@@ -37,13 +37,15 @@ jobs:
 
   docker-arm64:
     name: Docker (ARM64)
-    runs-on: ubuntu-24.04-arm64
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set release version
         run: |
           sed -i 's/version = "[0-9.]*"$/version = "${{ inputs.release-tag }}"/' Cargo.toml
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build ARM64 image
