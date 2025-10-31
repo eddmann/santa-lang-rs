@@ -120,6 +120,7 @@ bench/compare:
 	@mkdir -p benchmarks/fixtures
 	@cp -r /tmp/bench_fixtures_$(BENCH_TIMESTAMP)/* benchmarks/fixtures/
 	@$(BENCH_DOCKER) bash -c ' \
+		echo "Fixtures in container:" && ls -la benchmarks/fixtures/ && \
 		cargo build --release --bin santa-cli --quiet && \
 		for fixture in benchmarks/fixtures/*.santa; do \
 			name=$$(basename $$fixture .santa); \
@@ -134,6 +135,7 @@ bench/compare:
 	@mkdir -p benchmarks/fixtures
 	@cp -r /tmp/bench_fixtures_$(BENCH_TIMESTAMP)/* benchmarks/fixtures/
 	@$(BENCH_DOCKER) bash -c ' \
+		echo "Fixtures in container:" && ls -la benchmarks/fixtures/ && \
 		cargo build --release --bin santa-cli --quiet && \
 		for fixture in benchmarks/fixtures/*.santa; do \
 			name=$$(basename $$fixture .santa); \
