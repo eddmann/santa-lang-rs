@@ -1,0 +1,9 @@
+// Pattern matching benchmark - recursive list sum
+let sum_list = |list| match list {
+    [] { 0 }
+    [x] { x }
+    [first, second, ..rest] { first + second + sum_list(rest) }
+    [first, ..rest] { first + sum_list(rest) }
+};
+
+sum_list([1..1000])

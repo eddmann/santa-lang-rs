@@ -46,6 +46,158 @@ test/wasm: ## Test WebAssembly (runs on host machine)
 	@echo "Note: test/wasm runs on the host"
 	@wasm-pack test --node runtime/wasm
 
+##@ Benchmarking
+
+# Benchmark configuration
+BENCH_IMAGE = santa-lang-benchmark
+BENCH_DOCKER = docker run --rm \
+	-v $(PWD):/workspace \
+	-v $(PWD)/benchmarks/results:/results \
+	-w /workspace \
+	-e CARGO_HOME=/tmp/cargo \
+	$(BENCH_IMAGE)
+BENCH_TIMESTAMP = $(shell date +%Y%m%d_%H%M%S)
+
+.PHONY: bench/build
+bench/build: ## Build benchmark Docker image
+	@echo "Building benchmark Docker image..."
+	@DOCKER_BUILDKIT=1 docker build \
+		--cache-from $(BENCH_IMAGE) \
+		-t $(BENCH_IMAGE) \
+		-f benchmarks/Dockerfile \
+		benchmarks
+
+.PHONY: bench/shell
+bench/shell: ## Open interactive shell in benchmark Docker container
+	@docker run --rm -it \
+		-v $(PWD):/workspace \
+		-w /workspace \
+		-e CARGO_HOME=/tmp/cargo \
+		$(BENCH_IMAGE) bash
+
+.PHONY: bench/criterion
+bench/criterion: ## Run Criterion microbenchmarks in Docker
+	@echo "Running Criterion microbenchmarks in Docker..."
+	@mkdir -p benchmarks/results
+	@$(BENCH_DOCKER) bash -c "cargo bench --package santa-lang-benchmarks"
+
+.PHONY: bench/run
+bench/run: ## Run hyperfine benchmarks on all fixtures
+	@echo "Running hyperfine benchmarks in Docker..."
+	@mkdir -p benchmarks/results
+	@$(BENCH_DOCKER) bash -c ' \
+		echo "Building santa-cli..." && \
+		cargo build --release --bin santa-cli --quiet && \
+		echo "" && \
+		echo "Running benchmarks..." && \
+		hyperfine \
+			--shell=none \
+			--warmup 3 \
+			--runs 10 \
+			--export-json /results/benchmark_$(BENCH_TIMESTAMP).json \
+			--export-markdown /results/benchmark_$(BENCH_TIMESTAMP).md \
+			--command-name "empty" "./target/release/santa-cli benchmarks/fixtures/empty.santa" \
+			--command-name "fibonacci" "./target/release/santa-cli benchmarks/fixtures/fibonacci.santa" \
+			--command-name "list_processing" "./target/release/santa-cli benchmarks/fixtures/list_processing.santa" \
+			--command-name "pattern_matching" "./target/release/santa-cli benchmarks/fixtures/pattern_matching.santa" \
+	'
+	@echo ""
+	@echo "Results saved to: benchmarks/results/benchmark_$(BENCH_TIMESTAMP).*"
+
+.PHONY: bench/compare
+bench/compare: ## Compare performance between two git versions (V1=ref V2=ref)
+	@if [ -z "$(V1)" ] || [ -z "$(V2)" ]; then \
+		echo "Usage: make bench/compare V1=main V2=HEAD"; \
+		echo "Example: make bench/compare V1=v1.0.0 V2=feature-branch"; \
+		exit 1; \
+	fi
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "Error: You have uncommitted changes. Commit or stash them first."; \
+		echo ""; \
+		git status --short; \
+		exit 1; \
+	fi
+	@echo "Comparing $(V1) vs $(V2) in Docker..."
+	@bash -c 'set -e; \
+		TEMP_DIR=/tmp/bench_preserve_$(BENCH_TIMESTAMP); \
+		ORIGINAL_SHA=$$(git rev-parse HEAD); \
+		ORIGINAL_REF=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || git rev-parse HEAD); \
+		trap "git checkout --force $$ORIGINAL_SHA >/dev/null 2>&1; \
+			rm -rf $$TEMP_DIR; echo '\''Cleanup complete'\'' >&2" EXIT; \
+		\
+		mkdir -p benchmarks/results/compare_$(BENCH_TIMESTAMP); \
+		\
+		echo "Preserving benchmark fixtures..."; \
+		mkdir -p $$TEMP_DIR; \
+		if [ ! -d "benchmarks/fixtures" ]; then \
+			echo "Error: benchmarks/fixtures directory not found" >&2; \
+			exit 1; \
+		fi; \
+		cp -r benchmarks/fixtures $$TEMP_DIR/; \
+		\
+		run_benchmark() { \
+			local version=$$1; \
+			local suffix=$$2; \
+			echo "Benchmarking $$version..."; \
+			git checkout --force $$version 2>/dev/null; \
+			rm -rf benchmarks/fixtures; \
+			cp -r $$TEMP_DIR/fixtures benchmarks/; \
+			$(BENCH_DOCKER) bash -c "set -e; \
+				cargo build --release --bin santa-cli --quiet; \
+				for fixture in benchmarks/fixtures/*.santa; do \
+					name=\$$(basename \$$fixture .santa); \
+					echo \"  \$$name...\"; \
+					hyperfine --shell=none --warmup 3 --runs 10 \
+						--export-json /results/compare_$(BENCH_TIMESTAMP)/\$${name}_$$suffix.json \
+						\"./target/release/santa-cli \$$fixture\"; \
+				done"; \
+		}; \
+		\
+		run_benchmark "$(V1)" "v1"; \
+		run_benchmark "$(V2)" "v2"; \
+	'
+	@echo ""
+	@echo "Generating comparison report..."
+	@docker run --rm \
+		-v $(PWD)/benchmarks:/benchmarks \
+		$(BENCH_IMAGE) python3 /benchmarks/scripts/compare_results.py \
+		/benchmarks/results/compare_$(BENCH_TIMESTAMP) \
+		$(V1) $(V2) > benchmarks/results/compare_$(BENCH_TIMESTAMP)/comparison.txt
+	@cat benchmarks/results/compare_$(BENCH_TIMESTAMP)/comparison.txt
+	@echo ""
+	@echo "Generating comparison chart..."
+	@mkdir -p benchmarks/results/compare_$(BENCH_TIMESTAMP)/charts
+	@docker run --rm \
+		-v $(PWD)/benchmarks:/benchmarks \
+		$(BENCH_IMAGE) python3 /benchmarks/scripts/visualize_results.py \
+		/benchmarks/results/compare_$(BENCH_TIMESTAMP)/*_v1.json \
+		/benchmarks/results/compare_$(BENCH_TIMESTAMP)/*_v2.json \
+		--output /benchmarks/results/compare_$(BENCH_TIMESTAMP)/charts \
+		--labels "$(V1)" "$(V2)" 2>/dev/null || echo "Chart generation skipped (matplotlib may not be available)"
+	@echo ""
+	@echo "Results saved to: benchmarks/results/compare_$(BENCH_TIMESTAMP)/"
+
+.PHONY: bench/visualize
+bench/visualize: ## Generate charts from benchmark results (RESULTS=file.json)
+	@if [ -z "$(RESULTS)" ]; then \
+		echo "Usage: make bench/visualize RESULTS=benchmarks/results/benchmark_*.json"; \
+		echo "   or: make bench/visualize RESULTS='benchmarks/results/base.json benchmarks/results/pr.json'"; \
+		exit 1; \
+	fi
+	@echo "Generating visualization..."
+	@mkdir -p benchmarks/results/charts
+	@docker run --rm \
+		-v $(PWD)/benchmarks:/benchmarks \
+		$(BENCH_IMAGE) python3 /benchmarks/scripts/visualize_results.py \
+		$(RESULTS) --output /benchmarks/results/charts
+	@echo "Charts saved to: benchmarks/results/charts/"
+
+.PHONY: bench/clean
+bench/clean: ## Clean all benchmark results
+	@echo "Cleaning benchmark results..."
+	@rm -rf benchmarks/results/*
+	@echo "Results cleaned."
+
 ##@ Lambda Runtime
 
 .PHONY: lambda/build

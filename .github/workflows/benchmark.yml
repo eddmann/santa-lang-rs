@@ -1,0 +1,159 @@
+name: Performance Benchmark
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'lang/**'
+      - 'runtime/cli/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'benchmarks/**'
+      - '.github/workflows/benchmark.yml'
+      - 'Makefile'
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: 'Base branch/commit to compare against'
+        required: false
+        default: 'main'
+
+jobs:
+  benchmark:
+    name: Run Performance Benchmarks
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Determine versions to compare
+        id: versions
+        run: |
+          BASE_REF="${{ github.event.inputs.base_ref || github.base_ref || 'main' }}"
+          CURRENT_SHA=$(git rev-parse HEAD)
+
+          echo "base_ref=$BASE_REF" >> $GITHUB_OUTPUT
+          echo "current_sha=$CURRENT_SHA" >> $GITHUB_OUTPUT
+
+          echo "Comparing: $BASE_REF vs HEAD ($CURRENT_SHA)"
+
+      - name: Build benchmark Docker image
+        run: make bench/build
+
+      - name: Run benchmark comparison
+        run: make bench/compare V1=${{ steps.versions.outputs.base_ref }} V2=HEAD
+
+      - name: Find latest comparison results
+        id: results
+        run: |
+          LATEST_DIR=$(ls -td benchmarks/results/compare_* 2>/dev/null | head -1)
+          echo "results_dir=$LATEST_DIR" >> $GITHUB_OUTPUT
+          echo "Found results in: $LATEST_DIR"
+
+      - name: Display comparison results
+        run: |
+          if [ -f "${{ steps.results.outputs.results_dir }}/comparison.txt" ]; then
+            cat "${{ steps.results.outputs.results_dir }}/comparison.txt"
+          else
+            echo "Comparison results not found in expected format"
+            echo "Generating comparison from JSON files..."
+            docker run --rm \
+              -v ${{ github.workspace }}/benchmarks:/benchmarks \
+              -e BASE_REF="${{ steps.versions.outputs.base_ref }}" \
+              santa-lang-benchmark \
+              python3 /benchmarks/scripts/compare_results.py \
+              /benchmarks/$(basename ${{ steps.results.outputs.results_dir }}) \
+              ${{ steps.versions.outputs.base_ref }} HEAD
+          fi
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: ${{ steps.results.outputs.results_dir }}
+          retention-days: 30
+
+      - name: Upload comparison chart as artifact
+        id: chart-artifact
+        if: always()
+        run: |
+          CHART_FILE="${{ steps.results.outputs.results_dir }}/charts/comparison.png"
+          if [ -f "$CHART_FILE" ]; then
+            echo "chart_exists=true" >> $GITHUB_OUTPUT
+            echo "chart_path=$CHART_FILE" >> $GITHUB_OUTPUT
+            echo "Chart found at: $CHART_FILE"
+          else
+            echo "chart_exists=false" >> $GITHUB_OUTPUT
+            echo "Chart not found (matplotlib may not be available)"
+          fi
+
+      - name: Upload chart to GitHub (for PR comment)
+        if: steps.chart-artifact.outputs.chart_exists == 'true' && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-chart
+          path: ${{ steps.chart-artifact.outputs.chart_path }}
+          retention-days: 30
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const resultsDir = '${{ steps.results.outputs.results_dir }}';
+            const comparisonFile = `${resultsDir}/comparison.txt`;
+            const chartExists = '${{ steps.chart-artifact.outputs.chart_exists }}' === 'true';
+
+            if (!fs.existsSync(comparisonFile)) {
+              console.log('Comparison file not found, skipping PR comment');
+              return;
+            }
+
+            let comment = fs.readFileSync(comparisonFile, 'utf8');
+
+            // Add chart link if it exists
+            if (chartExists) {
+              const runId = context.runId;
+              const chartUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+              comment += `\n\n### 📊 Performance Chart\n\n`;
+              comment += `[View performance chart in workflow artifacts](${chartUrl})\n`;
+            }
+
+            const body = `${comment}\n\n---\n*Benchmarks run via \`make bench/compare\` • Completed at ${new Date().toISOString()}*`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Performance Comparison')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
