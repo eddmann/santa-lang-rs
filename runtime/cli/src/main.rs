@@ -47,9 +47,10 @@ fn main() -> Result<()> {
     let path = fs::canonicalize(source_path)?;
     let root = path.parent().unwrap();
     std::env::set_current_dir(root)?;
+    let canonical_path_str = path.to_string_lossy();
 
     if matches.opt_present("t") {
-        return aoc_test(source_path);
+        return aoc_test(&canonical_path_str);
     }
 
     #[cfg(feature = "profile")]
@@ -65,7 +66,7 @@ fn main() -> Result<()> {
         None
     };
 
-    aoc_run(source_path)?;
+    aoc_run(&canonical_path_str)?;
 
     #[cfg(feature = "profile")]
     if let Some(guard) = profiler {
