@@ -1,0 +1,54 @@
+input: read("aoc://2022/5")
+
+let parse_stacks = |input| {
+  let parse_stack_line = chunk(4) >> map(find(regex_match("([A-Z])")));
+
+  let stack_lines = input
+    |> split("\n\n")
+    |> first
+    |> lines
+    |> map(parse_stack_line);
+
+  zip(..stack_lines)
+    |> map(filter(_ != nil));
+}
+
+let parse_instructions = split("\n\n") >> second >> lines >> map(ints);
+
+let rearrangement_procedure = |pickup_procedure, input| {
+  parse_instructions(input)
+    |> fold(
+      parse_stacks(input),
+      |stacks, [amount, from, to]| {
+        let crates = stacks[from-1][0..amount] |> pickup_procedure;
+
+        stacks
+          |> assoc(from-1, stacks[from-1][amount..])
+          |> assoc(to-1, [..crates, ..stacks[to-1]]);
+      }
+    )
+    |> fold(
+      "",
+      |top, stack| top + stack[0]
+    );
+}
+
+part_one: input |> rearrangement_procedure(reverse)
+
+part_two: input |> rearrangement_procedure(id)
+
+test: {
+  input: "    [D]     \n[N] [C]     \n[Z] [M] [P] \n 1   2   3  \n
+move 1 from 2 to 1
+move 3 from 1 to 3
+move 2 from 2 to 1
+move 1 from 1 to 2"
+  part_one: "CMZ"
+  part_two: "MCD"
+}
+
+test: {
+  input: read("aoc://2022/5")
+  part_one: "RLFNRTNFB"
+  part_two: "MHQTLJRLB"
+}

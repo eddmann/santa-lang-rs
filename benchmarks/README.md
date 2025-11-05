@@ -93,10 +93,18 @@ Remove all benchmark results.
 
 Benchmarks run against these test programs in `benchmarks/fixtures/`:
 
+### Synthetic Benchmarks
 - **empty.santa** - Interpreter startup overhead
 - **fibonacci.santa** - Recursive computation (fib 30)
 - **list_processing.santa** - Pipeline operations on 10,000 elements
 - **pattern_matching.santa** - Recursive pattern matching
+
+### Real-World AoC Benchmarks
+- **aoc2023_day07.santa** - Camel Cards: Dictionary operations, pattern matching, custom sorting, frequency counting
+- **aoc2022_day12.santa** - Hill Climbing: BFS pathfinding, grid processing, set operations for visited tracking
+- **aoc2023_day11.santa** - Cosmic Expansion: Combinations generation, mathematical operations, pipeline operations
+- **aoc2022_day05.santa** - Supply Stacks: Regex parsing, list slicing/spreading, zip operations
+- **aoc2018_day07.santa** - Sum of Its Parts: Mutable state, infinite range iteration, topological sort algorithm
 
 ## Understanding Results
 
