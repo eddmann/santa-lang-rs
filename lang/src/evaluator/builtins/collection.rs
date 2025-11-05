@@ -24,19 +24,20 @@ builtin! {
 builtin! {
     size(collection) [evaluator, source] match {
         Object::List(list) => {
-            Ok(Rc::new(Object::Integer(list.len() as i64)))
+            Ok(evaluator.pool().integer(list.len() as i64))
         }
         Object::Set(set) => {
-            Ok(Rc::new(Object::Integer(set.len() as i64)))
+            Ok(evaluator.pool().integer(set.len() as i64))
         }
         Object::Dictionary(map) => {
-            Ok(Rc::new(Object::Integer(map.len() as i64)))
+            Ok(evaluator.pool().integer(map.len() as i64))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::Integer(string.len() as i64)))
+            Ok(evaluator.pool().integer(string.len() as i64))
         }
         Object::LazySequence(sequence) => {
-            Ok(Rc::new(Object::Integer(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).count() as i64)))
+            let count = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).count() as i64;
+            Ok(evaluator.pool().integer(count))
         }
     }
 }
@@ -195,7 +196,7 @@ builtin! {
                     break;
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         (Object::Function(side_effect), Object::Set(set)) => {
             for element in set {
@@ -204,7 +205,7 @@ builtin! {
                     break;
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         (Object::Function(side_effect), Object::Dictionary(map)) => {
             for (key, value) in map {
@@ -213,9 +214,10 @@ builtin! {
                     break;
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         (Object::Function(side_effect), Object::LazySequence(sequence)) => {
+            let nil = evaluator.pool().nil();
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
                 let result = side_effect.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?;
@@ -223,7 +225,7 @@ builtin! {
                     break;
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(nil)
         }
         (Object::Function(side_effect), Object::String(string)) => {
             for character in string.chars() {
@@ -232,7 +234,7 @@ builtin! {
                     break;
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
     }
 }
@@ -355,7 +357,7 @@ builtin! {
                     return Ok(Rc::clone(element))
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         (Object::Function(predicate), Object::Set(set)) => {
             for element in set {
@@ -363,7 +365,7 @@ builtin! {
                     return Ok(Rc::clone(element))
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map {
@@ -371,16 +373,17 @@ builtin! {
                     return Ok(Rc::clone(value));
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
+            let nil = evaluator.pool().nil();
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
                 if predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
                     return Ok(Rc::clone(&element))
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(nil)
         }
         (Object::Function(predicate), Object::String(string)) => {
             for character in string.chars() {
@@ -389,7 +392,7 @@ builtin! {
                     return Ok(Rc::clone(&object))
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
     }
 }
@@ -403,7 +406,7 @@ builtin! {
                     count += 1;
                 }
             }
-            Ok(Rc::new(Object::Integer(count)))
+            Ok(evaluator.pool().integer(count))
         }
         (Object::Function(predicate), Object::Set(set)) => {
             let mut count = 0;
@@ -412,7 +415,7 @@ builtin! {
                     count += 1;
                 }
             }
-            Ok(Rc::new(Object::Integer(count)))
+            Ok(evaluator.pool().integer(count))
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             let mut count = 0;
@@ -421,7 +424,7 @@ builtin! {
                     count += 1;
                 }
             }
-            Ok(Rc::new(Object::Integer(count)))
+            Ok(evaluator.pool().integer(count))
         }
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
             let mut count = 0;
@@ -431,7 +434,7 @@ builtin! {
                     count += 1;
                 }
             }
-            Ok(Rc::new(Object::Integer(count)))
+            Ok(shared_evaluator.borrow().pool().integer(count))
         }
         (Object::Function(predicate), Object::String(string)) => {
             let mut count = 0;
@@ -441,7 +444,7 @@ builtin! {
                     count += 1;
                 }
             }
-            Ok(Rc::new(Object::Integer(count)))
+            Ok(evaluator.pool().integer(count))
         }
     }
 }
@@ -455,7 +458,7 @@ builtin! {
                     sum += value;
                 }
             }
-            Ok(Rc::new(Object::Integer(sum)))
+            Ok(evaluator.pool().integer(sum))
         }
         Object::Set(set) => {
             let mut sum = 0;
@@ -464,7 +467,7 @@ builtin! {
                     sum += value;
                 }
             }
-            Ok(Rc::new(Object::Integer(sum)))
+            Ok(evaluator.pool().integer(sum))
         }
         Object::Dictionary(map) => {
             let mut sum = 0;
@@ -473,7 +476,7 @@ builtin! {
                     sum += value;
                 }
             }
-            Ok(Rc::new(Object::Integer(sum)))
+            Ok(evaluator.pool().integer(sum))
         }
         Object::LazySequence(sequence) => {
             let mut sum = 0;
@@ -482,7 +485,7 @@ builtin! {
                     sum += value;
                 }
             }
-            Ok(Rc::new(Object::Integer(sum)))
+            Ok(evaluator.pool().integer(sum))
         }
     }
 }
@@ -509,28 +512,28 @@ builtin! {
                     return Ok(Rc::clone(max));
                 }
 
-                Ok(Rc::new(Object::Nil))
+                Ok(evaluator.pool().nil())
             }
             Object::Set(set) => {
                 if let Some(max) = set.iter().max() {
                     return Ok(Rc::clone(max));
                 }
 
-                Ok(Rc::new(Object::Nil))
+                Ok(evaluator.pool().nil())
             }
             Object::Dictionary(map) => {
                 if let Some(max) = map.values().max() {
                     return Ok(Rc::clone(max));
                 }
 
-                Ok(Rc::new(Object::Nil))
+                Ok(evaluator.pool().nil())
             }
             Object::LazySequence(sequence) => {
                 if let Some(max) = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).max() {
                     return Ok(Rc::clone(&max));
                 }
 
-                Ok(Rc::new(Object::Nil))
+                Ok(evaluator.pool().nil())
             }
             _ => Err(RuntimeErr {
                 message: "".to_owned(),
@@ -563,28 +566,28 @@ builtin! {
                     return Ok(Rc::clone(min));
                 }
 
-                Ok(Rc::new(Object::Nil))
+                Ok(evaluator.pool().nil())
             }
             Object::Set(set) => {
                 if let Some(min) = set.iter().min() {
                     return Ok(Rc::clone(min));
                 }
 
-                Ok(Rc::new(Object::Nil))
+                Ok(evaluator.pool().nil())
             }
             Object::Dictionary(map) => {
                 if let Some(min) = map.values().min() {
                     return Ok(Rc::clone(min));
                 }
 
-                Ok(Rc::new(Object::Nil))
+                Ok(evaluator.pool().nil())
             }
             Object::LazySequence(sequence) => {
                 if let Some(min) = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).min() {
                     return Ok(Rc::clone(&min));
                 }
 
-                Ok(Rc::new(Object::Nil))
+                Ok(evaluator.pool().nil())
             }
             _ => Err(RuntimeErr {
                 message: "".to_owned(),
@@ -869,26 +872,26 @@ builtin! {
             if let Some(first) = list.front() {
                 return Ok(Rc::clone(first));
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         Object::Set(set) => {
             if let Some(first) = set.iter().next() {
                 return Ok(Rc::clone(first));
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         Object::LazySequence(sequence) => {
             let mut iterator = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source);
             if let Some(first) = iterator.next() {
                 return Ok(Rc::clone(&first));
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         Object::String(string) => {
             if let Some(first) = string.chars().next() {
                 return Ok(Rc::new(Object::String(first.to_string())));
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
     }
 }
@@ -899,7 +902,7 @@ builtin! {
             if let Some(second) = list.get(1) {
                 return Ok(Rc::clone(second));
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         Object::Set(set) => {
             let mut iterator = set.iter();
@@ -907,7 +910,7 @@ builtin! {
             if let Some(second) = iterator.next() {
                 return Ok(Rc::clone(second));
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         Object::LazySequence(sequence) => {
             let mut iterator = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source);
@@ -915,7 +918,7 @@ builtin! {
             if let Some(second) = iterator.next() {
                 return Ok(Rc::clone(&second));
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         Object::String(string) => {
             let mut iterator = string.chars();
@@ -923,7 +926,7 @@ builtin! {
             if let Some(second) = iterator.next() {
                 return Ok(Rc::new(Object::String(second.to_string())));
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
     }
 }
@@ -958,27 +961,27 @@ builtin! {
 builtin! {
     includes(collection, value) [evaluator, source] match {
         (Object::List(list), _) => {
-            Ok(Rc::new(Object::Boolean(list.contains(value))))
+            Ok(evaluator.pool().boolean(list.contains(value)))
         }
         (Object::Set(set), _) => {
-            Ok(Rc::new(Object::Boolean(set.contains(value))))
+            Ok(evaluator.pool().boolean(set.contains(value)))
         }
         (Object::Dictionary(map), _) => {
-            Ok(Rc::new(Object::Boolean(map.contains_key(value))))
+            Ok(evaluator.pool().boolean(map.contains_key(value)))
         }
         (Object::LazySequence(sequence), _) => {
             for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
                 if element == *value {
-                    return Ok(Rc::new(Object::Boolean(true)))
+                    return Ok(evaluator.pool().boolean(true))
                 }
             }
-            Ok(Rc::new(Object::Boolean(false)))
+            Ok(evaluator.pool().boolean(false))
         }
         (Object::String(string), _) => {
             if let Object::String(subject) = &**value {
-                return Ok(Rc::new(Object::Boolean(string.contains(subject))));
+                return Ok(evaluator.pool().boolean(string.contains(subject)));
             }
-            Ok(Rc::new(Object::Boolean(false)))
+            Ok(evaluator.pool().boolean(false))
         }
     }
 }
@@ -986,27 +989,27 @@ builtin! {
 builtin! {
     excludes(collection, value) [evaluator, source] match {
         (Object::List(list), _) => {
-            Ok(Rc::new(Object::Boolean(!list.contains(value))))
+            Ok(evaluator.pool().boolean(!list.contains(value)))
         }
         (Object::Set(set), _) => {
-            Ok(Rc::new(Object::Boolean(!set.contains(value))))
+            Ok(evaluator.pool().boolean(!set.contains(value)))
         }
         (Object::Dictionary(map), _) => {
-            Ok(Rc::new(Object::Boolean(!map.contains_key(value))))
+            Ok(evaluator.pool().boolean(!map.contains_key(value)))
         }
         (Object::LazySequence(sequence), _) => {
             for element in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
                 if element == *value {
-                    return Ok(Rc::new(Object::Boolean(false)))
+                    return Ok(evaluator.pool().boolean(false))
                 }
             }
-            Ok(Rc::new(Object::Boolean(true)))
+            Ok(evaluator.pool().boolean(true))
         }
         (Object::String(string), _) => {
             if let Object::String(subject) = &**value {
-                return Ok(Rc::new(Object::Boolean(!string.contains(subject))));
+                return Ok(evaluator.pool().boolean(!string.contains(subject)));
             }
-            Ok(Rc::new(Object::Boolean(true)))
+            Ok(evaluator.pool().boolean(true))
         }
     }
 }
@@ -1016,43 +1019,45 @@ builtin! {
         (Object::Function(predicate), Object::List(list)) => {
             for element in list.iter() {
                 if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
-                    return Ok(Rc::new(Object::Boolean(true)))
+                    return Ok(evaluator.pool().boolean(true))
                 }
             }
-            Ok(Rc::new(Object::Boolean(false)))
+            Ok(evaluator.pool().boolean(false))
         }
         (Object::Function(predicate), Object::Set(set)) => {
             for element in set.iter() {
                 if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
-                    return Ok(Rc::new(Object::Boolean(true)))
+                    return Ok(evaluator.pool().boolean(true))
                 }
             }
-            Ok(Rc::new(Object::Boolean(false)))
+            Ok(evaluator.pool().boolean(false))
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map.iter() {
                 if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
-                    return Ok(Rc::new(Object::Boolean(true)))
+                    return Ok(evaluator.pool().boolean(true))
                 }
             }
-            Ok(Rc::new(Object::Boolean(false)))
+            Ok(evaluator.pool().boolean(false))
         }
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
+            let true_val = evaluator.pool().boolean(true);
+            let false_val = evaluator.pool().boolean(false);
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
                 if predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
-                    return Ok(Rc::new(Object::Boolean(true)))
+                    return Ok(true_val)
                 }
             }
-            Ok(Rc::new(Object::Boolean(false)))
+            Ok(false_val)
         }
         (Object::Function(predicate), Object::String(string)) => {
             for character in string.chars() {
                 if predicate.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?.is_truthy() {
-                    return Ok(Rc::new(Object::Boolean(true)))
+                    return Ok(evaluator.pool().boolean(true))
                 }
             }
-            Ok(Rc::new(Object::Boolean(false)))
+            Ok(evaluator.pool().boolean(false))
         }
     }
 }
@@ -1062,43 +1067,45 @@ builtin! {
         (Object::Function(predicate), Object::List(list)) => {
             for element in list.iter() {
                 if !predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
-                    return Ok(Rc::new(Object::Boolean(false)))
+                    return Ok(evaluator.pool().boolean(false))
                 }
             }
-            Ok(Rc::new(Object::Boolean(true)))
+            Ok(evaluator.pool().boolean(true))
         }
         (Object::Function(predicate), Object::Set(set)) => {
             for element in set.iter() {
                 if !predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
-                    return Ok(Rc::new(Object::Boolean(false)))
+                    return Ok(evaluator.pool().boolean(false))
                 }
             }
-            Ok(Rc::new(Object::Boolean(true)))
+            Ok(evaluator.pool().boolean(true))
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             for (key, value) in map.iter() {
                 if !predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
-                    return Ok(Rc::new(Object::Boolean(false)))
+                    return Ok(evaluator.pool().boolean(false))
                 }
             }
-            Ok(Rc::new(Object::Boolean(true)))
+            Ok(evaluator.pool().boolean(true))
         }
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
+            let true_val = evaluator.pool().boolean(true);
+            let false_val = evaluator.pool().boolean(false);
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
                 if !predicate.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?.is_truthy() {
-                    return Ok(Rc::new(Object::Boolean(false)))
+                    return Ok(false_val)
                 }
             }
-            Ok(Rc::new(Object::Boolean(true)))
+            Ok(true_val)
         }
         (Object::Function(predicate), Object::String(string)) => {
             for character in string.chars() {
                 if !predicate.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?.is_truthy() {
-                    return Ok(Rc::new(Object::Boolean(false)))
+                    return Ok(evaluator.pool().boolean(false))
                 }
             }
-            Ok(Rc::new(Object::Boolean(true)))
+            Ok(evaluator.pool().boolean(true))
         }
     }
 }
@@ -1513,7 +1520,7 @@ builtin! {
                     return Ok(mapped);
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         (Object::Function(mapper), Object::Set(set)) => {
             for element in set {
@@ -1522,7 +1529,7 @@ builtin! {
                     return Ok(mapped);
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         (Object::Function(mapper), Object::Dictionary(map)) => {
             for (key, value) in map {
@@ -1531,9 +1538,10 @@ builtin! {
                     return Ok(mapped);
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
         (Object::Function(mapper), Object::LazySequence(sequence)) => {
+            let nil = evaluator.pool().nil();
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
                 let mapped = mapper.apply(&mut shared_evaluator.borrow_mut(), vec![Rc::clone(&element)], source)?;
@@ -1541,7 +1549,7 @@ builtin! {
                     return Ok(mapped);
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(nil)
         }
         (Object::Function(mapper), Object::String(string)) => {
             for character in string.chars() {
@@ -1550,7 +1558,7 @@ builtin! {
                     return Ok(mapped);
                 }
             }
-            Ok(Rc::new(Object::Nil))
+            Ok(evaluator.pool().nil())
         }
     }
 }
@@ -1560,8 +1568,9 @@ builtin! {
         (Object::Integer(index), _, Object::List(list)) => {
             let mut associated = list.clone();
             if *index as usize >= list.len()  {
+                let nil = evaluator.pool().nil();
                 for _ in 0..=*index as usize-list.len() {
-                    associated.push_back(Rc::new(Object::Nil));
+                    associated.push_back(Rc::clone(&nil));
                 }
             }
             Ok(Rc::new(Object::List(associated.update(*index as usize, Rc::clone(value)))))
@@ -1577,21 +1586,23 @@ builtin! {
         (Object::Integer(index), Object::Function(updater), Object::List(list)) => {
             let mut updated = list.clone();
             let index = *index as usize;
+            let nil = evaluator.pool().nil();
             if index >= list.len()  {
                 for _ in 0..=index-list.len() {
-                    updated.push_back(Rc::new(Object::Nil));
+                    updated.push_back(Rc::clone(&nil));
                 }
             }
             let previous = match updated.get(index) {
                 Some(value) => Rc::clone(value),
-                None => Rc::new(Object::Nil),
+                None => Rc::clone(&nil),
             };
             Ok(Rc::new(Object::List(updated.update(index, updater.apply(evaluator, vec![Rc::clone(&previous)], source)?))))
         }
         (_, Object::Function(updater), Object::Dictionary(map)) => {
+            let nil = evaluator.pool().nil();
             let previous = match map.get(key) {
                 Some(value) => Rc::clone(value),
-                None => Rc::new(Object::Nil),
+                None => Rc::clone(&nil),
             };
             Ok(Rc::new(Object::Dictionary(map.update(Rc::clone(key), updater.apply(evaluator, vec![Rc::clone(&previous), Rc::clone(key)], source)?))))
         }
@@ -1608,8 +1619,9 @@ builtin! {
                 None => Rc::clone(default),
             };
             if index >= list.len()  {
+                let nil = evaluator.pool().nil();
                 for _ in 0..=index-list.len() {
-                    updated.push_back(Rc::new(Object::Nil));
+                    updated.push_back(Rc::clone(&nil));
                 }
             }
             Ok(Rc::new(Object::List(updated.update(index, updater.apply(evaluator, vec![Rc::clone(&previous)], source)?))))

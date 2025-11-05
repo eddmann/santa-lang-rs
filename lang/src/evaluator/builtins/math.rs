@@ -4,9 +4,9 @@ use ordered_float::OrderedFloat;
 use std::rc::Rc;
 
 builtin! {
-    abs(value) match {
+    abs(value) [evaluator, _source] match {
         Object::Integer(value) => {
-            Ok(Rc::new(Object::Integer(value.abs())))
+            Ok(evaluator.pool().integer(value.abs()))
         }
         Object::Decimal(OrderedFloat(value)) => {
             Ok(Rc::new(Object::Decimal(OrderedFloat(value.abs()))))
@@ -27,9 +27,9 @@ builtin! {
 }
 
 builtin! {
-    signum(value) match {
+    signum(value) [evaluator, _source] match {
         Object::Integer(value) => {
-            Ok(Rc::new(Object::Integer(value.signum())))
+            Ok(evaluator.pool().integer(value.signum()))
         }
         Object::Decimal(OrderedFloat(value)) => {
             Ok(Rc::new(Object::Decimal(OrderedFloat(value.signum()))))

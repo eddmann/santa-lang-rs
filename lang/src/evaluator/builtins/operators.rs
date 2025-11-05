@@ -7,8 +7,8 @@ use std::rc::Rc;
 #[inline]
 pub fn plus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
-        (Object::Integer(a), Object::Integer(b)) => Ok(Rc::new(Object::Integer(a + b))),
-        (Object::Integer(a), Object::Decimal(b)) => Ok(Rc::new(Object::Integer(a + (f64::from(*b) as i64)))),
+        (Object::Integer(a), Object::Integer(b)) => Ok(evaluator.pool().integer(a + b)),
+        (Object::Integer(a), Object::Decimal(b)) => Ok(evaluator.pool().integer(a + (f64::from(*b) as i64))),
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a + *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a + (*b as f64)))),
         (Object::String(a), Object::String(b)) => Ok(Rc::new(Object::String(format!("{}{}", a, b)))),
@@ -72,8 +72,8 @@ builtin! {
 #[inline]
 pub fn minus(evaluator: &mut Evaluator, left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
-        (Object::Integer(a), Object::Integer(b)) => Ok(Rc::new(Object::Integer(a - b))),
-        (Object::Integer(a), Object::Decimal(b)) => Ok(Rc::new(Object::Integer(a - (f64::from(*b) as i64)))),
+        (Object::Integer(a), Object::Integer(b)) => Ok(evaluator.pool().integer(a - b)),
+        (Object::Integer(a), Object::Decimal(b)) => Ok(evaluator.pool().integer(a - (f64::from(*b) as i64))),
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a - *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a - (*b as f64)))),
         (Object::List(a), Object::List(b)) => {
@@ -127,10 +127,10 @@ builtin! {
 }
 
 #[inline]
-pub fn asterisk(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
+pub fn asterisk(evaluator: &Evaluator, left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
-        (Object::Integer(a), Object::Integer(b)) => Ok(Rc::new(Object::Integer(a * b))),
-        (Object::Integer(a), Object::Decimal(b)) => Ok(Rc::new(Object::Integer(a * (f64::from(*b) as i64)))),
+        (Object::Integer(a), Object::Integer(b)) => Ok(evaluator.pool().integer(a * b)),
+        (Object::Integer(a), Object::Decimal(b)) => Ok(evaluator.pool().integer(a * (f64::from(*b) as i64))),
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a * *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a * (*b as f64)))),
         (Object::String(a), Object::Integer(b)) => Ok(Rc::new(Object::String(a.repeat(*b as usize)))),
@@ -151,15 +151,15 @@ pub fn asterisk(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Eval
 
 builtin! {
     asterisk(a, b) [evaulator, source] {
-        asterisk(a, b, source)
+        asterisk(evaulator, a, b, source)
     }
 }
 
 #[inline]
-pub fn slash(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
+pub fn slash(evaluator: &Evaluator, left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
-        (Object::Integer(a), Object::Integer(b)) => Ok(Rc::new(Object::Integer(a / b))),
-        (Object::Integer(a), Object::Decimal(b)) => Ok(Rc::new(Object::Integer(a / (f64::from(*b) as i64)))),
+        (Object::Integer(a), Object::Integer(b)) => Ok(evaluator.pool().integer(a / b)),
+        (Object::Integer(a), Object::Decimal(b)) => Ok(evaluator.pool().integer(a / (f64::from(*b) as i64))),
         (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a / *b))),
         (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a / (*b as f64)))),
         _ => Err(RuntimeErr {
@@ -172,12 +172,12 @@ pub fn slash(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluat
 
 builtin! {
     slash(a, b) [evaulator, source] {
-        slash(a, b, source)
+        slash(evaulator, a, b, source)
     }
 }
 
 #[inline]
-pub fn modulo(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
+pub fn modulo(evaluator: &Evaluator, left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
         (Object::Integer(a), Object::Integer(b)) => {
             // http://python-history.blogspot.com/2010/08/why-pythons-integer-division-floors.html
@@ -187,7 +187,7 @@ pub fn modulo(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evalua
             } else {
                 remainder + b
             };
-            Ok(Rc::new(Object::Integer(result)))
+            Ok(evaluator.pool().integer(result))
         }
         _ => Err(RuntimeErr {
             message: format!("Unsupported operation: {} % {}", left.name(), right.name()),
@@ -199,84 +199,84 @@ pub fn modulo(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evalua
 
 builtin! {
     modulo(a, b) [evaulator, source] {
-        modulo(a, b, source)
+        modulo(evaulator, a, b, source)
     }
 }
 
 #[inline]
-pub fn equal(left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
-    Ok(Rc::new(Object::Boolean(left == right)))
+pub fn equal(evaluator: &Evaluator, left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
+    Ok(evaluator.pool().boolean(left == right))
 }
 
 builtin! {
-    equal(a, b) {
-        equal(a, b)
+    equal(a, b) [evaulator, _source] {
+        equal(evaulator, a, b)
     }
 }
 
 #[inline]
-pub fn not_equal(left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
-    Ok(Rc::new(Object::Boolean(left != right)))
+pub fn not_equal(evaluator: &Evaluator, left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
+    Ok(evaluator.pool().boolean(left != right))
 }
 
 builtin! {
-    not_equal(a, b) {
-        not_equal(a, b)
+    not_equal(a, b) [evaulator, _source] {
+        not_equal(evaulator, a, b)
     }
 }
 
 #[inline]
-pub fn less_than(left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
-    Ok(Rc::new(Object::Boolean(left < right)))
+pub fn less_than(evaluator: &Evaluator, left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
+    Ok(evaluator.pool().boolean(left < right))
 }
 
 builtin! {
-    less_than(a, b) {
-        less_than(a, b)
+    less_than(a, b) [evaulator, _source] {
+        less_than(evaulator, a, b)
     }
 }
 
 #[inline]
-pub fn less_than_equal(left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
-    Ok(Rc::new(Object::Boolean(left <= right)))
+pub fn less_than_equal(evaluator: &Evaluator, left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
+    Ok(evaluator.pool().boolean(left <= right))
 }
 
 builtin! {
-    less_than_equal(a, b) {
-        less_than_equal(a, b)
+    less_than_equal(a, b) [evaulator, _source] {
+        less_than_equal(evaulator, a, b)
     }
 }
 
 #[inline]
-pub fn greater_than(left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
-    Ok(Rc::new(Object::Boolean(left > right)))
+pub fn greater_than(evaluator: &Evaluator, left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
+    Ok(evaluator.pool().boolean(left > right))
 }
 
 builtin! {
-    greater_than(a, b) {
-        greater_than(a, b)
+    greater_than(a, b) [evaulator, _source] {
+        greater_than(evaulator, a, b)
     }
 }
 
 #[inline]
-pub fn greater_than_equal(left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
-    Ok(Rc::new(Object::Boolean(left >= right)))
+pub fn greater_than_equal(evaluator: &Evaluator, left: &Rc<Object>, right: &Rc<Object>) -> Evaluation {
+    Ok(evaluator.pool().boolean(left >= right))
 }
 
 builtin! {
-    greater_than_equal(a, b) {
-        greater_than_equal(a, b)
+    greater_than_equal(a, b) [evaulator, _source] {
+        greater_than_equal(evaulator, a, b)
     }
 }
 
 builtin! {
-    and(a, b) {
-        Ok(Rc::new(Object::Boolean(a.is_truthy() && b.is_truthy())))
+    and(a, b) [evaulator, _source] {
+        Ok(evaulator.pool().boolean(a.is_truthy() && b.is_truthy()))
     }
 }
 
 builtin! {
-    or(a, b) {
-        Ok(Rc::new(Object::Boolean(a.is_truthy() || b.is_truthy())))
+    or(a, b) [evaulator, _source] {
+        Ok(evaulator.pool().boolean(a.is_truthy() || b.is_truthy()))
     }
 }
