@@ -91,7 +91,7 @@ Remove all benchmark results.
 
 ## Test Fixtures
 
-Benchmarks run against these test programs in `benchmarks/fixtures/`:
+Benchmarks run against test programs in `benchmarks/fixtures/`:
 
 ### Synthetic Benchmarks
 - **empty.santa** - Interpreter startup overhead
@@ -100,11 +100,19 @@ Benchmarks run against these test programs in `benchmarks/fixtures/`:
 - **pattern_matching.santa** - Recursive pattern matching
 
 ### Real-World AoC Benchmarks
-- **aoc2023_day07.santa** - Camel Cards: Dictionary operations, pattern matching, custom sorting, frequency counting
-- **aoc2022_day12.santa** - Hill Climbing: BFS pathfinding, grid processing, set operations for visited tracking
-- **aoc2023_day11.santa** - Cosmic Expansion: Combinations generation, mathematical operations, pipeline operations
-- **aoc2022_day05.santa** - Supply Stacks: Regex parsing, list slicing/spreading, zip operations
-- **aoc2018_day07.santa** - Sum of Its Parts: Mutable state, infinite range iteration, topological sort algorithm
+
+All AoC benchmarks run in test mode (`-t` flag) to validate correctness while measuring performance.
+
+**39 Advent of Code solutions** from recent years:
+
+- **aoc2022_day01-25.santa** - Complete 2022 set (25 solutions): BFS pathfinding, regex parsing, supply stacks, monkey math, grid processing
+- **aoc2023_day01-14.santa** - Partial 2023 set (14 solutions): Camel Cards, cosmic expansion, grid traversal, combinations, pattern matching
+
+Each AoC benchmark:
+- Contains embedded test cases with expected outputs
+- Runs both part_one and part_two solutions
+- Validates correctness during benchmark execution
+- Represents real-world santa-lang usage patterns
 
 ## Understanding Results
 
@@ -221,6 +229,8 @@ compute(1000)
 ```bash
 make bench/run
 ```
+
+**Note:** Files starting with `aoc` are automatically run with the `-t` flag to execute tests. All other files run normally.
 
 ## Troubleshooting
 
