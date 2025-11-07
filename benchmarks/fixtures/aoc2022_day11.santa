@@ -1,0 +1,101 @@
+input: read("aoc://2022/11")
+
+let parse_op = |op| match split(" ", op) {
+  ["+", v] { _ + int(v) }
+  ["*", "old"] { |o| o * o }
+  ["*", v] { _ * int(v) }
+}
+
+let parse_monkeys = |input| {
+  let parse_monkey = |monkey| {
+    let [items] = monkey |> regex_match("items: (.+)") |> map(split(",") >> map(int));
+    let [op] = monkey |> regex_match("= old (.+)") |> map(parse_op);
+    let [divisor] = monkey |> regex_match("by (.+)") |> map(int);
+    let [yes, no] = monkey |> regex_match("(\\d+)\\n.+throw to monkey (\\d+)$") |> map(int);
+    let throw_to = |worry_level| if worry_level % divisor == 0 { yes } else { no };
+
+    #{items, op, divisor, throw_to, "activity": 0};
+  };
+
+  input
+    |> split("\n\n")
+    |> map(parse_monkey);
+}
+
+let round = |apply_relief, monkeys| {
+  0..size(monkeys) |> fold(monkeys) |monkeys, position| {
+    let monkey = monkeys[position];
+
+    monkey["items"]
+      |> fold(monkeys, |monkeys, item| {
+        let worry_level = item |> monkey["op"] |> apply_relief;
+
+        monkeys |> update(
+          monkey["throw_to"](worry_level),
+          update("items", _ + [worry_level])
+        );
+      })
+      |> update(
+        position,
+        update("activity", _ + size(monkey["items"])) >> assoc("items", [])
+      );
+  }
+}
+
+let monkey_business = map(get("activity")) >> sort(<) >> |[a, b]| a * b;
+
+part_one: {
+  parse_monkeys(input)
+    |> iterate(round(_ / 3))
+    |> get(20)
+    |> monkey_business;
+}
+
+part_two: {
+  let monkeys = parse_monkeys(input);
+  let manageable_level = monkeys |> map(get("divisor")) |> reduce(*);
+
+  monkeys
+    |> iterate(round(_ % manageable_level))
+    |> get(10_000)
+    |> monkey_business;
+}
+
+test: {
+  input: "Monkey 0:
+  Starting items: 79, 98
+  Operation: new = old * 19
+  Test: divisible by 23
+    If true: throw to monkey 2
+    If false: throw to monkey 3
+
+Monkey 1:
+  Starting items: 54, 65, 75, 74
+  Operation: new = old + 6
+  Test: divisible by 19
+    If true: throw to monkey 2
+    If false: throw to monkey 0
+
+Monkey 2:
+  Starting items: 79, 60, 97
+  Operation: new = old * old
+  Test: divisible by 13
+    If true: throw to monkey 1
+    If false: throw to monkey 3
+
+Monkey 3:
+  Starting items: 74
+  Operation: new = old + 3
+  Test: divisible by 17
+    If true: throw to monkey 0
+    If false: throw to monkey 1"
+
+  part_one: 10605
+  part_two: 2713310158
+}
+
+test: {
+  input: read("aoc://2022/11")
+  part_one: 119715
+  part_two: 18085004878
+}

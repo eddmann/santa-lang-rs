@@ -1,0 +1,75 @@
+input: read("aoc://2022/7")
+
+let prefixes = fold_s([[], []]) |[prefixes, prefix], key| {
+  [prefixes + [[..prefix, key]], [..prefix, key]];
+}
+
+let parse_commands = lines >> map(split(" "));
+
+let calc_directory_sizes = fold_s([#{}, []]) |[dirs, cwd], cmd| match cmd {
+  ["$", "cd", ".."] { [dirs, cwd[0..size(cwd)-1]] }
+  ["$", "cd", dir] { [dirs, cwd |> push(dir)] }
+  [file_size, _] if int(file_size) > 0 {
+    [
+      prefixes(cwd) |> fold(dirs) |dirs, prefix| {
+        dirs |> update_d(prefix, 0, |total| total + int(file_size))
+      },
+      cwd
+    ]
+  }
+  _ { [dirs, cwd] }
+}
+
+part_one: {
+  parse_commands(input)
+    |> calc_directory_sizes
+    |> filter(_ < 100_000)
+    |> sum;
+}
+
+part_two: {
+  let dirs = parse_commands(input)
+    |> calc_directory_sizes;
+
+  let disk_size = 70_000_000;
+  let update_size = 30_000_000;
+  let required_space = update_size - (disk_size - dirs[["/"]]);
+
+  dirs
+    |> filter(_ > required_space)
+    |> min;
+}
+
+test: {
+  input: "$ cd /
+$ ls
+dir a
+14848514 b.txt
+8504156 c.dat
+dir d
+$ cd a
+$ ls
+dir e
+29116 f
+2557 g
+62596 h.lst
+$ cd e
+$ ls
+584 i
+$ cd ..
+$ cd ..
+$ cd d
+$ ls
+4060174 j
+8033020 d.log
+5626152 d.ext
+7214296 k"
+  part_one: 95437
+  part_two: 24933642
+}
+
+test: {
+  input: read("aoc://2022/7")
+  part_one: 1501149
+  part_two: 10096985
+}

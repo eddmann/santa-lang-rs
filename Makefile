@@ -90,16 +90,22 @@ bench/run: ## Run hyperfine benchmarks on all fixtures
 		cargo build --release --bin santa-cli --quiet && \
 		echo "" && \
 		echo "Running benchmarks..." && \
-		hyperfine \
+		CMD_ARGS=""; \
+		for fixture in benchmarks/fixtures/*.santa; do \
+			name=$$(basename $$fixture .santa); \
+			if [[ $$name == aoc* ]]; then \
+				CMD_ARGS="$$CMD_ARGS --command-name \"$$name\" \"./target/release/santa-cli -t $$fixture\""; \
+			else \
+				CMD_ARGS="$$CMD_ARGS --command-name \"$$name\" \"./target/release/santa-cli $$fixture\""; \
+			fi; \
+		done && \
+		eval hyperfine \
 			--shell=none \
 			--warmup 3 \
 			--runs 10 \
 			--export-json /results/benchmark_$(BENCH_TIMESTAMP).json \
 			--export-markdown /results/benchmark_$(BENCH_TIMESTAMP).md \
-			--command-name "empty" "./target/release/santa-cli benchmarks/fixtures/empty.santa" \
-			--command-name "fibonacci" "./target/release/santa-cli benchmarks/fixtures/fibonacci.santa" \
-			--command-name "list_processing" "./target/release/santa-cli benchmarks/fixtures/list_processing.santa" \
-			--command-name "pattern_matching" "./target/release/santa-cli benchmarks/fixtures/pattern_matching.santa" \
+			$$CMD_ARGS \
 	'
 	@echo ""
 	@echo "Results saved to: benchmarks/results/benchmark_$(BENCH_TIMESTAMP).*"
@@ -147,9 +153,15 @@ bench/compare: ## Compare performance between two git versions (V1=ref V2=ref)
 				for fixture in benchmarks/fixtures/*.santa; do \
 					name=\$$(basename \$$fixture .santa); \
 					echo \"  \$$name...\"; \
-					hyperfine --shell=none --warmup 3 --runs 10 \
-						--export-json /results/compare_$(BENCH_TIMESTAMP)/\$${name}_$$suffix.json \
-						\"./target/release/santa-cli \$$fixture\"; \
+					if [[ \$$name == aoc* ]]; then \
+						hyperfine --shell=none --warmup 3 --runs 10 \
+							--export-json /results/compare_$(BENCH_TIMESTAMP)/\$${name}_$$suffix.json \
+							\"./target/release/santa-cli -t \$$fixture\"; \
+					else \
+						hyperfine --shell=none --warmup 3 --runs 10 \
+							--export-json /results/compare_$(BENCH_TIMESTAMP)/\$${name}_$$suffix.json \
+							\"./target/release/santa-cli \$$fixture\"; \
+					fi; \
 				done"; \
 		}; \
 		\

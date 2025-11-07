@@ -1,0 +1,43 @@
+input: read("aoc://2022/3")
+
+let priorities = zip("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 1..) |> dict;
+
+let parse_groups = lines >> map(split(""));
+
+let common_item = intersection >> list >> first;
+
+part_one: {
+  let compartments = |rucksack| {
+    let length = size(rucksack) / 2;
+    [rucksack[0..length], rucksack[length..]];
+  };
+
+  parse_groups(input)
+    |> map(compartments >> common_item >> get(_, priorities))
+    |> sum;
+}
+
+part_two: {
+  parse_groups(input)
+    |> map(set)
+    |> chunk(3)
+    |> map(common_item >> get(_, priorities))
+    |> sum;
+}
+
+test: {
+  input: "vJrwpWtwJgWrhcsFMMfFFhFp
+jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+PmmdzqPrVvPwwTWBwg
+wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+ttgJtRGJQctTZtZT
+CrZsJsPPZsGzwwsLwLmpwMDw"
+  part_one: 157
+  part_two: 70
+}
+
+test: {
+  input: read("aoc://2022/3")
+  part_one: 8515
+  part_two: 2434
+}

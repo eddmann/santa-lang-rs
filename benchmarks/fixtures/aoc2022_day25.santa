@@ -1,0 +1,50 @@
+input: read("aoc://2022/25")
+
+let conversion = #{
+  nil: 0,
+  "0": 0, "1": 1, "2": 2, "=": -2, "-": -1,
+   0: "0", 1: "1", 2: "2", -2: "=", -1: "-"
+};
+
+let snafu_sum = |a, b| {
+  let recur = |a, b, acc, carry| {
+    if a == "" && b == "" && carry == 0 {
+      return acc;
+    }
+
+    let place = carry + conversion[a[-1]] + conversion[b[-1]];
+    let next_carry = if place > 2 { 1 } else { if place < -2 { -1 } else { 0 } };
+    let digit = ((place + 2) % 5) - 2;
+
+    recur(a[0..size(a)-1], b[0..size(b)-1], conversion[digit] + acc, next_carry);
+  };
+
+  recur(a, b, "", 0);
+}
+
+part_one: {
+  lines(input) |> reduce(snafu_sum);
+}
+
+test: {
+  input: "1=-0-2
+12111
+2=0=
+21
+2=01
+111
+20012
+112
+1=-1=
+1-12
+12
+1=
+122"
+
+  part_one: "2=-1=0"
+}
+
+test: {
+  input: read("aoc://2022/25")
+  part_one: "2-0==21--=0==2201==2"
+}
