@@ -213,20 +213,35 @@ macro_rules! builtin {
 macro_rules! builtins {
     ($( $library: ident :: $name: ident ),*) => {
         pub fn builtins(name: &str) -> Option<std::rc::Rc<$crate::evaluator::Object>> {
-            match name {
-                $( stringify!($name) => Some(
-                    std::rc::Rc::new(
-                        $crate::evaluator::Object::Function(
-                            $crate::evaluator::Function::Builtin {
-                                parameters: $crate::evaluator::builtins::$library::$name::parameters(),
-                                body: $crate::evaluator::builtins::$library::$name::body,
-                                partial: None
-                            }
-                        )
-                    )
-                ), )*
-                _ => None
+            use std::collections::HashMap;
+            use std::cell::RefCell;
+
+            thread_local! {
+                static BUILTIN_CACHE: RefCell<Option<HashMap<&'static str, std::rc::Rc<$crate::evaluator::Object>>>> = RefCell::new(None);
             }
+
+            BUILTIN_CACHE.with(|cache| {
+                let mut cache_ref = cache.borrow_mut();
+                if cache_ref.is_none() {
+                    let mut map = HashMap::new();
+                    $(
+                        map.insert(
+                            stringify!($name),
+                            std::rc::Rc::new(
+                                $crate::evaluator::Object::Function(
+                                    $crate::evaluator::Function::Builtin {
+                                        parameters: $crate::evaluator::builtins::$library::$name::parameters(),
+                                        body: $crate::evaluator::builtins::$library::$name::body,
+                                        partial: None
+                                    }
+                                )
+                            )
+                        );
+                    )*
+                    *cache_ref = Some(map);
+                }
+                cache_ref.as_ref().unwrap().get(name).map(std::rc::Rc::clone)
+            })
         }
    }
 }
@@ -235,20 +250,35 @@ macro_rules! builtins {
 macro_rules! builtin_aliases {
     ($( $alias: tt => $library: ident :: $name: ident ),*) => {
         pub fn builtin_aliases(name: &str) -> Option<std::rc::Rc<$crate::evaluator::Object>> {
-            match name {
-                $( $alias => Some(
-                    std::rc::Rc::new(
-                        $crate::evaluator::Object::Function(
-                            $crate::evaluator::Function::Builtin {
-                                parameters: $crate::evaluator::builtins::$library::$name::parameters(),
-                                body: $crate::evaluator::builtins::$library::$name::body,
-                                partial: None
-                            }
-                        )
-                    )
-                ), )*
-                _ => None
+            use std::collections::HashMap;
+            use std::cell::RefCell;
+
+            thread_local! {
+                static BUILTIN_ALIAS_CACHE: RefCell<Option<HashMap<&'static str, std::rc::Rc<$crate::evaluator::Object>>>> = RefCell::new(None);
             }
+
+            BUILTIN_ALIAS_CACHE.with(|cache| {
+                let mut cache_ref = cache.borrow_mut();
+                if cache_ref.is_none() {
+                    let mut map = HashMap::new();
+                    $(
+                        map.insert(
+                            $alias,
+                            std::rc::Rc::new(
+                                $crate::evaluator::Object::Function(
+                                    $crate::evaluator::Function::Builtin {
+                                        parameters: $crate::evaluator::builtins::$library::$name::parameters(),
+                                        body: $crate::evaluator::builtins::$library::$name::body,
+                                        partial: None
+                                    }
+                                )
+                            )
+                        );
+                    )*
+                    *cache_ref = Some(map);
+                }
+                cache_ref.as_ref().unwrap().get(name).map(std::rc::Rc::clone)
+            })
         }
    }
 }
