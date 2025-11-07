@@ -6,6 +6,7 @@ mod infix;
 mod lazy_sequence;
 mod matcher;
 mod object;
+mod object_pool;
 
 #[cfg(test)]
 mod tests;
@@ -15,6 +16,7 @@ use crate::evaluator::function::Function;
 pub use crate::evaluator::function::{Arguments, ExternalFnDef};
 use crate::evaluator::lazy_sequence::LazySequence;
 pub use crate::evaluator::object::Object;
+use crate::evaluator::object_pool::ObjectPool;
 use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Prefix, Program, Statement, StatementKind};
 use im_rc::{HashMap, HashSet, Vector};
@@ -36,6 +38,7 @@ type ExternalFnLookup = std::collections::HashMap<String, Rc<Object>>;
 pub struct Evaluator {
     frames: Vec<Frame>,
     external_functions: Option<ExternalFnLookup>,
+    object_pool: ObjectPool,
 }
 
 #[derive(Debug)]
@@ -65,6 +68,7 @@ impl Evaluator {
         Self {
             frames: vec![],
             external_functions: None,
+            object_pool: ObjectPool::new(),
         }
     }
 
@@ -86,6 +90,7 @@ impl Evaluator {
         Self {
             frames: vec![],
             external_functions: Some(external_functions),
+            object_pool: ObjectPool::new(),
         }
     }
 
@@ -103,6 +108,11 @@ impl Evaluator {
         let result = self.eval_statement_block(&program.statements)?;
         self.pop_frame();
         Ok(result)
+    }
+
+    #[inline]
+    pub fn pool(&self) -> &ObjectPool {
+        &self.object_pool
     }
 
     fn push_frame(&mut self, frame: Frame) {
@@ -123,7 +133,7 @@ impl Evaluator {
     }
 
     fn eval_statement_block(&mut self, block: &[Statement]) -> Evaluation {
-        let mut result = Rc::new(Object::Nil);
+        let mut result = self.pool().nil();
 
         for (index, statement) in block.iter().enumerate() {
             if let StatementKind::Comment(_) = statement.kind {
@@ -176,12 +186,12 @@ impl Evaluator {
         match &statement.kind {
             StatementKind::Return(value) => Ok(Rc::new(Object::Return(self.eval_expression(value)?))),
             StatementKind::Break(value) => Ok(Rc::new(Object::Break(self.eval_expression(value)?))),
-            StatementKind::Comment(_) => Ok(Rc::new(Object::Nil)),
+            StatementKind::Comment(_) => Ok(self.pool().nil()),
             StatementKind::Section { name, body } => {
                 self.environment()
                     .borrow_mut()
                     .add_section(name, Rc::new(*body.clone()));
-                Ok(Rc::new(Object::Nil))
+                Ok(self.pool().nil())
             }
             StatementKind::Expression(expression) => self.eval_expression(expression),
             StatementKind::Block(statements) => {
@@ -227,13 +237,14 @@ impl Evaluator {
                 })
             }
             ExpressionKind::Integer(value) => {
-                Ok(Rc::new(Object::Integer(value.replace('_', "").parse::<i64>().unwrap())))
+                let int_value = value.replace('_', "").parse::<i64>().unwrap();
+                Ok(self.pool().integer(int_value))
             }
             ExpressionKind::Decimal(value) => Ok(Rc::new(Object::Decimal(
                 value.replace('_', "").parse::<OrderedFloat<f64>>().unwrap(),
             ))),
             ExpressionKind::String(value) => Ok(Rc::new(Object::String(value.to_owned()))),
-            ExpressionKind::Boolean(value) => Ok(Rc::new(Object::Boolean(*value))),
+            ExpressionKind::Boolean(value) => Ok(self.pool().boolean(*value)),
             ExpressionKind::If {
                 condition,
                 consequence,
@@ -259,35 +270,49 @@ impl Evaluator {
                     trace: self.get_trace(),
                 })
             }
-            ExpressionKind::List(list) => Ok(Rc::new(Object::List(Vector::from(self.eval_expressions(list)?)))),
-            ExpressionKind::Set(set) => {
-                let mut elements = HashSet::default();
-                for element in self.eval_expressions(set)? {
-                    if !element.is_hashable() {
-                        return Err(RuntimeErr {
-                            message: format!("Unable to include a {} within an Set", element.name()),
-                            source: expression.source,
-                            trace: self.get_trace(),
-                        });
-                    }
-                    elements.insert(element);
+            ExpressionKind::List(list) => {
+                if list.is_empty() {
+                    Ok(self.pool().empty_list())
+                } else {
+                    Ok(Rc::new(Object::List(Vector::from(self.eval_expressions(list)?))))
                 }
-                Ok(Rc::new(Object::Set(elements)))
+            }
+            ExpressionKind::Set(set) => {
+                if set.is_empty() {
+                    Ok(self.pool().empty_set())
+                } else {
+                    let mut elements = HashSet::default();
+                    for element in self.eval_expressions(set)? {
+                        if !element.is_hashable() {
+                            return Err(RuntimeErr {
+                                message: format!("Unable to include a {} within an Set", element.name()),
+                                source: expression.source,
+                                trace: self.get_trace(),
+                            });
+                        }
+                        elements.insert(element);
+                    }
+                    Ok(Rc::new(Object::Set(elements)))
+                }
             }
             ExpressionKind::Dictionary(map) => {
-                let mut elements = HashMap::default();
-                for (key, value) in map {
-                    let evaluated_key = self.eval_expression(key)?;
-                    if !evaluated_key.is_hashable() {
-                        return Err(RuntimeErr {
-                            message: format!("Unable to use a {} as a Dictionary key", evaluated_key.name()),
-                            source: key.source,
-                            trace: self.get_trace(),
-                        });
+                if map.is_empty() {
+                    Ok(self.pool().empty_dict())
+                } else {
+                    let mut elements = HashMap::default();
+                    for (key, value) in map {
+                        let evaluated_key = self.eval_expression(key)?;
+                        if !evaluated_key.is_hashable() {
+                            return Err(RuntimeErr {
+                                message: format!("Unable to use a {} as a Dictionary key", evaluated_key.name()),
+                                source: key.source,
+                                trace: self.get_trace(),
+                            });
+                        }
+                        elements.insert(evaluated_key, self.eval_expression(value)?);
                     }
-                    elements.insert(evaluated_key, self.eval_expression(value)?);
+                    Ok(Rc::new(Object::Dictionary(elements)))
                 }
-                Ok(Rc::new(Object::Dictionary(elements)))
             }
             ExpressionKind::Index { left, index } => {
                 let evaluated_left = self.eval_expression(left)?;
@@ -380,8 +405,8 @@ impl Evaluator {
                 crate::evaluator::infix::apply(self, left, operator, right, expression.source)
             }
             ExpressionKind::Prefix { operator, right } => match (&operator, &*self.eval_expression(right)?) {
-                (Prefix::Bang, object) => Ok(Rc::new(Object::Boolean(!object.is_truthy()))),
-                (Prefix::Minus, Object::Integer(v)) => Ok(Rc::new(Object::Integer(-v))),
+                (Prefix::Bang, object) => Ok(self.pool().boolean(!object.is_truthy())),
+                (Prefix::Minus, Object::Integer(v)) => Ok(self.pool().integer(-v)),
                 (Prefix::Minus, Object::Decimal(v)) => Ok(Rc::new(Object::Decimal(-v))),
                 (Prefix::Minus, object) => Err(RuntimeErr {
                     message: format!("Unexpected prefix operation: -{}", object.name()),
@@ -389,7 +414,7 @@ impl Evaluator {
                     trace: self.get_trace(),
                 }),
             },
-            ExpressionKind::Nil => Ok(Rc::new(Object::Nil)),
+            ExpressionKind::Nil => Ok(self.pool().nil()),
             ExpressionKind::Placeholder => Ok(Rc::new(Object::Placeholder)),
             ExpressionKind::Spread(_) => Err(RuntimeErr {
                 message: "Unable to spread within this context".to_owned(),
@@ -480,7 +505,7 @@ impl Evaluator {
                     }),
                 }
             }
-            _ => Ok(Rc::new(Object::Nil)),
+            _ => Ok(self.pool().nil()),
         }
     }
 
@@ -497,7 +522,7 @@ impl Evaluator {
         } else if let Some(alternative) = alternative {
             self.eval_statement(alternative)
         } else {
-            Ok(Rc::new(Object::Nil))
+            Ok(self.pool().nil())
         }
     }
 
@@ -544,12 +569,13 @@ impl Evaluator {
             }
         };
 
+        let nil = self.pool().nil();
         for (position, pattern) in pattern.iter().enumerate() {
             match &pattern.kind {
                 ExpressionKind::Identifier(name) => {
                     match self.environment().borrow_mut().declare_variable(
                         name,
-                        Rc::clone(list.iter().nth(position).unwrap_or(&Rc::new(Object::Nil))),
+                        Rc::clone(list.iter().nth(position).unwrap_or(&nil)),
                         is_mutable,
                     ) {
                         Ok(_) => {}

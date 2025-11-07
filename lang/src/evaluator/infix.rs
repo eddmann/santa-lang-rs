@@ -97,14 +97,20 @@ pub fn apply(
 
     match operator {
         Infix::Or => {
-            return Ok(Rc::new(Object::Boolean(
-                evaluator.eval_expression(left)?.is_truthy() || evaluator.eval_expression(right)?.is_truthy(),
-            )))
+            let left_result = evaluator.eval_expression(left)?.is_truthy();
+            if left_result {
+                return Ok(evaluator.pool().boolean(true));
+            }
+            let right_result = evaluator.eval_expression(right)?.is_truthy();
+            return Ok(evaluator.pool().boolean(right_result))
         }
         Infix::And => {
-            return Ok(Rc::new(Object::Boolean(
-                evaluator.eval_expression(left)?.is_truthy() && evaluator.eval_expression(right)?.is_truthy(),
-            )))
+            let left_result = evaluator.eval_expression(left)?.is_truthy();
+            if !left_result {
+                return Ok(evaluator.pool().boolean(false));
+            }
+            let right_result = evaluator.eval_expression(right)?.is_truthy();
+            return Ok(evaluator.pool().boolean(right_result))
         }
         Infix::Call(function) => {
             let evaluated_function = evaluator.eval_expression(function)?;
@@ -134,18 +140,18 @@ pub fn apply(
         Infix::Minus => {
             crate::evaluator::builtins::operators::minus(evaluator, &evaluated_left, &evaluated_right, source)
         }
-        Infix::Asterisk => crate::evaluator::builtins::operators::asterisk(&evaluated_left, &evaluated_right, source),
-        Infix::Slash => crate::evaluator::builtins::operators::slash(&evaluated_left, &evaluated_right, source),
-        Infix::Modulo => crate::evaluator::builtins::operators::modulo(&evaluated_left, &evaluated_right, source),
-        Infix::Equal => crate::evaluator::builtins::operators::equal(&evaluated_left, &evaluated_right),
-        Infix::NotEqual => crate::evaluator::builtins::operators::not_equal(&evaluated_left, &evaluated_right),
-        Infix::LessThan => crate::evaluator::builtins::operators::less_than(&evaluated_left, &evaluated_right),
+        Infix::Asterisk => crate::evaluator::builtins::operators::asterisk(evaluator, &evaluated_left, &evaluated_right, source),
+        Infix::Slash => crate::evaluator::builtins::operators::slash(evaluator, &evaluated_left, &evaluated_right, source),
+        Infix::Modulo => crate::evaluator::builtins::operators::modulo(evaluator, &evaluated_left, &evaluated_right, source),
+        Infix::Equal => crate::evaluator::builtins::operators::equal(evaluator, &evaluated_left, &evaluated_right),
+        Infix::NotEqual => crate::evaluator::builtins::operators::not_equal(evaluator, &evaluated_left, &evaluated_right),
+        Infix::LessThan => crate::evaluator::builtins::operators::less_than(evaluator, &evaluated_left, &evaluated_right),
         Infix::LessThanEqual => {
-            crate::evaluator::builtins::operators::less_than_equal(&evaluated_left, &evaluated_right)
+            crate::evaluator::builtins::operators::less_than_equal(evaluator, &evaluated_left, &evaluated_right)
         }
-        Infix::GreaterThan => crate::evaluator::builtins::operators::greater_than(&evaluated_left, &evaluated_right),
+        Infix::GreaterThan => crate::evaluator::builtins::operators::greater_than(evaluator, &evaluated_left, &evaluated_right),
         Infix::GreaterThanEqual => {
-            crate::evaluator::builtins::operators::greater_than_equal(&evaluated_left, &evaluated_right)
+            crate::evaluator::builtins::operators::greater_than_equal(evaluator, &evaluated_left, &evaluated_right)
         }
         _ => unreachable!(),
     }

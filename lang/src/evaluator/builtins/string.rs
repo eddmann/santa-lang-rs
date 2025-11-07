@@ -6,39 +6,39 @@ use regex::Regex;
 use std::rc::Rc;
 
 builtin! {
-    int(value) match {
+    int(value) [evaluator, _source] match {
         Object::Boolean(value) => {
-            Ok(Rc::new(Object::Integer(if *value { 1 } else { 0 })))
+            Ok(evaluator.pool().integer(if *value { 1 } else { 0 }))
         }
         Object::Integer(value) => {
-            Ok(Rc::new(Object::Integer(*value)))
+            Ok(evaluator.pool().integer(*value))
         }
         Object::Decimal(OrderedFloat(value)) => {
-            Ok(Rc::new(Object::Integer(value.round() as i64)))
+            Ok(evaluator.pool().integer(value.round() as i64))
         }
         Object::String(value) => {
             if let Ok(parsed) = value.trim().parse::<i64>() {
-                return Ok(Rc::new(Object::Integer(parsed)));
+                return Ok(evaluator.pool().integer(parsed));
             }
 
             if let Ok(parsed) = value.trim().parse::<f64>() {
-                return Ok(Rc::new(Object::Integer(parsed.round() as i64)))
+                return Ok(evaluator.pool().integer(parsed.round() as i64))
             }
 
-            Ok(Rc::new(Object::Integer(0)))
+            Ok(evaluator.pool().integer(0))
         }
     }
 }
 
 builtin! {
-    ints(value) match {
+    ints(value) [evaluator, _source] match {
         Object::String(value) => {
             let pattern = Regex::new(r"(-?[0-9]+)").unwrap();
 
             let mut ints = Vector::new();
             for capture in pattern.captures_iter(value) {
                 if let Ok(parsed) = capture[0].parse::<i64>() {
-                    ints.push_back(Rc::new(Object::Integer(parsed)));
+                    ints.push_back(evaluator.pool().integer(parsed));
                 }
             }
 
