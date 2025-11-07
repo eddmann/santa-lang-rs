@@ -1,13 +1,14 @@
 use crate::evaluator::Object;
 use crate::parser::ast::Section;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 pub type EnvironmentRef = Rc<RefCell<Environment>>;
 
 #[derive(Debug, Clone)]
 pub struct Environment {
-    store: Vec<(String, Rc<Object>, bool)>,
+    store: HashMap<String, (Rc<Object>, bool)>,
     sections: Vec<(String, Rc<Section>)>,
     outer: Option<EnvironmentRef>,
 }
@@ -19,7 +20,7 @@ pub struct EnvironmentErr {
 impl Environment {
     pub fn new() -> EnvironmentRef {
         Rc::new(RefCell::new(Environment {
-            store: vec![],
+            store: HashMap::new(),
             sections: vec![],
             outer: None,
         }))
@@ -27,7 +28,7 @@ impl Environment {
 
     pub fn from(outer: EnvironmentRef) -> EnvironmentRef {
         Rc::new(RefCell::new(Environment {
-            store: vec![],
+            store: HashMap::new(),
             sections: vec![],
             outer: Some(outer),
         }))
@@ -45,23 +46,19 @@ impl Environment {
     }
 
     pub fn declare_variable(&mut self, name: &str, value: Rc<Object>, mutable: bool) -> Result<(), EnvironmentErr> {
-        for (name_, _, _) in &self.store {
-            if name_ == name {
-                return Err(EnvironmentErr {
-                    message: format!("Variable '{}' has already been declared", name),
-                });
-            }
+        if self.store.contains_key(name) {
+            return Err(EnvironmentErr {
+                message: format!("Variable '{}' has already been declared", name),
+            });
         }
 
-        self.store.push((name.to_owned(), value, mutable));
+        self.store.insert(name.to_owned(), (value, mutable));
         Ok(())
     }
 
     pub fn get_variable(&self, name: &str) -> Option<Rc<Object>> {
-        for (name_, value, _) in &self.store {
-            if name_ == name {
-                return Some(Rc::clone(value));
-            }
+        if let Some((value, _)) = self.store.get(name) {
+            return Some(Rc::clone(value));
         }
 
         if let Some(outer) = &self.outer {
@@ -72,17 +69,15 @@ impl Environment {
     }
 
     pub fn assign_variable(&mut self, name: &str, value: Rc<Object>) -> Result<(), EnvironmentErr> {
-        for (name_, value_, mutable) in self.store.iter_mut() {
-            if *name_ == name {
-                if !*mutable {
-                    return Err(EnvironmentErr {
-                        message: format!("Variable '{}' is not mutable", name),
-                    });
-                }
-
-                *value_ = value;
-                return Ok(());
+        if let Some((stored_value, mutable)) = self.store.get_mut(name) {
+            if !*mutable {
+                return Err(EnvironmentErr {
+                    message: format!("Variable '{}' is not mutable", name),
+                });
             }
+
+            *stored_value = value;
+            return Ok(());
         }
 
         if let Some(outer) = &self.outer {
@@ -95,13 +90,11 @@ impl Environment {
     }
 
     pub fn set_variable(&mut self, name: &str, value: Rc<Object>) {
-        for (name_, value_, _) in self.store.iter_mut() {
-            if *name_ == name {
-                *value_ = value;
-                return;
-            }
+        if let Some((stored_value, _)) = self.store.get_mut(name) {
+            *stored_value = value;
+            return;
         }
 
-        self.store.push((name.to_owned(), value, false));
+        self.store.insert(name.to_owned(), (value, false));
     }
 }
