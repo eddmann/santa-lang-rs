@@ -540,7 +540,7 @@ impl Evaluator {
                     message: format!("Expected a List to destructure, found: {}", subject.name()),
                     source,
                     trace: self.get_trace(),
-                })
+                });
             }
         };
 
@@ -558,7 +558,7 @@ impl Evaluator {
                                 message,
                                 source: pattern.source,
                                 trace: self.get_trace(),
-                            })
+                            });
                         }
                     }
                 }
@@ -574,7 +574,7 @@ impl Evaluator {
                                 message,
                                 source: pattern.source,
                                 trace: self.get_trace(),
-                            })
+                            });
                         }
                     }
                     break;
@@ -595,7 +595,7 @@ impl Evaluator {
                         message: format!("Unexpected List destructing pattern, found: {}", pattern.kind),
                         source: pattern.source,
                         trace: self.get_trace(),
-                    })
+                    });
                 }
             }
         }

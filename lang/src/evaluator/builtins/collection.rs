@@ -812,7 +812,7 @@ fn eager_zipper(sequences: Vector<Rc<Object>>, evaluator: &mut Evaluator, source
                     ),
                     source,
                     trace: shared_evaluator.borrow().get_trace(),
-                })
+                });
             }
         }
     }

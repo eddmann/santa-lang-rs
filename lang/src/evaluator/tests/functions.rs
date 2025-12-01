@@ -1,5 +1,5 @@
-use crate::evaluator::function::{Arguments, ExternalFnDef};
 use crate::evaluator::Object;
+use crate::evaluator::function::{Arguments, ExternalFnDef};
 use crate::lexer::Location;
 use crate::parser::ast::ExpressionKind;
 use std::rc::Rc;

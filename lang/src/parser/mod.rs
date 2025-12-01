@@ -355,7 +355,7 @@ impl<'a> Parser<'a> {
                 return Err(ParserErr {
                     message: format!("{:?} is not legal in the prefix position", self.current_token.kind),
                     source: self.current_token.source,
-                })
+                });
             }
         };
         self.next_token();
@@ -397,7 +397,7 @@ impl<'a> Parser<'a> {
                 return Err(ParserErr {
                     message: format!("{:?} is not legal in the infix position", self.current_token.kind),
                     source: self.current_token.source,
-                })
+                });
             }
         };
         self.next_token();
@@ -518,7 +518,7 @@ impl<'a> Parser<'a> {
                         return Err(ParserErr {
                             message: "Unexpected EOF within escape sequence".to_owned(),
                             source: token.source,
-                        })
+                        });
                     }
                 },
                 character => character,

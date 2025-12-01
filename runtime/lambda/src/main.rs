@@ -38,6 +38,7 @@ fn main() -> ! {
 
         let event: Rc<Object> = response.into_json().expect("Failed to parse event");
 
+        #[allow(clippy::mutable_key_type)]
         let mut context_map: HashMap<Rc<Object>, Rc<Object>> = HashMap::new();
         context_map.insert(
             Rc::new(Object::String("request_id".to_owned())),

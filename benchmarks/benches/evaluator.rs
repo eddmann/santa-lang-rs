@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use santa_lang::{Evaluator, Lexer, Parser};
 
 fn parse_and_eval(input: &str) -> Result<String, String> {
@@ -28,13 +28,9 @@ fn bench_fibonacci(c: &mut Criterion) {
         fib(20)
     "#;
 
-    group.bench_function("recursive", |b| {
-        b.iter(|| parse_and_eval(black_box(fib_recursive)))
-    });
+    group.bench_function("recursive", |b| b.iter(|| parse_and_eval(black_box(fib_recursive))));
 
-    group.bench_function("iterative", |b| {
-        b.iter(|| parse_and_eval(black_box(fib_iterative)))
-    });
+    group.bench_function("iterative", |b| b.iter(|| parse_and_eval(black_box(fib_iterative))));
 
     group.finish();
 }
@@ -43,18 +39,9 @@ fn bench_collections(c: &mut Criterion) {
     let mut group = c.benchmark_group("collections");
 
     let test_cases = vec![
-        (
-            "map",
-            "[1..1000] |> map(|x| x * 2) |> size",
-        ),
-        (
-            "filter",
-            "[1..1000] |> filter(|x| x % 2 == 0) |> size",
-        ),
-        (
-            "fold",
-            "[1..1000] |> fold(0, |acc, x| acc + x)",
-        ),
+        ("map", "[1..1000] |> map(|x| x * 2) |> size"),
+        ("filter", "[1..1000] |> filter(|x| x % 2 == 0) |> size"),
+        ("fold", "[1..1000] |> fold(0, |acc, x| acc + x)"),
         (
             "pipeline",
             "[1..1000] |> filter(|x| x % 2 == 0) |> map(|x| x * x) |> fold(0, |acc, x| acc + x)",
@@ -87,9 +74,7 @@ fn bench_pattern_matching(c: &mut Criterion) {
         process([1..100])
     "#;
 
-    group.bench_function("list_recursion", |b| {
-        b.iter(|| parse_and_eval(black_box(code)))
-    });
+    group.bench_function("list_recursion", |b| b.iter(|| parse_and_eval(black_box(code))));
 
     group.finish();
 }
@@ -102,18 +87,9 @@ fn bench_string_operations(c: &mut Criterion) {
             "split",
             r#""one,two,three,four,five,six,seven,eight,nine,ten" |> split(",") |> size"#,
         ),
-        (
-            "lines",
-            r#""line1\nline2\nline3\nline4\nline5" |> lines |> size"#,
-        ),
-        (
-            "chars",
-            r#""abcdefghijklmnopqrstuvwxyz" |> chars |> size"#,
-        ),
-        (
-            "ints",
-            r#""1 2 3 4 5 6 7 8 9 10" |> ints |> sum"#,
-        ),
+        ("lines", r#""line1\nline2\nline3\nline4\nline5" |> lines |> size"#),
+        ("chars", r#""abcdefghijklmnopqrstuvwxyz" |> chars |> size"#),
+        ("ints", r#""1 2 3 4 5 6 7 8 9 10" |> ints |> sum"#),
     ];
 
     for (name, code) in test_cases {

@@ -167,7 +167,11 @@ impl LazySequence {
         }
     }
 
-    pub fn resolve_iter<'a>(&'a self, evaluator: Rc<RefCell<&'a mut Evaluator>>, source: Location) -> LazySequenceIter<'a> {
+    pub fn resolve_iter<'a>(
+        &'a self,
+        evaluator: Rc<RefCell<&'a mut Evaluator>>,
+        source: Location,
+    ) -> LazySequenceIter<'a> {
         LazySequenceIter {
             value: self.value.clone(),
             functions: self.functions.clone(),

@@ -44,7 +44,7 @@ pub fn apply(
                     source,
                 },
                 environment: evaluator.environment(),
-            })))
+            })));
         }
         (ExpressionKind::Placeholder, _) => {
             return Ok(Rc::new(Object::Function(Function::Closure {
@@ -67,7 +67,7 @@ pub fn apply(
                     source,
                 },
                 environment: evaluator.environment(),
-            })))
+            })));
         }
         (_, ExpressionKind::Placeholder) => {
             return Ok(Rc::new(Object::Function(Function::Closure {
@@ -90,7 +90,7 @@ pub fn apply(
                     source,
                 },
                 environment: evaluator.environment(),
-            })))
+            })));
         }
         _ => {}
     }
@@ -99,12 +99,12 @@ pub fn apply(
         Infix::Or => {
             return Ok(Rc::new(Object::Boolean(
                 evaluator.eval_expression(left)?.is_truthy() || evaluator.eval_expression(right)?.is_truthy(),
-            )))
+            )));
         }
         Infix::And => {
             return Ok(Rc::new(Object::Boolean(
                 evaluator.eval_expression(left)?.is_truthy() && evaluator.eval_expression(right)?.is_truthy(),
-            )))
+            )));
         }
         Infix::Call(function) => {
             let evaluated_function = evaluator.eval_expression(function)?;

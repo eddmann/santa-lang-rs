@@ -59,14 +59,14 @@ pub fn santa_aoc_run(source: &str, cwd: Option<String>) -> PhpResult<Zval> {
 }
 
 #[php_function(optional = "cwd")]
-pub fn santa_aoc_test(source: &str, cwd: Option<String>) -> PhpResult<Zval> {
+pub fn santa_aoc_test(source: &str, cwd: Option<String>, include_slow: Option<bool>) -> PhpResult<Zval> {
     if let Some(dir) = cwd {
         std::env::set_current_dir(dir).unwrap();
     }
 
     let mut runner = AoCRunner::new_with_external_functions(PhpTime {}, &crate::external_functions::definitions());
 
-    match runner.test(source) {
+    match runner.test(source, include_slow.unwrap_or(false)) {
         Ok(test_cases) => {
             let mut output_ht = ZendHashTable::new();
 

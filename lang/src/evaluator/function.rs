@@ -257,7 +257,7 @@ impl Function {
         &self,
         environment: EnvironmentRef,
         #[allow(clippy::ptr_arg)] parameters: &Vec<Expression>,
-        arguments: &Vec<Rc<Object>>,
+        #[allow(clippy::ptr_arg)] arguments: &Vec<Rc<Object>>,
     ) -> Result<Vec<Expression>, RuntimeErr> {
         let mut remaining_parameters = vec![];
 
@@ -294,7 +294,7 @@ impl Function {
                         message: format!("Unexpected parameter, found: {}", parameter.kind),
                         source: parameter.source,
                         trace: vec![],
-                    })
+                    });
                 }
             }
         }
@@ -308,7 +308,7 @@ impl Function {
         &self,
         evaluated_arguments: &mut Arguments,
         #[allow(clippy::ptr_arg)] parameters: &Vec<ExpressionKind>,
-        arguments: &Vec<Rc<Object>>,
+        #[allow(clippy::ptr_arg)] arguments: &Vec<Rc<Object>>,
     ) -> Result<Vec<ExpressionKind>, RuntimeErr> {
         let mut remaining_parameters = vec![];
 
@@ -356,7 +356,7 @@ impl Function {
                     message: format!("Expected a List argument to destructure, found: {}", argument.name()),
                     source,
                     trace: vec![],
-                })
+                });
             }
         };
 
@@ -398,7 +398,7 @@ impl Function {
                         message: format!("Unexpected List destructing pattern, found: {}", parameter.kind),
                         source: parameter.source,
                         trace: vec![],
-                    })
+                    });
                 }
             }
         }
@@ -453,6 +453,7 @@ impl Ord for Function {
     }
 }
 
+#[allow(clippy::non_canonical_partial_ord_impl)]
 impl PartialOrd for Function {
     fn partial_cmp(&self, _other: &Self) -> Option<std::cmp::Ordering> {
         unreachable!()

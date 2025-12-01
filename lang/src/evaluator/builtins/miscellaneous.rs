@@ -1,7 +1,7 @@
-use crate::evaluator::function::Function;
-use crate::evaluator::object::Object;
 use crate::evaluator::LazySequence;
 use crate::evaluator::RuntimeErr;
+use crate::evaluator::function::Function;
+use crate::evaluator::object::Object;
 use std::cell::RefCell;
 use std::rc::Rc;
 

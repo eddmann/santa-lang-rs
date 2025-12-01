@@ -1,5 +1,5 @@
-use crate::evaluator::lazy_sequence::LazySequence;
 use crate::evaluator::Function;
+use crate::evaluator::lazy_sequence::LazySequence;
 use im_rc::{HashMap, HashSet, Vector};
 use ordered_float::OrderedFloat;
 use std::collections::hash_map::DefaultHasher;

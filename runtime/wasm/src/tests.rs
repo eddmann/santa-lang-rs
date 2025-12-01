@@ -56,7 +56,7 @@ fn solution() {
 
 #[wasm_bindgen_test]
 fn test_solution() {
-    let result = js_sys::Array::from(&aoc_test(SOLUTION, js_sys::Object::new()).unwrap())
+    let result = js_sys::Array::from(&aoc_test(SOLUTION, js_sys::Object::new(), Some(true)).unwrap())
         .iter()
         .collect::<Vec<_>>();
 

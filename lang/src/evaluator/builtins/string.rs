@@ -1,5 +1,5 @@
-use crate::evaluator::object::Object;
 use crate::evaluator::RuntimeErr;
+use crate::evaluator::object::Object;
 use im_rc::Vector;
 use ordered_float::OrderedFloat;
 use regex::Regex;

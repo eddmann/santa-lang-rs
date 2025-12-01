@@ -54,7 +54,7 @@ fn read(arguments: Arguments, source: Location) -> Evaluation {
                             message: "Missing SANTA_CLI_SESSION_TOKEN environment variable".to_owned(),
                             source,
                             trace: vec![],
-                        })
+                        });
                     }
                 };
 

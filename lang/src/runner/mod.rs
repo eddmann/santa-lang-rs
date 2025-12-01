@@ -1,6 +1,6 @@
 use crate::evaluator::{Environment, EnvironmentErr, EnvironmentRef, Evaluator, ExternalFnDef, Object, RuntimeErr};
 use crate::lexer::{Lexer, Location};
-use crate::parser::{ast::Section, Parser, ParserErr};
+use crate::parser::{Parser, ParserErr, ast::Section};
 use std::rc::Rc;
 
 #[cfg(test)]
@@ -159,11 +159,7 @@ impl<T: Time> AoCRunner<T> {
 
         let mut results = vec![];
 
-        for (test, attributes) in evaluation
-            .environment
-            .borrow()
-            .get_sections_with_attributes("test")
-        {
+        for (test, attributes) in evaluation.environment.borrow().get_sections_with_attributes("test") {
             let is_slow = Environment::section_has_attribute(&attributes, "slow");
 
             // Skip slow tests unless explicitly requested
@@ -279,7 +275,7 @@ impl<T: Time> AoCRunner<T> {
                         message,
                         source: section.source,
                         trace: vec![],
-                    })
+                    });
                 }
             };
         }

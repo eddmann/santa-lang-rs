@@ -29,7 +29,7 @@ pub fn matcher(evaluator: &mut Evaluator, subject: &Expression, cases: &[MatchCa
                             message,
                             source: case.pattern.source,
                             trace: evaluator.get_trace(),
-                        })
+                        });
                     }
                 };
                 if let Some(guard) = &case.guard {
@@ -164,7 +164,7 @@ fn destructure_match_list_pattern(
                             message,
                             source: sub_pattern.source,
                             trace: evaluator.get_trace(),
-                        })
+                        });
                     }
                 }
             }
@@ -187,7 +187,7 @@ fn destructure_match_list_pattern(
                             message,
                             source: sub_pattern.source,
                             trace: evaluator.get_trace(),
-                        })
+                        });
                     }
                 }
 

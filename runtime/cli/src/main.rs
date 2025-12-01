@@ -121,7 +121,9 @@ fn repl() -> Result<()> {
 
     let mut evaluator = Evaluator::new_with_external_functions(&functions);
 
-    println!("   ,--.\n  ()   \\\n   /    \\\n _/______\\_\n(__________)\n(/  @  @  \\)\n(`._,()._,')  Santa REPL\n(  `-'`-'  )\n \\        /\n  \\,,,,,,/\n");
+    println!(
+        "   ,--.\n  ()   \\\n   /    \\\n _/______\\_\n(__________)\n(/  @  @  \\)\n(`._,()._,')  Santa REPL\n(  `-'`-'  )\n \\        /\n  \\,,,,,,/\n"
+    );
 
     let mut rl = DefaultEditor::new()?;
 

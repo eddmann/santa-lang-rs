@@ -2,7 +2,7 @@ mod external_functions;
 
 use js_sys::{Array, Object};
 use santa_lang::{AoCRunner, Environment, Evaluator, Lexer, Parser, Time};
-use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
+use wasm_bindgen::prelude::{JsValue, wasm_bindgen};
 
 #[cfg(test)]
 mod tests;
@@ -32,11 +32,7 @@ pub fn aoc_run(source: &str, js_functions: Object) -> Result<JsValue, JsValue> {
 }
 
 #[wasm_bindgen]
-pub fn aoc_test(
-    source: &str,
-    js_functions: Object,
-    include_slow: Option<bool>,
-) -> Result<JsValue, JsValue> {
+pub fn aoc_test(source: &str, js_functions: Object, include_slow: Option<bool>) -> Result<JsValue, JsValue> {
     let mut runner =
         AoCRunner::new_with_external_functions(WebTime {}, &crate::external_functions::definitions(&js_functions));
 
