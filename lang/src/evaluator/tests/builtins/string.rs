@@ -56,3 +56,11 @@ test_eval! {
     ("regex_match_all(\"([0-9]+)\", \"abc\")", "[]", match_not_found),
     ("regex_match_all(\"[0-+a]\", \"\")", "Failed to compile regex pattern: [0-+a]", invalid_pattern)
 }
+
+test_eval! {
+    suite md5;
+
+    ("md5(\"\")", "\"d41d8cd98f00b204e9800998ecf8427e\"", empty_string),
+    ("md5(\"hello\")", "\"5d41402abc4b2a76b9719d911017c592\"", hello),
+    ("md5(\"Hello, World!\")", "\"65a8e27d8879283831b664bd8b7f0ad4\"", hello_world)
+}

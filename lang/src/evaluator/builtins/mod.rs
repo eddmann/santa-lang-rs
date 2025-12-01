@@ -64,6 +64,7 @@ builtins! {
     string::split,
     string::regex_match,
     string::regex_match_all,
+    string::md5,
     miscellaneous::range,
     miscellaneous::id,
     miscellaneous::memoize,

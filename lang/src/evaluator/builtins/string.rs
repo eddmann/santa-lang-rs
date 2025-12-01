@@ -118,3 +118,15 @@ builtin! {
         }
     }
 }
+
+builtin! {
+    md5(value) match {
+        Object::String(value) => {
+            use ::md5::{Digest, Md5};
+            let mut hasher = Md5::new();
+            hasher.update(value.as_bytes());
+            let digest = hasher.finalize();
+            Ok(Rc::new(Object::String(format!("{:x}", digest))))
+        }
+    }
+}
