@@ -10,6 +10,12 @@ pub struct Program {
 pub type Section = Program;
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct Attribute {
+    pub name: String,
+    pub source: Location,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Statement {
     pub kind: StatementKind,
     pub source: Location,
@@ -20,7 +26,11 @@ pub enum StatementKind {
     Return(Box<Expression>),
     Break(Box<Expression>),
     Comment(String),
-    Section { name: String, body: Box<Section> },
+    Section {
+        name: String,
+        body: Box<Section>,
+        attributes: Vec<Attribute>,
+    },
     Expression(Box<Expression>),
     Block(Vec<Statement>),
 }
@@ -157,7 +167,18 @@ impl fmt::Display for StatementKind {
             Self::Return(value) => format!("return {};", value),
             Self::Break(value) => format!("break {};", value),
             Self::Comment(value) => format!("//{}", value),
-            Self::Section { name, body } => format!("{}: {{{}}}", name, body),
+            Self::Section { name, body, attributes } => {
+                let attrs = attributes
+                    .iter()
+                    .map(|a| format!("@{}", a.name))
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                if attrs.is_empty() {
+                    format!("{}: {{{}}}", name, body)
+                } else {
+                    format!("{} {}: {{{}}}", attrs, name, body)
+                }
+            }
             Self::Expression(expression) => format!("{}", expression),
             Self::Block(statements) => {
                 let formatted: Vec<String> = statements.iter().map(|statement| statement.to_string()).collect();

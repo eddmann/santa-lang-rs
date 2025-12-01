@@ -128,6 +128,7 @@ impl<'a> Lexer<'a> {
             '[' => T!['['],
             ']' => T![']'],
             '_' => T![_],
+            '@' => T![@],
 
             '`' => self.consume_backtick(),
             '"' => self.consume_string(),

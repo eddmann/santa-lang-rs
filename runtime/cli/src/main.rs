@@ -21,6 +21,7 @@ fn main() -> Result<()> {
 
     let mut opts = Options::new();
     opts.optflag("t", "test", "run the solution's test suite");
+    opts.optflag("s", "slow", "include slow tests (marked with @slow)");
     opts.optflag("r", "repl", "begin an interactive REPL session");
     opts.optflag("h", "help", "list available commands");
     #[cfg(feature = "profile")]
@@ -50,7 +51,8 @@ fn main() -> Result<()> {
     let canonical_path_str = path.to_string_lossy();
 
     if matches.opt_present("t") {
-        return aoc_test(&canonical_path_str);
+        let include_slow = matches.opt_present("s");
+        return aoc_test(&canonical_path_str, include_slow);
     }
 
     #[cfg(feature = "profile")]
@@ -187,11 +189,11 @@ fn aoc_run(source_path: &str) -> Result<()> {
     }
 }
 
-fn aoc_test(source_path: &str) -> Result<()> {
+fn aoc_test(source_path: &str, include_slow: bool) -> Result<()> {
     let source = std::fs::read_to_string(source_path)?;
 
     let mut runner = AoCRunner::new_with_external_functions(CliTime {}, &crate::external_functions::definitions());
-    match runner.test(&source) {
+    match runner.test(&source, include_slow) {
         Ok(test_cases) => {
             let mut exit_code = 0;
 
@@ -199,7 +201,11 @@ fn aoc_test(source_path: &str) -> Result<()> {
                 if number > 0 {
                     println!()
                 }
-                println!("\x1b[4mTestcase #{}\x1b[0m", number + 1);
+                if test_case.slow {
+                    println!("\x1b[4mTestcase #{}\x1b[0m \x1b[33m(slow)\x1b[0m", number + 1);
+                } else {
+                    println!("\x1b[4mTestcase #{}\x1b[0m", number + 1);
+                }
 
                 if test_case.part_one.is_none() && test_case.part_two.is_none() {
                     println!("No expectations");

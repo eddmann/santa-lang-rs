@@ -113,18 +113,58 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_statement(&mut self) -> Result<Option<Statement>, ParserErr> {
+        // Collect any leading attributes
+        let attributes = self.parse_attributes()?;
+
         match self.current_token.kind {
+            T![RETURN] | T![BREAK] | T![CMT] if !attributes.is_empty() => Err(ParserErr {
+                message: "Attributes can only be applied to sections".to_owned(),
+                source: attributes[0].source,
+            }),
             T![RETURN] => Ok(Some(self.parse_return_statement()?)),
             T![BREAK] => Ok(Some(self.parse_break_statement()?)),
             T![CMT] => Ok(Some(self.parse_comment_statement()?)),
-            T![ID] if self.next_token.kind == T![:] => Ok(Some(self.parse_section_statement()?)),
-            T!['}'] | T![EOF] => Ok(None),
+            T![ID] if self.next_token.kind == T![:] => Ok(Some(self.parse_section_statement(attributes)?)),
+            T!['}'] | T![EOF] => {
+                if !attributes.is_empty() {
+                    return Err(ParserErr {
+                        message: "Unexpected attribute - attributes can only be applied to sections".to_owned(),
+                        source: attributes[0].source,
+                    });
+                }
+                Ok(None)
+            }
             T![ILLEGAL] => Err(ParserErr {
                 source: self.current_token.source,
                 message: "Illegal token".to_owned(),
             }),
-            _ => Ok(Some(self.parse_expression_statement()?)),
+            _ => {
+                if !attributes.is_empty() {
+                    return Err(ParserErr {
+                        message: "Attributes can only be applied to sections".to_owned(),
+                        source: attributes[0].source,
+                    });
+                }
+                Ok(Some(self.parse_expression_statement()?))
+            }
         }
+    }
+
+    fn parse_attributes(&mut self) -> Result<Vec<Attribute>, ParserErr> {
+        let mut attributes = Vec::new();
+
+        while self.current_token.kind == T![@] {
+            let start = self.expect(T![@])?;
+            let name_token = self.expect(T![ID])?;
+            let name = self.lexer.get_source(&name_token).to_string();
+
+            attributes.push(Attribute {
+                name,
+                source: start.source_range(&name_token),
+            });
+        }
+
+        Ok(attributes)
     }
 
     fn parse_return_statement(&mut self) -> RStatement {
@@ -161,7 +201,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_section_statement(&mut self) -> RStatement {
+    fn parse_section_statement(&mut self, attributes: Vec<Attribute>) -> RStatement {
         let token = self.expect(T![ID])?;
         let name = self.lexer.get_source(&token).to_string();
         self.expect(T![:])?;
@@ -179,7 +219,7 @@ impl<'a> Parser<'a> {
         self.consume_if(T![;]);
 
         Ok(Statement {
-            kind: StatementKind::Section { name, body },
+            kind: StatementKind::Section { name, body, attributes },
             source: token.source_range(&self.current_token),
         })
     }

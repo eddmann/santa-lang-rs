@@ -1,5 +1,5 @@
 use crate::evaluator::Object;
-use crate::parser::ast::Section;
+use crate::parser::ast::{Attribute, Section};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -8,7 +8,7 @@ pub type EnvironmentRef = Rc<RefCell<Environment>>;
 #[derive(Debug, Clone)]
 pub struct Environment {
     store: Vec<(String, Rc<Object>, bool)>,
-    sections: Vec<(String, Rc<Section>)>,
+    sections: Vec<(String, Rc<Section>, Vec<Attribute>)>,
     outer: Option<EnvironmentRef>,
 }
 
@@ -36,12 +36,29 @@ impl Environment {
     pub fn get_sections(&self, name: &str) -> Vec<Rc<Section>> {
         self.sections
             .iter()
-            .filter_map(|(name_, body)| if name_ == name { Some(Rc::clone(body)) } else { None })
+            .filter_map(|(name_, body, _)| if name_ == name { Some(Rc::clone(body)) } else { None })
             .collect()
     }
 
-    pub fn add_section(&mut self, name: &str, body: Rc<Section>) {
-        self.sections.push((name.to_owned(), body))
+    pub fn get_sections_with_attributes(&self, name: &str) -> Vec<(Rc<Section>, Vec<Attribute>)> {
+        self.sections
+            .iter()
+            .filter_map(|(name_, body, attrs)| {
+                if name_ == name {
+                    Some((Rc::clone(body), attrs.clone()))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
+    pub fn add_section(&mut self, name: &str, body: Rc<Section>, attributes: Vec<Attribute>) {
+        self.sections.push((name.to_owned(), body, attributes))
+    }
+
+    pub fn section_has_attribute(attributes: &[Attribute], attr_name: &str) -> bool {
+        attributes.iter().any(|a| a.name == attr_name)
     }
 
     pub fn declare_variable(&mut self, name: &str, value: Rc<Object>, mutable: bool) -> Result<(), EnvironmentErr> {

@@ -64,6 +64,7 @@ struct SourceEvaluation {
 pub struct TestCase {
     pub part_one: Option<TestCaseResult>,
     pub part_two: Option<TestCaseResult>,
+    pub slow: bool,
 }
 
 #[derive(Debug)]
@@ -153,12 +154,23 @@ impl<T: Time> AoCRunner<T> {
         })
     }
 
-    pub fn test(&mut self, source: &str) -> Result<Vec<TestCase>, RunErr> {
+    pub fn test(&mut self, source: &str, include_slow: bool) -> Result<Vec<TestCase>, RunErr> {
         let evaluation = self.evaluate_source(source)?;
 
         let mut results = vec![];
 
-        for test in evaluation.environment.borrow().get_sections("test") {
+        for (test, attributes) in evaluation
+            .environment
+            .borrow()
+            .get_sections_with_attributes("test")
+        {
+            let is_slow = Environment::section_has_attribute(&attributes, "slow");
+
+            // Skip slow tests unless explicitly requested
+            if is_slow && !include_slow {
+                continue;
+            }
+
             let test_environment = Environment::from(Rc::clone(&evaluation.environment));
             let _test_result = self
                 .evaluator
@@ -237,6 +249,7 @@ impl<T: Time> AoCRunner<T> {
             results.push(TestCase {
                 part_one: part_one_result,
                 part_two: part_two_result,
+                slow: is_slow,
             });
         }
 

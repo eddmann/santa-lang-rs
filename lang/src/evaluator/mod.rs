@@ -177,10 +177,10 @@ impl Evaluator {
             StatementKind::Return(value) => Ok(Rc::new(Object::Return(self.eval_expression(value)?))),
             StatementKind::Break(value) => Ok(Rc::new(Object::Break(self.eval_expression(value)?))),
             StatementKind::Comment(_) => Ok(Rc::new(Object::Nil)),
-            StatementKind::Section { name, body } => {
+            StatementKind::Section { name, body, attributes } => {
                 self.environment()
                     .borrow_mut()
-                    .add_section(name, Rc::new(*body.clone()));
+                    .add_section(name, Rc::new(*body.clone()), attributes.clone());
                 Ok(Rc::new(Object::Nil))
             }
             StatementKind::Expression(expression) => self.eval_expression(expression),

@@ -86,6 +86,7 @@ fn nested_section() {
                                     ],
                                     source: 44..79,
                                 },
+                                attributes: [],
                             },
                             source: 44..79,
                         },

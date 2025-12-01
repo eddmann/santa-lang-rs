@@ -157,6 +157,7 @@ fn passing_test_case_with_both_parts() {
                                 passed: true,
                             },
                         ),
+                        slow: false,
                     },
                 ],
             )"#]],
@@ -190,6 +191,7 @@ fn passing_test_case_with_part_one() {
                             },
                         ),
                         part_two: None,
+                        slow: false,
                     },
                 ],
             )"#]],
@@ -224,6 +226,7 @@ fn passing_test_case_with_part_two() {
                                 passed: true,
                             },
                         ),
+                        slow: false,
                     },
                 ],
             )"#]],
@@ -271,6 +274,7 @@ fn failing_test_case_with_both_parts() {
                                 passed: false,
                             },
                         ),
+                        slow: false,
                     },
                 ],
             )"#]],
@@ -486,7 +490,150 @@ fn assert_run(input: &str, expected: Expect) {
 }
 
 fn assert_test(input: &str, expected: Expect) {
-    let result = AoCRunner::new(StubTime {}).test(input);
+    let result = AoCRunner::new(StubTime {}).test(input, true);
     let actual = format!("{:#?}", result);
     expected.assert_eq(&actual)
+}
+
+fn assert_test_with_slow(input: &str, include_slow: bool, expected: Expect) {
+    let result = AoCRunner::new(StubTime {}).test(input, include_slow);
+    let actual = format!("{:#?}", result);
+    expected.assert_eq(&actual)
+}
+
+#[test]
+fn slow_test_is_included_when_flag_set() {
+    assert_test_with_slow(
+        r#"
+            part_one: { 42 }
+
+            @slow
+            test: {
+                input: "data"
+                part_one: 42
+            }
+        "#,
+        true,
+        expect![[r#"
+            Ok(
+                [
+                    TestCase {
+                        part_one: Some(
+                            TestCaseResult {
+                                expected: "42",
+                                actual: "42",
+                                passed: true,
+                            },
+                        ),
+                        part_two: None,
+                        slow: true,
+                    },
+                ],
+            )"#]],
+    )
+}
+
+#[test]
+fn slow_test_is_skipped_by_default() {
+    assert_test_with_slow(
+        r#"
+            part_one: { 42 }
+
+            @slow
+            test: {
+                input: "data"
+                part_one: 42
+            }
+        "#,
+        false,
+        expect![[r#"
+            Ok(
+                [],
+            )"#]],
+    )
+}
+
+#[test]
+fn mixed_slow_and_normal_tests() {
+    assert_test_with_slow(
+        r#"
+            part_one: { 42 }
+
+            test: {
+                input: "data"
+                part_one: 42
+            }
+
+            @slow
+            test: {
+                input: "data"
+                part_one: 42
+            }
+        "#,
+        false,
+        expect![[r#"
+            Ok(
+                [
+                    TestCase {
+                        part_one: Some(
+                            TestCaseResult {
+                                expected: "42",
+                                actual: "42",
+                                passed: true,
+                            },
+                        ),
+                        part_two: None,
+                        slow: false,
+                    },
+                ],
+            )"#]],
+    )
+}
+
+#[test]
+fn mixed_slow_and_normal_tests_with_include_slow() {
+    assert_test_with_slow(
+        r#"
+            part_one: { 42 }
+
+            test: {
+                input: "data"
+                part_one: 42
+            }
+
+            @slow
+            test: {
+                input: "data"
+                part_one: 42
+            }
+        "#,
+        true,
+        expect![[r#"
+            Ok(
+                [
+                    TestCase {
+                        part_one: Some(
+                            TestCaseResult {
+                                expected: "42",
+                                actual: "42",
+                                passed: true,
+                            },
+                        ),
+                        part_two: None,
+                        slow: false,
+                    },
+                    TestCase {
+                        part_one: Some(
+                            TestCaseResult {
+                                expected: "42",
+                                actual: "42",
+                                passed: true,
+                            },
+                        ),
+                        part_two: None,
+                        slow: true,
+                    },
+                ],
+            )"#]],
+    )
 }

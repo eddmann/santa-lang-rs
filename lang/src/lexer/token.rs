@@ -58,6 +58,8 @@ pub enum TokenKind {
     DotDot,
     DotDotEqual,
 
+    At,
+
     Mutable,
     Match,
     Let,
@@ -163,6 +165,8 @@ macro_rules! T {
 
     [..] => { $crate::lexer::TokenKind::DotDot };
     [..=] => { $crate::lexer::TokenKind::DotDotEqual };
+
+    [@] => { $crate::lexer::TokenKind::At };
 
     [MUT] => { $crate::lexer::TokenKind::Mutable };
     [MATCH] => { $crate::lexer::TokenKind::Match };
