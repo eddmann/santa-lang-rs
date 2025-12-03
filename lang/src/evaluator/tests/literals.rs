@@ -50,7 +50,10 @@ test_eval! {
         "#,
         "[1, 2, 3, \"a\", \"b\", \"c\"]",
         spread
-    )
+    ),
+    ("let r = 1..4; [..r]", "[1, 2, 3]", spread_exclusive_range),
+    ("let r = 1..=3; [..r]", "[1, 2, 3]", spread_inclusive_range),
+    ("let r = 1..3; [0, ..r, 4]", "[0, 1, 2, 4]", spread_range_middle)
 }
 
 test_eval! {

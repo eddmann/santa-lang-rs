@@ -31,6 +31,7 @@ test_eval! {
         paritial_application_using_placeholders
     ),
     ("let fn = |x, y| { x + y }; fn(..[3, 4])", "7", spread_call),
+    ("let fn = |x, y| { x + y }; fn(..1..3)", "3", spread_call_lazy_sequence),
     (
         r#"
             let repeat = |value, times| {

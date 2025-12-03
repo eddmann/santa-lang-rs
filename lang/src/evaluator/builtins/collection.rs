@@ -344,6 +344,16 @@ builtin! {
             }
             Ok(Rc::new(Object::List(elements)))
         }
+        (Object::Function(mapper), Object::LazySequence(sequence)) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            let mut elements = Vector::new();
+            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
+                if let Object::List(other_elements) = &*mapper.apply(&mut shared_evaluator.borrow_mut(), vec![element], source)? {
+                    elements.append(other_elements.clone());
+                }
+            }
+            Ok(Rc::new(Object::List(elements)))
+        }
     }
 }
 

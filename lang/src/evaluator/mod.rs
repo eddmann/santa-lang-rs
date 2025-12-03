@@ -19,6 +19,7 @@ use crate::lexer::Location;
 use crate::parser::ast::{Expression, ExpressionKind, Prefix, Program, Statement, StatementKind};
 use im_rc::{HashMap, HashSet, Vector};
 use ordered_float::OrderedFloat;
+use std::cell::RefCell;
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -506,18 +507,34 @@ impl Evaluator {
 
         for expression in expressions {
             if let ExpressionKind::Spread(value) = &expression.kind {
-                if let Object::List(list) = &*self.eval_expression(value)? {
-                    for element in list {
-                        results.push(Rc::clone(element));
+                let spread_value = self.eval_expression(value)?;
+                match &*spread_value {
+                    Object::List(list) => {
+                        for element in list {
+                            results.push(Rc::clone(element));
+                        }
+                        continue;
                     }
-                    continue;
+                    Object::LazySequence(sequence) => {
+                        // Collect lazy sequence elements using a fresh reborrow
+                        let elements: Vec<Rc<Object>> = {
+                            let shared_evaluator = Rc::new(RefCell::new(&mut *self));
+                            sequence.resolve_iter(shared_evaluator, expression.source).collect()
+                        };
+                        results.extend(elements);
+                        continue;
+                    }
+                    _ => {
+                        return Err(RuntimeErr {
+                            message: format!(
+                                "Expected a List or LazySequence to spread, found: {}",
+                                spread_value.name()
+                            ),
+                            source: expression.source,
+                            trace: self.get_trace(),
+                        });
+                    }
                 }
-
-                return Err(RuntimeErr {
-                    message: format!("Expected a List to spread, found: {}", expression),
-                    source: expression.source,
-                    trace: self.get_trace(),
-                });
             }
 
             results.push(self.eval_expression(expression)?);

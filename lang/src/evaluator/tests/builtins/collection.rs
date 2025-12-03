@@ -106,7 +106,10 @@ test_eval! {
     suite flat_map;
 
     ("flat_map(+, [])", "[]", empty_list),
-    ("flat_map(_ * 2, [[1, 2], [3, 4]])", "[1, 2, 1, 2, 3, 4, 3, 4]", list_with_elements)
+    ("flat_map(_ * 2, [[1, 2], [3, 4]])", "[1, 2, 1, 2, 3, 4, 3, 4]", list_with_elements),
+    ("0..3 |> flat_map(|x| [x, x])", "[0, 0, 1, 1, 2, 2]", lazy_sequence),
+    ("1..=3 |> flat_map(|x| [])", "[]", lazy_sequence_empty_result),
+    ("zip(1..3, 4..6) |> flat_map(|[a, b]| [a, b])", "[1, 4, 2, 5]", lazy_sequence_zipped)
 }
 
 test_eval! {
@@ -570,8 +573,16 @@ test_eval! {
     suite combinations;
 
     ("combinations(1, []) |> list", "[]", empty_list),
+    ("combinations(2, []) |> list", "[]", empty_list_size_two),
     ("combinations(1, [1, 2, 3, 4, 5]) |> list", "[[1], [2], [3], [4], [5]]", one_element),
     ("combinations(2, [1, 2, 3, 4, 5]) |> list", "[[1, 2], [1, 3], [1, 4], [1, 5], [2, 3], [2, 4], [2, 5], [3, 4], [3, 5], [4, 5]]", two_elements),
     ("combinations(5, [1, 2, 3, 4, 5]) |> list", "[[1, 2, 3, 4, 5]]", one_combination),
-    ("combinations(6, [1, 2, 3, 4, 5]) |> list", "[]", exhausted_elements)
+    ("combinations(6, [1, 2, 3, 4, 5]) |> list", "[]", exhausted_elements),
+    // Large list tests - verify no overflow (C(20,2) = 190 combinations)
+    ("combinations(2, 1..=20 |> list) |> size", "190", large_list_size_two),
+    // C(15,3) = 455 combinations
+    ("combinations(3, 1..=15 |> list) |> size", "455", large_list_size_three),
+    // Verify first and last combination of large list
+    ("combinations(2, 1..=20 |> list) |> first", "[1, 2]", large_list_first_combination),
+    ("combinations(2, 1..=20 |> list) |> list |> |l| l[-1]", "[19, 20]", large_list_last_combination)
 }

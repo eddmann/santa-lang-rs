@@ -12,10 +12,15 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
             Ok(list_lookup(list, *index).unwrap_or_else(|| Rc::new(Object::Nil)))
         }
         (Object::List(list), Object::LazySequence(sequence)) => {
-            let is_unbounded_negative_range = sequence.is_unbounded_negative_range();
+            // Adjust negative indices relative to list length
+            let adjusted_sequence = sequence
+                .with_adjusted_negative_indices(list.len())
+                .unwrap_or_else(|| sequence.clone());
+
+            let is_unbounded_negative_range = adjusted_sequence.is_unbounded_negative_range();
 
             let mut result = Vector::new();
-            for step in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+            for step in adjusted_sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
                 if let Object::Integer(index) = &*step {
                     if *index == 0 && is_unbounded_negative_range {
                         break;
@@ -63,10 +68,15 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
             }
         }
         (Object::String(string), Object::LazySequence(sequence)) => {
-            let is_unbounded_negative_range = sequence.is_unbounded_negative_range();
+            // Adjust negative indices relative to string length
+            let adjusted_sequence = sequence
+                .with_adjusted_negative_indices(string.chars().count())
+                .unwrap_or_else(|| sequence.clone());
+
+            let is_unbounded_negative_range = adjusted_sequence.is_unbounded_negative_range();
 
             let mut result = String::new();
-            for step in sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
+            for step in adjusted_sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source) {
                 if let Object::Integer(index) = &*step {
                     if *index == 0 && is_unbounded_negative_range {
                         break;

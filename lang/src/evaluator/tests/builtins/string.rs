@@ -64,3 +64,42 @@ test_eval! {
     ("md5(\"hello\")", "\"5d41402abc4b2a76b9719d911017c592\"", hello),
     ("md5(\"Hello, World!\")", "\"65a8e27d8879283831b664bd8b7f0ad4\"", hello_world)
 }
+
+test_eval! {
+    suite upper;
+
+    ("upper(\"hello\")", "\"HELLO\"", lowercase),
+    ("upper(\"HELLO\")", "\"HELLO\"", uppercase),
+    ("upper(\"HeLLo\")", "\"HELLO\"", mixed_case),
+    ("upper(\"\")", "\"\"", empty_string)
+}
+
+test_eval! {
+    suite lower;
+
+    ("lower(\"HELLO\")", "\"hello\"", uppercase),
+    ("lower(\"hello\")", "\"hello\"", lowercase),
+    ("lower(\"HeLLo\")", "\"hello\"", mixed_case),
+    ("lower(\"\")", "\"\"", empty_string)
+}
+
+test_eval! {
+    suite replace;
+
+    ("\"hello\" |> replace(\"l\", \"L\")", "\"heLLo\"", single_char_match),
+    ("\"hello\" |> replace(\"ll\", \"LL\")", "\"heLLo\"", multi_char_match),
+    ("\"hello\" |> replace(\"x\", \"y\")", "\"hello\"", no_match),
+    ("\"\" |> replace(\"a\", \"b\")", "\"\"", empty_string),
+    ("\"aaa\" |> replace(\"a\", \"b\")", "\"bbb\"", all_chars_match)
+}
+
+test_eval! {
+    suite join;
+
+    ("[\"a\", \"b\", \"c\"] |> join(\",\")", "\"a,b,c\"", list_with_comma),
+    ("[\"a\", \"b\", \"c\"] |> join(\"\")", "\"abc\"", list_with_empty),
+    ("[] |> join(\",\")", "\"\"", empty_list),
+    ("[1, 2, 3] |> join(\"-\")", "\"1-2-3\"", list_with_integers),
+    ("{1, 2, 3} |> join(\",\")", "\"1,2,3\"", set),
+    ("1..4 |> join(\",\")", "\"1,2,3\"", lazy_sequence)
+}

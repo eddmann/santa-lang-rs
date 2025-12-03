@@ -35,9 +35,7 @@ enum LazyValue {
         generator: Function,
     },
     Combinations {
-        size: u32,
-        min: usize,
-        mask: usize,
+        indices: Vec<usize>,
         collection: Vector<Rc<Object>>,
     },
 }
@@ -138,21 +136,19 @@ impl LazySequence {
     }
 
     pub fn combinations(size: u32, collection: Vector<Rc<Object>>) -> Self {
+        let size = size as usize;
         let collection_len = collection.len();
-        let min = 2_usize.pow(size) - 1;
-        let max = if collection_len >= size as usize {
-            2_usize.pow(collection_len as u32) - 2_usize.pow((collection_len - size as usize) as u32)
+
+        // If size > collection length, return empty sequence (no valid combinations)
+        // Otherwise, initialize indices to [0, 1, 2, ..., size-1]
+        let indices = if size > collection_len {
+            vec![] // Will immediately return None in iterator
         } else {
-            0
+            (0..size).collect()
         };
 
         Self {
-            value: LazyValue::Combinations {
-                size,
-                min,
-                mask: max,
-                collection,
-            },
+            value: LazyValue::Combinations { indices, collection },
             functions: vec![],
         }
     }
@@ -185,6 +181,67 @@ impl LazySequence {
         match self.value {
             LazyValue::UnboundedRange { current, .. } => current < 0,
             _ => false,
+        }
+    }
+
+    /// If this is a range with negative indices, returns a new LazySequence
+    /// with the indices adjusted relative to the given collection length.
+    /// Returns None if no adjustment is needed.
+    pub fn with_adjusted_negative_indices(&self, collection_len: usize) -> Option<Self> {
+        let len = collection_len as i64;
+
+        match &self.value {
+            LazyValue::ExclusiveRange { current, until, .. } if *until < 0 || *current < 0 => {
+                let adjusted_current = if *current < 0 { len + current } else { *current };
+                let adjusted_until = if *until < 0 { len + until } else { *until };
+
+                if adjusted_until <= adjusted_current || adjusted_current < 0 {
+                    // Result would be empty
+                    Some(Self {
+                        value: LazyValue::ExclusiveRange {
+                            current: 0,
+                            until: 0, // Empty range
+                            step: 1,
+                        },
+                        functions: self.functions.clone(),
+                    })
+                } else {
+                    Some(Self {
+                        value: LazyValue::ExclusiveRange {
+                            current: adjusted_current,
+                            until: adjusted_until,
+                            step: 1,
+                        },
+                        functions: self.functions.clone(),
+                    })
+                }
+            }
+            LazyValue::InclusiveRange { current, to, .. } if *to < 0 || *current < 0 => {
+                let adjusted_current = if *current < 0 { len + current } else { *current };
+                let adjusted_to = if *to < 0 { len + to } else { *to };
+
+                if adjusted_to < adjusted_current || adjusted_current < 0 {
+                    // Result would be empty
+                    Some(Self {
+                        value: LazyValue::ExclusiveRange {
+                            current: 0,
+                            until: 0, // Empty range
+                            step: 1,
+                        },
+                        functions: self.functions.clone(),
+                    })
+                } else {
+                    Some(Self {
+                        value: LazyValue::InclusiveRange {
+                            current: adjusted_current,
+                            to: adjusted_to,
+                            step: 1,
+                        },
+                        functions: self.functions.clone(),
+                    })
+                }
+            }
+            _ => None,
         }
     }
 }
@@ -251,26 +308,37 @@ impl LazySequenceIter<'_> {
                 Some(next)
             }
             LazyValue::Combinations {
-                size,
-                min,
-                ref mut mask,
+                ref mut indices,
                 ref collection,
             } => {
-                while *mask >= min {
-                    if mask.count_ones() == size {
-                        let b = format!("{:01$b}", mask, collection.len());
-                        let res = b
-                            .chars()
-                            .enumerate()
-                            .filter(|&(_, e)| e == '1')
-                            .map(|(i, _)| Rc::clone(&collection[i]))
-                            .collect::<Vector<Rc<Object>>>();
-                        *mask -= 1;
-                        return Some(Rc::new(Object::List(res)));
-                    }
-                    *mask -= 1;
+                if indices.is_empty() {
+                    return None;
                 }
-                None
+
+                let size = indices.len();
+                let n = collection.len();
+
+                // Build the current combination from indices
+                let result: Vector<Rc<Object>> = indices.iter().map(|&i| Rc::clone(&collection[i])).collect();
+
+                // Advance to next combination
+                // Find the rightmost index that can be incremented
+                let mut i = size;
+                while i > 0 {
+                    i -= 1;
+                    if indices[i] < n - size + i {
+                        // Increment this index and reset all following indices
+                        indices[i] += 1;
+                        for j in (i + 1)..size {
+                            indices[j] = indices[j - 1] + 1;
+                        }
+                        return Some(Rc::new(Object::List(result)));
+                    }
+                }
+
+                // No more combinations - clear indices to signal exhaustion
+                indices.clear();
+                Some(Rc::new(Object::List(result)))
             }
         }
     }

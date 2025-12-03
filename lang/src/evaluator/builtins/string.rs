@@ -130,3 +130,62 @@ builtin! {
         }
     }
 }
+
+builtin! {
+    upper(value) match {
+        Object::String(value) => {
+            Ok(Rc::new(Object::String(value.to_uppercase())))
+        }
+    }
+}
+
+builtin! {
+    lower(value) match {
+        Object::String(value) => {
+            Ok(Rc::new(Object::String(value.to_lowercase())))
+        }
+    }
+}
+
+builtin! {
+    replace(pattern, replacement, value) match {
+        (Object::String(pattern), Object::String(replacement), Object::String(value)) => {
+            Ok(Rc::new(Object::String(value.replace(pattern.as_str(), replacement))))
+        }
+    }
+}
+
+fn object_to_unquoted_string(obj: &Object) -> String {
+    match obj {
+        Object::String(s) => s.clone(),
+        other => other.to_string(),
+    }
+}
+
+builtin! {
+    join(separator, collection) [evaluator, source] match {
+        (Object::String(separator), Object::List(list)) => {
+            let strings: Vec<String> = list
+                .iter()
+                .map(|item| object_to_unquoted_string(item))
+                .collect();
+            Ok(Rc::new(Object::String(strings.join(separator))))
+        }
+        (Object::String(separator), Object::Set(set)) => {
+            let strings: Vec<String> = set
+                .iter()
+                .map(|item| object_to_unquoted_string(item))
+                .collect();
+            Ok(Rc::new(Object::String(strings.join(separator))))
+        }
+        (Object::String(separator), Object::LazySequence(sequence)) => {
+            use std::cell::RefCell;
+            let evaluator_cell = RefCell::new(evaluator);
+            let strings: Vec<String> = sequence
+                .resolve_iter(Rc::new(evaluator_cell), source)
+                .map(|item| object_to_unquoted_string(&item))
+                .collect();
+            Ok(Rc::new(Object::String(strings.join(separator))))
+        }
+    }
+}

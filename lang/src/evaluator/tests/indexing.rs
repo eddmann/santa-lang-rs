@@ -8,10 +8,14 @@ test_eval! {
     ("list[3]", "nil", out_of_range_integer),
     ("list[1..2]", "[2]", exclusive_positive_range),
     ("list[1..=2]", "[2, 3]", inclusive_positive_range),
-    ("list[1..-1]", "[2, 1]", exclusive_positive_range_with_negative_until),
-    ("list[1..=-1]", "[2, 1, 3]", inclusive_positive_range_with_negative_to),
+    ("list[1..-1]", "[2]", exclusive_positive_range_with_negative_until),
+    ("list[1..=-1]", "[2, 3]", inclusive_positive_range_with_negative_to),
     ("list[1..]", "[2, 3]", unbounded_positive_range),
-    ("list[-2..]", "[2, 3]", unbounded_negative_range)
+    ("list[-2..]", "[2, 3]", unbounded_negative_range),
+    // Additional tests for negative range indexing
+    ("list[0..-1]", "[1, 2]", exclusive_drop_last),
+    ("[1, 2, 3, 4, 5][0..-1]", "[1, 2, 3, 4]", exclusive_drop_last_longer),
+    ("[1, 2, 3, 4, 5][-3..-1]", "[3, 4]", exclusive_negative_start_and_end)
 }
 
 test_eval! {
@@ -59,8 +63,13 @@ test_eval! {
     ("string[5]", "nil", out_of_range_integer),
     ("string[1..2]", "\"e\"", exclusive_positive_range),
     ("string[1..=2]", "\"el\"", inclusive_positive_range),
-    ("string[1..-1]", "\"eh\"", exclusive_positive_range_with_negative_until),
-    ("string[1..=-1]", "\"eho\"", inclusive_positive_range_with_negative_to),
+    ("string[1..-1]", "\"ell\"", exclusive_positive_range_with_negative_until),
+    ("string[1..=-1]", "\"ello\"", inclusive_positive_range_with_negative_to),
     ("string[1..]", "\"ello\"", unbounded_positive_range),
-    ("string[-2..]", "\"lo\"", unbounded_negative_range)
+    ("string[-2..]", "\"lo\"", unbounded_negative_range),
+    // Additional tests for negative range indexing
+    ("string[0..-1]", "\"hell\"", exclusive_drop_last),
+    ("\"ab\"[0..-1]", "\"a\"", exclusive_drop_last_short),
+    ("\"a\"[0..-1]", "\"\"", exclusive_drop_last_single_char),
+    ("string[-3..-1]", "\"ll\"", exclusive_negative_start_and_end)
 }
