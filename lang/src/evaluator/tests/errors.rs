@@ -16,6 +16,42 @@ fn error() {
 }
 
 #[test]
+fn division_by_zero_integer() {
+    let source = "1 / 0";
+
+    let mut parser = crate::parser::Parser::new(crate::lexer::Lexer::new(source));
+    let program = parser.parse().unwrap();
+    let mut evaluator = crate::evaluator::Evaluator::new();
+    let actual = format!("{:?}", evaluator.evaluate(&program));
+
+    expect![[r#"Err(RuntimeErr { message: "Division by zero", source: 2..5, trace: [] })"#]].assert_eq(&actual);
+}
+
+#[test]
+fn division_by_zero_decimal() {
+    let source = "1.0 / 0.0";
+
+    let mut parser = crate::parser::Parser::new(crate::lexer::Lexer::new(source));
+    let program = parser.parse().unwrap();
+    let mut evaluator = crate::evaluator::Evaluator::new();
+    let actual = format!("{:?}", evaluator.evaluate(&program));
+
+    expect![[r#"Err(RuntimeErr { message: "Division by zero", source: 4..9, trace: [] })"#]].assert_eq(&actual);
+}
+
+#[test]
+fn modulo_by_zero() {
+    let source = "5 % 0";
+
+    let mut parser = crate::parser::Parser::new(crate::lexer::Lexer::new(source));
+    let program = parser.parse().unwrap();
+    let mut evaluator = crate::evaluator::Evaluator::new();
+    let actual = format!("{:?}", evaluator.evaluate(&program));
+
+    expect![[r#"Err(RuntimeErr { message: "Division by zero", source: 2..5, trace: [] })"#]].assert_eq(&actual);
+}
+
+#[test]
 fn trace() {
     let source = r#"
         let a = || unknown

@@ -46,7 +46,10 @@ test_eval! {
     suite slash;
 
     ("5 / 2", "2", integer_integer),
-    ("6 / 3.2", "2", integer_decimal),
+    ("(0-7) / 2", "-4", negative_dividend),
+    ("7 / (0-2)", "-4", negative_divisor),
+    ("(0-7) / (0-2)", "3", negative_both),
+    ("6 / 3.2", "1", integer_decimal),
     ("5.4 / 3.2", "1.6875", decimal_decimal),
     ("4.5 / 2", "2.25", decimal_integer),
     ("/(4, 2)", "2", function_call)

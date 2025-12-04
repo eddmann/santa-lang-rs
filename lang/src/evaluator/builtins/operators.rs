@@ -156,12 +156,58 @@ builtin! {
 }
 
 #[inline]
+fn floored_div(a: i64, b: i64) -> i64 {
+    // Python-style floored division (floors toward negative infinity)
+    // http://python-history.blogspot.com/2010/08/why-pythons-integer-division-floors.html
+    let d = a / b;
+    let r = a % b;
+    if (r != 0) && ((r < 0) != (b < 0)) { d - 1 } else { d }
+}
+
+#[inline]
 pub fn slash(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
-        (Object::Integer(a), Object::Integer(b)) => Ok(Rc::new(Object::Integer(a / b))),
-        (Object::Integer(a), Object::Decimal(b)) => Ok(Rc::new(Object::Integer(a / (f64::from(*b) as i64)))),
-        (Object::Decimal(a), Object::Decimal(b)) => Ok(Rc::new(Object::Decimal(*a / *b))),
-        (Object::Decimal(a), Object::Integer(b)) => Ok(Rc::new(Object::Decimal(a / (*b as f64)))),
+        (Object::Integer(a), Object::Integer(b)) => {
+            if *b == 0 {
+                return Err(RuntimeErr {
+                    message: "Division by zero".to_string(),
+                    source,
+                    trace: vec![],
+                });
+            }
+            Ok(Rc::new(Object::Integer(floored_div(*a, *b))))
+        }
+        (Object::Integer(a), Object::Decimal(b)) => {
+            if f64::from(*b) == 0.0 {
+                return Err(RuntimeErr {
+                    message: "Division by zero".to_string(),
+                    source,
+                    trace: vec![],
+                });
+            }
+            let result = (*a as f64 / f64::from(*b)).floor() as i64;
+            Ok(Rc::new(Object::Integer(result)))
+        }
+        (Object::Decimal(a), Object::Decimal(b)) => {
+            if f64::from(*b) == 0.0 {
+                return Err(RuntimeErr {
+                    message: "Division by zero".to_string(),
+                    source,
+                    trace: vec![],
+                });
+            }
+            Ok(Rc::new(Object::Decimal(*a / *b)))
+        }
+        (Object::Decimal(a), Object::Integer(b)) => {
+            if *b == 0 {
+                return Err(RuntimeErr {
+                    message: "Division by zero".to_string(),
+                    source,
+                    trace: vec![],
+                });
+            }
+            Ok(Rc::new(Object::Decimal(a / (*b as f64))))
+        }
         _ => Err(RuntimeErr {
             message: format!("Unsupported operation: {} / {}", left.name(), right.name()),
             source,
@@ -180,6 +226,13 @@ builtin! {
 pub fn modulo(left: &Rc<Object>, right: &Rc<Object>, source: Location) -> Evaluation {
     match (&**left, &**right) {
         (Object::Integer(a), Object::Integer(b)) => {
+            if *b == 0 {
+                return Err(RuntimeErr {
+                    message: "Division by zero".to_string(),
+                    source,
+                    trace: vec![],
+                });
+            }
             // http://python-history.blogspot.com/2010/08/why-pythons-integer-division-floors.html
             let remainder = a % b;
             let result = if remainder == 0 || a.signum() == b.signum() {
