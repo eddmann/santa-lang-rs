@@ -48,13 +48,13 @@ jobs:
       - name: Load
         run: |
           docker load -i santa-lang-cli-${{ github.event.release.tag_name }}-docker.tar
-          docker tag ghcr.io/eddmann/santa-lang-cli:cli-latest ghcr.io/eddmann/santa-lang-cli:cli-${{ github.event.release.tag_name }}
+          docker tag ghcr.io/eddmann/santa-lang-cli:latest ghcr.io/eddmann/santa-lang-cli:${{ github.event.release.tag_name }}
           docker tag ghcr.io/eddmann/santa-lang-rs:cli-latest ghcr.io/eddmann/santa-lang-rs:cli-${{ github.event.release.tag_name }}
       - name: Publish
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker push ghcr.io/eddmann/santa-lang-cli:cli-latest
-          docker push ghcr.io/eddmann/santa-lang-cli:cli-${{ github.event.release.tag_name }}
+          docker push ghcr.io/eddmann/santa-lang-cli:latest
+          docker push ghcr.io/eddmann/santa-lang-cli:${{ github.event.release.tag_name }}
           docker push ghcr.io/eddmann/santa-lang-rs:cli-latest
           docker push ghcr.io/eddmann/santa-lang-rs:cli-${{ github.event.release.tag_name }}
 

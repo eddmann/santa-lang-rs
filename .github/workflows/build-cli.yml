@@ -32,7 +32,7 @@ jobs:
           platforms: linux/amd64
           tags: |
             ghcr.io/eddmann/santa-lang-cli:latest
-            ghcr.io/eddmann/santa-lang-rs:latest
+            ghcr.io/eddmann/santa-lang-rs:cli-latest
           labels: org.opencontainers.image.source=https://github.com/eddmann/santa-lang-rs
           outputs: type=docker,dest=/tmp/santa-lang-cli.tar
       - name: Upload
