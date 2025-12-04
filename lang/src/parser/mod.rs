@@ -506,6 +506,9 @@ impl<'a> Parser<'a> {
                 '\\' => match characters.next() {
                     Some('n') => '\n',
                     Some('t') => '\t',
+                    Some('r') => '\r',
+                    Some('b') => '\x08',
+                    Some('f') => '\x0C',
                     Some('\\') => '\\',
                     Some('"') => '"',
                     Some(character) => {
