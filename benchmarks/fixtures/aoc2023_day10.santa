@@ -75,7 +75,7 @@ let enlarge_sketch = |sketch| {
     "-": ["...", "---", "..."],
     ".": ["...", "...", "..."]
   }
-  let offsets = 0..=2 |> list |> flat_map(|y| 0..=2 |> list |> map(|x| [y, x]))
+  let offsets = 0..=2 |> flat_map(|y| 0..=2 |> map(|x| [y, x]))
 
   sketch |> fold(#{}) |enlarged_sketch, el, [y, x]| {
     offsets |> fold(enlarged_sketch) |enlarged_sketch, [offset_y, offset_x]| {

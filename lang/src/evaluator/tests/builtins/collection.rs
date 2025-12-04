@@ -109,7 +109,10 @@ test_eval! {
     ("flat_map(_ * 2, [[1, 2], [3, 4]])", "[1, 2, 1, 2, 3, 4, 3, 4]", list_with_elements),
     ("0..3 |> flat_map(|x| [x, x])", "[0, 0, 1, 1, 2, 2]", lazy_sequence),
     ("1..=3 |> flat_map(|x| [])", "[]", lazy_sequence_empty_result),
-    ("zip(1..3, 4..6) |> flat_map(|[a, b]| [a, b])", "[1, 4, 2, 5]", lazy_sequence_zipped)
+    ("zip(1..3, 4..6) |> flat_map(|[a, b]| [a, b])", "[1, 4, 2, 5]", lazy_sequence_zipped),
+    ("0..3 |> flat_map(|x| x..x+2)", "[0, 1, 1, 2, 2, 3]", lazy_sequence_returning_range),
+    ("0..2 |> flat_map(|x| 0..2 |> map(|y| [x, y]))", "[[0, 0], [0, 1], [1, 0], [1, 1]]", lazy_sequence_with_nested_map),
+    ("[0, 1] |> flat_map(|x| 0..2 |> map(|y| [x, y]))", "[[0, 0], [0, 1], [1, 0], [1, 1]]", list_with_nested_lazy_map)
 }
 
 test_eval! {

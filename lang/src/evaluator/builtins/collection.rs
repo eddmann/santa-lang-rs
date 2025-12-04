@@ -333,14 +333,24 @@ builtin! {
     }
 }
 
+fn resolve_to_list(obj: Rc<Object>, evaluator: &mut Evaluator, source: Location) -> Vector<Rc<Object>> {
+    match &*obj {
+        Object::List(list) => list.clone(),
+        Object::LazySequence(sequence) => {
+            let shared_evaluator = Rc::new(RefCell::new(evaluator));
+            sequence.resolve_iter(Rc::clone(&shared_evaluator), source).collect()
+        }
+        _ => Vector::new(),
+    }
+}
+
 builtin! {
     flat_map(mapper, collection) [evaluator, source] match {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
             for element in list {
-                if let Object::List(other_elements) = &*mapper.apply(evaluator, vec![Rc::clone(element)], source)? {
-                    elements.append(other_elements.clone());
-                }
+                let result = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
+                elements.append(resolve_to_list(result, evaluator, source));
             }
             Ok(Rc::new(Object::List(elements)))
         }
@@ -348,9 +358,8 @@ builtin! {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             let mut elements = Vector::new();
             for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                if let Object::List(other_elements) = &*mapper.apply(&mut shared_evaluator.borrow_mut(), vec![element], source)? {
-                    elements.append(other_elements.clone());
-                }
+                let result = mapper.apply(&mut shared_evaluator.borrow_mut(), vec![element], source)?;
+                elements.append(resolve_to_list(result, &mut shared_evaluator.borrow_mut(), source));
             }
             Ok(Rc::new(Object::List(elements)))
         }
