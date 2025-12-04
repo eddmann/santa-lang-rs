@@ -7,6 +7,7 @@ use getopts::Options;
 use rustyline::DefaultEditor;
 use santa_lang::{AoCRunner, Environment, Evaluator, Lexer, Location, Object, Parser, RunErr, RunEvaluation, Time};
 use std::fs;
+use std::io::Read;
 use std::rc::Rc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -20,6 +21,7 @@ fn main() -> Result<()> {
     let program = args[0].clone();
 
     let mut opts = Options::new();
+    opts.optopt("e", "eval", "evaluate inline script", "SCRIPT");
     opts.optflag("t", "test", "run the solution's test suite");
     opts.optflag("s", "slow", "include slow tests (marked with @slow)");
     opts.optflag("r", "repl", "begin an interactive REPL session");
@@ -38,21 +40,36 @@ fn main() -> Result<()> {
         return repl();
     }
 
-    let source_path = if matches.free.len() == 1 {
-        &matches.free[0]
+    // Determine source: -e flag > file argument > stdin
+    let (source, source_path): (String, Option<String>) = if let Some(eval_script) = matches.opt_str("e") {
+        // Eval mode - use inline script
+        (eval_script, None)
+    } else if matches.free.len() == 1 {
+        // File mode
+        let path = &matches.free[0];
+        let canonical = fs::canonicalize(path)?;
+        let source = fs::read_to_string(&canonical)?;
+        (source, Some(canonical.to_string_lossy().into_owned()))
+    } else if !atty::is(atty::Stream::Stdin) {
+        // Stdin mode - read from stdin when not a TTY
+        let mut source = String::new();
+        std::io::stdin().read_to_string(&mut source)?;
+        (source, None)
     } else {
         print_usage(&program, opts);
         std::process::exit(1);
     };
 
-    let path = fs::canonicalize(source_path)?;
-    let root = path.parent().unwrap();
-    std::env::set_current_dir(root)?;
-    let canonical_path_str = path.to_string_lossy();
+    // Only change directory if we have a file path
+    if let Some(ref path) = source_path
+        && let Some(parent) = std::path::Path::new(path).parent()
+    {
+        std::env::set_current_dir(parent)?;
+    }
 
     if matches.opt_present("t") {
         let include_slow = matches.opt_present("s");
-        return aoc_test(&canonical_path_str, include_slow);
+        return aoc_test(&source, source_path.as_deref(), include_slow);
     }
 
     #[cfg(feature = "profile")]
@@ -68,7 +85,7 @@ fn main() -> Result<()> {
         None
     };
 
-    aoc_run(&canonical_path_str)?;
+    aoc_run(&source, source_path.as_deref())?;
 
     #[cfg(feature = "profile")]
     if let Some(guard) = profiler {
@@ -86,8 +103,8 @@ fn main() -> Result<()> {
         protobuf.write_all(&content).unwrap();
 
         println!("\nProfile ⏱️");
-        println!("- Flamegraph: {}/flamegraph.svg", root.display());
-        println!("- Protobuf: {}/profile.pb", root.display());
+        println!("- Flamegraph: ./flamegraph.svg");
+        println!("- Protobuf: ./profile.pb");
     }
 
     Ok(())
@@ -158,11 +175,9 @@ fn repl() -> Result<()> {
     Ok(())
 }
 
-fn aoc_run(source_path: &str) -> Result<()> {
-    let source = std::fs::read_to_string(source_path)?;
-
+fn aoc_run(source: &str, source_path: Option<&str>) -> Result<()> {
     let mut runner = AoCRunner::new_with_external_functions(CliTime {}, &crate::external_functions::definitions());
-    match runner.run(&source) {
+    match runner.run(source) {
         Ok(RunEvaluation::Script(result)) => {
             println!("{}", result.value);
             Ok(())
@@ -185,17 +200,15 @@ fn aoc_run(source_path: &str) -> Result<()> {
             Ok(())
         }
         Err(error) => {
-            print_error(source_path, &source, error);
+            print_error(source_path.unwrap_or("<stdin>"), source, error);
             std::process::exit(2);
         }
     }
 }
 
-fn aoc_test(source_path: &str, include_slow: bool) -> Result<()> {
-    let source = std::fs::read_to_string(source_path)?;
-
+fn aoc_test(source: &str, source_path: Option<&str>, include_slow: bool) -> Result<()> {
     let mut runner = AoCRunner::new_with_external_functions(CliTime {}, &crate::external_functions::definitions());
-    match runner.test(&source, include_slow) {
+    match runner.test(source, include_slow) {
         Ok(test_cases) => {
             let mut exit_code = 0;
 
@@ -246,7 +259,7 @@ fn aoc_test(source_path: &str, include_slow: bool) -> Result<()> {
             Ok(())
         }
         Err(error) => {
-            print_error(source_path, &source, error);
+            print_error(source_path.unwrap_or("<stdin>"), source, error);
             std::process::exit(2);
         }
     }
