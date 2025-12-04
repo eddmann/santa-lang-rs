@@ -37,10 +37,10 @@ fn read(arguments: Arguments, source: Location) -> Evaluation {
                 return Ok(Rc::new(Object::String(content)));
             }
 
-            if let Ok(response) = ureq::get(path).call() {
-                if let Ok(body) = response.into_string() {
-                    return Ok(Rc::new(Object::String(body)));
-                }
+            if let Ok(response) = ureq::get(path).call()
+                && let Ok(body) = response.into_string()
+            {
+                return Ok(Rc::new(Object::String(body)));
             }
 
             Err(RuntimeErr {
