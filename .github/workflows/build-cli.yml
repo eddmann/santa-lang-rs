@@ -30,7 +30,9 @@ jobs:
           file: runtime/cli/build.Dockerfile
           # NOTE: ARM64 support temporarily disabled due to slow QEMU emulation on standard runners.
           platforms: linux/amd64
-          tags: ghcr.io/eddmann/santa-lang-cli:latest
+          tags: |
+            ghcr.io/eddmann/santa-lang-cli:latest
+            ghcr.io/eddmann/santa-lang-rs:latest
           labels: org.opencontainers.image.source=https://github.com/eddmann/santa-lang-rs
           outputs: type=docker,dest=/tmp/santa-lang-cli.tar
       - name: Upload
