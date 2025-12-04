@@ -1,3 +1,5 @@
+#![allow(clippy::collapsible_if)]
+
 use santa_lang::{Arguments, Evaluation, ExpressionKind, ExternalFnDef, Location, Object, RuntimeErr};
 use std::env;
 use std::fs;
@@ -63,11 +65,11 @@ fn read(arguments: Arguments, source: Location) -> Evaluation {
                     uri.path()
                 ))
                 .set("Cookie", &format!("session={}", token));
-                if let Ok(response) = request.call()
-                    && let Ok(input) = response.into_string()
-                {
-                    fs::write(cache, input.trim_end().as_bytes()).expect("");
-                    return Ok(Rc::new(Object::String(input.trim_end().to_string())));
+                if let Ok(response) = request.call() {
+                    if let Ok(input) = response.into_string() {
+                        fs::write(cache, input.trim_end().as_bytes()).expect("");
+                        return Ok(Rc::new(Object::String(input.trim_end().to_string())));
+                    }
                 }
 
                 Err(RuntimeErr {
@@ -77,10 +79,10 @@ fn read(arguments: Arguments, source: Location) -> Evaluation {
                 })
             }
             Ok(_) => {
-                if let Ok(response) = ureq::get(path).call()
-                    && let Ok(body) = response.into_string()
-                {
-                    return Ok(Rc::new(Object::String(body)));
+                if let Ok(response) = ureq::get(path).call() {
+                    if let Ok(body) = response.into_string() {
+                        return Ok(Rc::new(Object::String(body)));
+                    }
                 }
 
                 Err(RuntimeErr {

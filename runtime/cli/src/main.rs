@@ -1,3 +1,5 @@
+#![allow(clippy::collapsible_if)]
+
 mod external_functions;
 
 #[global_allocator]
@@ -61,10 +63,10 @@ fn main() -> Result<()> {
     };
 
     // Only change directory if we have a file path
-    if let Some(ref path) = source_path
-        && let Some(parent) = std::path::Path::new(path).parent()
-    {
-        std::env::set_current_dir(parent)?;
+    if let Some(ref path) = source_path {
+        if let Some(parent) = std::path::Path::new(path).parent() {
+            std::env::set_current_dir(parent)?;
+        }
     }
 
     if matches.opt_present("t") {
