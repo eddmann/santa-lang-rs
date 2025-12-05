@@ -140,41 +140,61 @@ fn destructure_match_list_pattern(
         _ => return Ok(false),
     };
 
-    if pattern.is_empty() != list.is_empty() {
-        return Ok(false);
-    }
+    // Find the rest pattern position (if any)
+    let rest_position = pattern
+        .iter()
+        .position(|p| matches!(p.kind, ExpressionKind::RestIdentifier(_)));
 
-    let mut position = 0;
-    for sub_pattern in pattern.iter() {
-        if position >= list.len() {
-            return Ok(false);
-        }
-
-        match &sub_pattern.kind {
-            ExpressionKind::Placeholder => {}
-            ExpressionKind::Identifier(name) => {
-                match evaluator
-                    .environment()
-                    .borrow_mut()
-                    .declare_variable(name, Rc::clone(&list[position]), false)
-                {
-                    Ok(_) => {}
-                    Err(EnvironmentErr { message }) => {
-                        return Err(RuntimeErr {
-                            message,
-                            source: sub_pattern.source,
-                            trace: evaluator.get_trace(),
-                        });
-                    }
-                }
+    match rest_position {
+        None => {
+            // No rest pattern - exact length match required
+            if pattern.len() != list.len() {
+                return Ok(false);
             }
-            ExpressionKind::ListMatchPattern(pattern) => {
-                if !destructure_match_list_pattern(evaluator, pattern, Rc::clone(&list[position]))? {
+            for (position, sub_pattern) in pattern.iter().enumerate() {
+                if !match_single_pattern(evaluator, sub_pattern, Rc::clone(&list[position]))? {
                     return Ok(false);
                 }
             }
-            ExpressionKind::RestIdentifier(name) => {
-                let rest = list.clone().into_iter().skip(position).collect::<Vector<Rc<Object>>>();
+            Ok(true)
+        }
+        Some(rest_idx) => {
+            let patterns_before = rest_idx;
+            let patterns_after = pattern.len() - rest_idx - 1;
+            let min_required = patterns_before + patterns_after;
+
+            // List must have at least enough elements for non-rest patterns
+            if list.len() < min_required {
+                return Ok(false);
+            }
+
+            // Match patterns before the rest
+            for i in 0..patterns_before {
+                if !match_single_pattern(evaluator, &pattern[i], Rc::clone(&list[i]))? {
+                    return Ok(false);
+                }
+            }
+
+            // Match patterns after the rest (from the end)
+            for i in 0..patterns_after {
+                let pattern_idx = rest_idx + 1 + i;
+                let list_idx = list.len() - patterns_after + i;
+                if !match_single_pattern(evaluator, &pattern[pattern_idx], Rc::clone(&list[list_idx]))? {
+                    return Ok(false);
+                }
+            }
+
+            // Bind the rest pattern
+            let rest_pattern = &pattern[rest_idx];
+            if let ExpressionKind::RestIdentifier(name) = &rest_pattern.kind {
+                let rest_start = patterns_before;
+                let rest_end = list.len() - patterns_after;
+                let rest: Vector<Rc<Object>> = list
+                    .iter()
+                    .skip(rest_start)
+                    .take(rest_end - rest_start)
+                    .cloned()
+                    .collect();
 
                 match evaluator
                     .environment()
@@ -185,56 +205,80 @@ fn destructure_match_list_pattern(
                     Err(EnvironmentErr { message }) => {
                         return Err(RuntimeErr {
                             message,
-                            source: sub_pattern.source,
+                            source: rest_pattern.source,
                             trace: evaluator.get_trace(),
                         });
                     }
                 }
+            }
 
-                return Ok(true);
+            Ok(true)
+        }
+    }
+}
+
+fn match_single_pattern(
+    evaluator: &mut Evaluator,
+    sub_pattern: &Expression,
+    element: Rc<Object>,
+) -> Result<PatternMatch, RuntimeErr> {
+    match &sub_pattern.kind {
+        ExpressionKind::Placeholder => Ok(true),
+        ExpressionKind::Identifier(name) => {
+            match evaluator
+                .environment()
+                .borrow_mut()
+                .declare_variable(name, element, false)
+            {
+                Ok(_) => Ok(true),
+                Err(EnvironmentErr { message }) => Err(RuntimeErr {
+                    message,
+                    source: sub_pattern.source,
+                    trace: evaluator.get_trace(),
+                }),
             }
-            ExpressionKind::InclusiveRange { from, to } => {
-                if let (ExpressionKind::Integer(from), ExpressionKind::Integer(to), Object::Integer(index)) =
-                    (&from.kind, &to.kind, &*list[position])
+        }
+        ExpressionKind::ListMatchPattern(pattern) => {
+            destructure_match_list_pattern(evaluator, pattern, element)
+        }
+        ExpressionKind::InclusiveRange { from, to } => {
+            if let (ExpressionKind::Integer(from), ExpressionKind::Integer(to), Object::Integer(index)) =
+                (&from.kind, &to.kind, &*element)
+            {
+                if !(from.replace('_', "").parse::<i64>().unwrap()..=to.replace('_', "").parse::<i64>().unwrap())
+                    .contains(index)
                 {
-                    if !(from.replace('_', "").parse::<i64>().unwrap()..=to.replace('_', "").parse::<i64>().unwrap())
-                        .contains(index)
-                    {
-                        return Ok(false);
-                    }
-                }
-            }
-            ExpressionKind::ExclusiveRange { from, until } => {
-                if let (ExpressionKind::Integer(from), ExpressionKind::Integer(until), Object::Integer(index)) =
-                    (&from.kind, &until.kind, &*list[position])
-                {
-                    if !(from.replace('_', "").parse::<i64>().unwrap()..until.replace('_', "").parse::<i64>().unwrap())
-                        .contains(index)
-                    {
-                        return Ok(false);
-                    }
-                }
-            }
-            ExpressionKind::UnboundedRange { from } => {
-                if let (ExpressionKind::Integer(from), Object::Integer(index)) = (&from.kind, &*list[position]) {
-                    if !(from.replace('_', "").parse::<i64>().unwrap()..).contains(index) {
-                        return Ok(false);
-                    }
-                }
-            }
-            _ => {
-                if list[position] != evaluator.eval_expression(sub_pattern)? {
                     return Ok(false);
                 }
             }
+            Ok(true)
         }
-
-        position += 1;
+        ExpressionKind::ExclusiveRange { from, until } => {
+            if let (ExpressionKind::Integer(from), ExpressionKind::Integer(until), Object::Integer(index)) =
+                (&from.kind, &until.kind, &*element)
+            {
+                if !(from.replace('_', "").parse::<i64>().unwrap()..until.replace('_', "").parse::<i64>().unwrap())
+                    .contains(index)
+                {
+                    return Ok(false);
+                }
+            }
+            Ok(true)
+        }
+        ExpressionKind::UnboundedRange { from } => {
+            if let (ExpressionKind::Integer(from), Object::Integer(index)) = (&from.kind, &*element) {
+                if !(from.replace('_', "").parse::<i64>().unwrap()..).contains(index) {
+                    return Ok(false);
+                }
+            }
+            Ok(true)
+        }
+        _ => {
+            if element != evaluator.eval_expression(sub_pattern)? {
+                Ok(false)
+            } else {
+                Ok(true)
+            }
+        }
     }
-
-    if position < list.len() {
-        return Ok(false);
-    }
-
-    Ok(true)
 }

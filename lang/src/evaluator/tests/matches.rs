@@ -85,6 +85,89 @@ test_eval! {
 }
 
 test_eval! {
+    suite prefix_rest;
+
+    sut r#"
+        let sut = |x| match x {
+            [..init, last] { ["prefix", init, last] }
+            _ { "no match" }
+        };
+    "#;
+
+    ("sut([1, 2, 3, 4])", "[\"prefix\", [1, 2, 3], 4]", four_elements),
+    ("sut([1, 2])", "[\"prefix\", [1], 2]", two_elements),
+    ("sut([1])", "[\"prefix\", [], 1]", one_element),
+    ("sut([])", "\"no match\"", empty_list)
+}
+
+test_eval! {
+    suite prefix_rest_with_nested_destructure;
+
+    sut r#"
+        let sut = |x| match x {
+            [..init, [a, b]] { ["nested", init, a, b] }
+            _ { "no match" }
+        };
+    "#;
+
+    ("sut([[1, 2], [3, 4], [5, 6]])", "[\"nested\", [[1, 2], [3, 4]], 5, 6]", three_pairs),
+    ("sut([[1, 2]])", "[\"nested\", [], 1, 2]", single_pair),
+    ("sut([[1, 2, 3]])", "\"no match\"", wrong_nested_size),
+    ("sut([1, 2, 3])", "\"no match\"", non_list_last_element)
+}
+
+test_eval! {
+    suite prefix_rest_with_guard;
+
+    sut r#"
+        let sut = |x| match x {
+            [..init, [a, b]] if a < b { ["ascending", init, a, b] }
+            [..init, [a, b]] if a > b { ["descending", init, a, b] }
+            [..init, last] { ["other", init, last] }
+            _ { "no match" }
+        };
+    "#;
+
+    ("sut([[1, 2], [3, 5]])", "[\"ascending\", [[1, 2]], 3, 5]", ascending_guard),
+    ("sut([[1, 2], [5, 3]])", "[\"descending\", [[1, 2]], 5, 3]", descending_guard),
+    ("sut([[1, 2], [3, 3]])", "[\"other\", [[1, 2]], [3, 3]]", equal_falls_through),
+    ("sut([1, 2, 3])", "[\"other\", [1, 2], 3]", simple_last)
+}
+
+test_eval! {
+    suite middle_rest;
+
+    sut r#"
+        let sut = |x| match x {
+            [first, ..middle, last] { ["middle", first, middle, last] }
+            _ { "no match" }
+        };
+    "#;
+
+    ("sut([1, 2, 3, 4, 5])", "[\"middle\", 1, [2, 3, 4], 5]", five_elements),
+    ("sut([1, 2, 3])", "[\"middle\", 1, [2], 3]", three_elements),
+    ("sut([1, 2])", "[\"middle\", 1, [], 2]", two_elements),
+    ("sut([1])", "\"no match\"", one_element),
+    ("sut([])", "\"no match\"", empty_list)
+}
+
+test_eval! {
+    suite middle_rest_multiple_after;
+
+    sut r#"
+        let sut = |x| match x {
+            [first, ..middle, second_last, last] { ["multi", first, middle, second_last, last] }
+            _ { "no match" }
+        };
+    "#;
+
+    ("sut([1, 2, 3, 4, 5])", "[\"multi\", 1, [2, 3], 4, 5]", five_elements),
+    ("sut([1, 2, 3])", "[\"multi\", 1, [], 2, 3]", three_elements),
+    ("sut([1, 2])", "\"no match\"", two_elements),
+    ("sut([1])", "\"no match\"", one_element)
+}
+
+test_eval! {
     suite edge_cases;
 
     (
