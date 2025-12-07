@@ -40,3 +40,11 @@ builtin! {
         }
     }
 }
+
+builtin! {
+    bit_not(value) match {
+        Object::Integer(value) => {
+            Ok(Rc::new(Object::Integer(!value)))
+        }
+    }
+}

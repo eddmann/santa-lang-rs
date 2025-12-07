@@ -58,6 +58,7 @@ builtins! {
     bitwise::bit_xor,
     bitwise::bit_shift_left,
     bitwise::bit_shift_right,
+    bitwise::bit_not,
     string::int,
     string::ints,
     string::lines,
