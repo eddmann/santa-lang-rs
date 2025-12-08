@@ -44,6 +44,7 @@ builtins! {
     collection::values,
     collection::first,
     collection::second,
+    collection::last,
     collection::rest,
     collection::union,
     collection::intersection,

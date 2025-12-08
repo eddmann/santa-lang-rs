@@ -948,6 +948,36 @@ builtin! {
 }
 
 builtin! {
+    last(collection) [evaluator, source] match {
+        Object::List(list) => {
+            if let Some(last) = list.back() {
+                return Ok(Rc::clone(last));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::Set(set) => {
+            if let Some(last) = set.iter().last() {
+                return Ok(Rc::clone(last));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::LazySequence(sequence) => {
+            let iterator = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source);
+            if let Some(last) = iterator.last() {
+                return Ok(Rc::clone(&last));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+        Object::String(string) => {
+            if let Some(last) = string.chars().last() {
+                return Ok(Rc::new(Object::String(last.to_string())));
+            }
+            Ok(Rc::new(Object::Nil))
+        }
+    }
+}
+
+builtin! {
     rest(collection) [evaluator, source] match {
         Object::List(list) => {
             let mut rest = list.clone();

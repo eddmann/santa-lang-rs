@@ -135,7 +135,13 @@ fn repl() -> Result<()> {
     functions.push((
         "env".to_owned(),
         vec![],
-        Rc::new(move |_, _| Ok(Rc::new(Object::String(format!("{:?}", shared_environment.borrow()))))),
+        Rc::new(move |_, _| {
+            println!("Environment:");
+            for (name, value) in shared_environment.borrow().variables() {
+                println!("  {} = {}", name, value);
+            }
+            Ok(Rc::new(Object::Nil))
+        }),
     ));
 
     let mut evaluator = Evaluator::new_with_external_functions(&functions);

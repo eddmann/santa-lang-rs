@@ -121,4 +121,11 @@ impl Environment {
 
         self.store.push((name.to_owned(), value, false));
     }
+
+    pub fn variables(&self) -> Vec<(String, Rc<Object>)> {
+        self.store
+            .iter()
+            .map(|(name, value, _)| (name.clone(), Rc::clone(value)))
+            .collect()
+    }
 }

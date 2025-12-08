@@ -321,6 +321,24 @@ test_eval! {
 }
 
 test_eval! {
+    suite last;
+
+    ("last([])", "nil", empty_list),
+    ("last([1, 2])", "2", list_with_elements),
+    ("last([1, 2, 3])", "3", list_with_three_elements),
+    ("last({})", "nil", empty_set),
+    ("last({1, 2})", "2", set_with_elements),
+    ("last(\"\")", "nil", empty_string),
+    ("last(\"ab\")", "\"b\"", string_with_characters),
+    ("last(\"hello\")", "\"o\"", string_hello),
+    ("last(0..0)", "nil", empty_exclusive_range),
+    ("last(0..3)", "2", exclusive_range_with_elements),
+    ("last(0..=3)", "3", inclusive_range_with_elements),
+    ("last(3..0)", "1", descending_exclusive_range),
+    ("last(3..=0)", "0", descending_inclusive_range)
+}
+
+test_eval! {
     suite rest;
 
     ("rest([])", "[]", empty_list),
