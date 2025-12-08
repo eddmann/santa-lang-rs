@@ -21,7 +21,7 @@ jobs:
         run: make lambda/build
       - name: Upload
         run: |
-          cp target/lambda/release/santa-lambda.zip santa-lang-lambda-${{ inputs.release-tag }}.zip
-          gh release upload ${{ inputs.release-tag }} santa-lang-lambda-${{ inputs.release-tag }}.zip --clobber
+          cp target/lambda/release/santa-lambda.zip santa-lang-comet-lambda-${{ inputs.release-tag }}.zip
+          gh release upload ${{ inputs.release-tag }} santa-lang-comet-lambda-${{ inputs.release-tag }}.zip --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

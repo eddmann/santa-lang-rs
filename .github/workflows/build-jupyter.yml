@@ -17,14 +17,11 @@ jobs:
       CARGO_TERM_COLOR: always
     strategy:
       matrix:
-        build:
-          - x86_64-linux-gnu
-          - x86_64-macos
         include:
-          - build: x86_64-linux-gnu
+          - platform: linux-amd64
             target: x86_64-unknown-linux-gnu
             os: ubuntu-24.04
-          - build: x86_64-macos
+          - platform: macos-amd64
             target: x86_64-apple-darwin
             os: macos-14
     steps:
@@ -44,7 +41,7 @@ jobs:
         run: cargo build --release --bin santa-jupyter --target ${{ matrix.target }}
       - name: Upload
         run: |
-          cp target/${{ matrix.target }}/release/santa-jupyter santa-lang-jupyter-${{ inputs.release-tag }}-${{ matrix.target }}
-          gh release upload ${{ inputs.release-tag }} santa-lang-jupyter-${{ inputs.release-tag }}-${{ matrix.target }} --clobber
+          cp target/${{ matrix.target }}/release/santa-jupyter santa-lang-comet-jupyter-${{ inputs.release-tag }}-${{ matrix.platform }}
+          gh release upload ${{ inputs.release-tag }} santa-lang-comet-jupyter-${{ inputs.release-tag }}-${{ matrix.platform }} --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

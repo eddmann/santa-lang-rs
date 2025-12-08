@@ -48,7 +48,7 @@ jobs:
           wasm-pack pack
       - name: Upload
         run: |
-          cp runtime/wasm/pkg/eddmann-santa-lang-wasm-${{ inputs.release-tag }}.tgz santa-lang-wasm-${{ inputs.release-tag }}.tgz
-          gh release upload ${{ inputs.release-tag }} santa-lang-wasm-${{ inputs.release-tag }}.tgz --clobber
+          cp runtime/wasm/pkg/eddmann-santa-lang-wasm-${{ inputs.release-tag }}.tgz santa-lang-comet-wasm-${{ inputs.release-tag }}.tgz
+          gh release upload ${{ inputs.release-tag }} santa-lang-comet-wasm-${{ inputs.release-tag }}.tgz --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -21,8 +21,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Download
         run: |
-          gh release download ${{ github.event.release.tag_name }} -p 'santa-lang-wasm-${{ github.event.release.tag_name }}.tgz'
-          tar -xvzf santa-lang-wasm-${{ github.event.release.tag_name }}.tgz
+          gh release download ${{ github.event.release.tag_name }} -p 'santa-lang-comet-wasm-${{ github.event.release.tag_name }}.tgz'
+          tar -xvzf santa-lang-comet-wasm-${{ github.event.release.tag_name }}.tgz
       - name: Install Node
         uses: actions/setup-node@v4
         with:
@@ -42,21 +42,21 @@ jobs:
         uses: actions/checkout@v4
       - name: Download
         run: |
-          gh release download ${{ github.event.release.tag_name }} -p 'santa-lang-cli-${{ github.event.release.tag_name }}-docker.tar'
+          gh release download ${{ github.event.release.tag_name }} -p 'santa-lang-comet-cli-${{ github.event.release.tag_name }}-docker.tar'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Load
         run: |
-          docker load -i santa-lang-cli-${{ github.event.release.tag_name }}-docker.tar
+          docker load -i santa-lang-comet-cli-${{ github.event.release.tag_name }}-docker.tar
           docker tag ghcr.io/eddmann/santa-lang-cli:latest ghcr.io/eddmann/santa-lang-cli:${{ github.event.release.tag_name }}
-          docker tag ghcr.io/eddmann/santa-lang-rs:cli-latest ghcr.io/eddmann/santa-lang-rs:cli-${{ github.event.release.tag_name }}
+          docker tag ghcr.io/eddmann/santa-lang-comet:cli-latest ghcr.io/eddmann/santa-lang-comet:cli-${{ github.event.release.tag_name }}
       - name: Publish
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker push ghcr.io/eddmann/santa-lang-cli:latest
           docker push ghcr.io/eddmann/santa-lang-cli:${{ github.event.release.tag_name }}
-          docker push ghcr.io/eddmann/santa-lang-rs:cli-latest
-          docker push ghcr.io/eddmann/santa-lang-rs:cli-${{ github.event.release.tag_name }}
+          docker push ghcr.io/eddmann/santa-lang-comet:cli-latest
+          docker push ghcr.io/eddmann/santa-lang-comet:cli-${{ github.event.release.tag_name }}
 
   # NOTE: Lambda layer publishing disabled - AWS credentials need to be updated
   # lambda:
@@ -67,7 +67,7 @@ jobs:
   #       uses: actions/checkout@v4
   #     - name: Download
   #       run: |
-  #         gh release download ${{ github.event.release.tag_name }} -p 'santa-lang-lambda-${{ github.event.release.tag_name }}.zip'
+  #         gh release download ${{ github.event.release.tag_name }} -p 'santa-lang-comet-lambda-${{ github.event.release.tag_name }}.zip'
   #       env:
   #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   #     - name: Publish
@@ -76,7 +76,7 @@ jobs:
   #           aws lambda publish-layer-version \
   #             --region eu-west-1 \
   #             --layer-name "santa-lang" \
-  #             --zip-file "fileb://santa-lang-lambda-${{ github.event.release.tag_name }}.zip" \
+  #             --zip-file "fileb://santa-lang-comet-lambda-${{ github.event.release.tag_name }}.zip" \
   #             --compatible-runtimes provided.al2 \
   #             --license-info MIT \
   #             --output text \

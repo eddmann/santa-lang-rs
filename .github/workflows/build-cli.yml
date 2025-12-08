@@ -32,13 +32,13 @@ jobs:
           platforms: linux/amd64
           tags: |
             ghcr.io/eddmann/santa-lang-cli:latest
-            ghcr.io/eddmann/santa-lang-rs:cli-latest
-          labels: org.opencontainers.image.source=https://github.com/eddmann/santa-lang-rs
-          outputs: type=docker,dest=/tmp/santa-lang-cli.tar
+            ghcr.io/eddmann/santa-lang-comet:cli-latest
+          labels: org.opencontainers.image.source=https://github.com/eddmann/santa-lang-comet
+          outputs: type=docker,dest=/tmp/santa-lang-comet-cli.tar
       - name: Upload
         run: |
-          mv /tmp/santa-lang-cli.tar santa-lang-cli-${{ inputs.release-tag }}-docker.tar
-          gh release upload ${{ inputs.release-tag }} santa-lang-cli-${{ inputs.release-tag }}-docker.tar --clobber
+          mv /tmp/santa-lang-comet-cli.tar santa-lang-comet-cli-${{ inputs.release-tag }}-docker.tar
+          gh release upload ${{ inputs.release-tag }} santa-lang-comet-cli-${{ inputs.release-tag }}-docker.tar --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -51,22 +51,17 @@ jobs:
       CARGO_TERM_COLOR: always
     strategy:
       matrix:
-        build:
-          - x86_64-linux-gnu
-          - aarch64-linux-gnu
-          - x86_64-macos
-          - aarch64-macos
         include:
-          - build: x86_64-linux-gnu
+          - platform: linux-amd64
             target: x86_64-unknown-linux-gnu
             os: ubuntu-24.04
-          - build: aarch64-linux-gnu
+          - platform: linux-arm64
             target: aarch64-unknown-linux-gnu
             os: ubuntu-24.04
-          - build: x86_64-macos
+          - platform: macos-amd64
             target: x86_64-apple-darwin
             os: macos-14
-          - build: aarch64-macos
+          - platform: macos-arm64
             target: aarch64-apple-darwin
             os: macos-14
     steps:
@@ -76,7 +71,7 @@ jobs:
         run: |
           sed -i.bak 's/version = "[0-9.]*"$/version = "${{ inputs.release-tag }}"/' Cargo.toml
       - name: Install cross-compilation tools (ARM64 Linux)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        if: matrix.platform == 'linux-arm64'
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
@@ -88,7 +83,7 @@ jobs:
       - name: Load cache
         uses: Swatinem/rust-cache@v2
       - name: Configure cross-compilation (ARM64 Linux)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        if: matrix.platform == 'linux-arm64'
         run: |
           echo "[target.aarch64-unknown-linux-gnu]" >> ~/.cargo/config.toml
           echo "linker = \"aarch64-linux-gnu-gcc\"" >> ~/.cargo/config.toml
@@ -96,7 +91,7 @@ jobs:
         run: cargo build --release --bin santa-cli --target ${{ matrix.target }}
       - name: Upload
         run: |
-          cp target/${{ matrix.target }}/release/santa-cli santa-lang-cli-${{ inputs.release-tag }}-${{ matrix.target }}
-          gh release upload ${{ inputs.release-tag }} santa-lang-cli-${{ inputs.release-tag }}-${{ matrix.target }} --clobber
+          cp target/${{ matrix.target }}/release/santa-cli santa-lang-comet-cli-${{ inputs.release-tag }}-${{ matrix.platform }}
+          gh release upload ${{ inputs.release-tag }} santa-lang-comet-cli-${{ inputs.release-tag }}-${{ matrix.platform }} --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
