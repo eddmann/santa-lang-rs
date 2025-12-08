@@ -87,6 +87,45 @@ test_eval! {
 }
 
 test_eval! {
+    suite range_iteration;
+
+    // Ascending non-inclusive
+    ("1..3 |> list", "[1, 2]", ascending_non_inclusive),
+    // Ascending inclusive
+    ("1..=3 |> list", "[1, 2, 3]", ascending_inclusive),
+    // Descending non-inclusive
+    ("3..1 |> list", "[3, 2]", descending_non_inclusive),
+    // Descending inclusive
+    ("3..=1 |> list", "[3, 2, 1]", descending_inclusive),
+    // Crossing zero descending non-inclusive
+    ("1..-1 |> list", "[1, 0]", crossing_zero_descending_non_inclusive),
+    // Crossing zero descending inclusive
+    ("1..=-1 |> list", "[1, 0, -1]", crossing_zero_descending_inclusive),
+    // Crossing zero ascending non-inclusive
+    ("-1..1 |> list", "[-1, 0]", crossing_zero_ascending_non_inclusive),
+    // Crossing zero ascending inclusive
+    ("-1..=1 |> list", "[-1, 0, 1]", crossing_zero_ascending_inclusive),
+    // Empty range (non-inclusive with equal bounds)
+    ("3..3 |> list", "[]", empty_non_inclusive)
+}
+
+test_eval! {
+    suite range_map_iteration;
+
+    // Ascending non-inclusive with map
+    ("1..3 |> map(|x| x * 2) |> list", "[2, 4]", ascending_non_inclusive),
+    // Ascending inclusive with map
+    ("1..=3 |> map(|x| x * 2) |> list", "[2, 4, 6]", ascending_inclusive),
+    // Descending non-inclusive with map
+    ("3..1 |> map(|x| x * 2) |> list", "[6, 4]", descending_non_inclusive),
+    // Descending inclusive with map
+    ("3..=1 |> map(|x| x * 2) |> list", "[6, 4, 2]", descending_inclusive),
+    // Crossing zero with map
+    ("1..-1 |> map(|x| x * 2) |> list", "[2, 0]", crossing_zero_descending),
+    ("-1..1 |> map(|x| x * 2) |> list", "[-2, 0]", crossing_zero_ascending)
+}
+
+test_eval! {
     suite comments;
 
     (
