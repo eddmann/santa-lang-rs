@@ -238,9 +238,7 @@ fn match_single_pattern(
                 }),
             }
         }
-        ExpressionKind::ListMatchPattern(pattern) => {
-            destructure_match_list_pattern(evaluator, pattern, element)
-        }
+        ExpressionKind::ListMatchPattern(pattern) => destructure_match_list_pattern(evaluator, pattern, element),
         ExpressionKind::InclusiveRange { from, to } => {
             if let (ExpressionKind::Integer(from), ExpressionKind::Integer(to), Object::Integer(index)) =
                 (&from.kind, &to.kind, &*element)
