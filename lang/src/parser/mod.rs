@@ -621,7 +621,14 @@ impl<'a> Parser<'a> {
         self.consume_if(T![')']);
         let consequence = Box::new(self.parse_block_statement()?);
         let alternative = if self.consume_if(T![ELSE]) {
-            Some(Box::new(self.parse_block_statement()?))
+            let alt_start = self.current_token;
+            self.expect(T!['{'])?;
+            let statements = self.parse_statements()?;
+            self.expect(T!['}'])?;
+            Some(Box::new(Statement {
+                kind: StatementKind::Block(statements),
+                source: alt_start.source_range(&self.current_token),
+            }))
         } else {
             None
         };
