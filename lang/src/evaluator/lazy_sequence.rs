@@ -38,6 +38,23 @@ enum LazyValue {
         indices: Vec<usize>,
         collection: Vector<Rc<Object>>,
     },
+    // Concrete collection sources for transducer-like lazy evaluation
+    FromList {
+        items: Vector<Rc<Object>>,
+        index: usize,
+    },
+    FromSet {
+        items: Vec<Rc<Object>>,
+        index: usize,
+    },
+    FromDict {
+        items: Vec<(Rc<Object>, Rc<Object>)>,
+        index: usize,
+    },
+    FromString {
+        chars: Vec<char>,
+        index: usize,
+    },
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -46,6 +63,8 @@ pub enum LazyFn {
     Filter(Function),
     FilterMap(Function),
     Skip(usize),
+    Take(usize),
+    FlatMap(Function),
     Zip(Vec<LazySequence>),
 }
 
@@ -65,6 +84,10 @@ impl fmt::Display for LazySequence {
             LazyValue::Cycle { .. } => "[cycle ∞]".to_owned(),
             LazyValue::Iterate { .. } => "[iterate ∞]".to_owned(),
             LazyValue::Combinations { .. } => "[combinations]".to_owned(),
+            LazyValue::FromList { items, .. } => format!("[lazy list({})]", items.len()),
+            LazyValue::FromSet { items, .. } => format!("[lazy set({})]", items.len()),
+            LazyValue::FromDict { items, .. } => format!("[lazy dict({})]", items.len()),
+            LazyValue::FromString { chars, .. } => format!("[lazy string({})]", chars.len()),
         };
         write!(f, "{}", s)
     }
@@ -153,6 +176,41 @@ impl LazySequence {
         }
     }
 
+    /// Create a lazy sequence from a List (for transducer-like lazy evaluation)
+    pub fn from_list(items: Vector<Rc<Object>>) -> Self {
+        Self {
+            value: LazyValue::FromList { items, index: 0 },
+            functions: vec![],
+        }
+    }
+
+    /// Create a lazy sequence from a Set (for transducer-like lazy evaluation)
+    pub fn from_set(items: Vec<Rc<Object>>) -> Self {
+        Self {
+            value: LazyValue::FromSet { items, index: 0 },
+            functions: vec![],
+        }
+    }
+
+    /// Create a lazy sequence from a Dictionary (yields [key, value] pairs)
+    pub fn from_dict(items: Vec<(Rc<Object>, Rc<Object>)>) -> Self {
+        Self {
+            value: LazyValue::FromDict { items, index: 0 },
+            functions: vec![],
+        }
+    }
+
+    /// Create a lazy sequence from a String (yields individual characters)
+    pub fn from_string(s: &str) -> Self {
+        Self {
+            value: LazyValue::FromString {
+                chars: s.chars().collect(),
+                index: 0,
+            },
+            functions: vec![],
+        }
+    }
+
     pub fn with_fn(&self, function: LazyFn) -> Self {
         let mut functions = self.functions.clone();
         functions.push(function);
@@ -172,6 +230,7 @@ impl LazySequence {
             value: self.value.clone(),
             functions: self.functions.clone(),
             zip_iterators: HashMap::new(),
+            flat_map_buffer: Vec::new(),
             evaluator,
             source,
         }
@@ -251,6 +310,7 @@ pub struct LazySequenceIter<'a> {
     functions: Vec<LazyFn>,
     evaluator: Rc<RefCell<&'a mut Evaluator>>,
     zip_iterators: HashMap<usize, Vec<LazySequenceIter<'a>>>,
+    flat_map_buffer: Vec<Rc<Object>>,
     source: Location,
 }
 
@@ -340,6 +400,52 @@ impl LazySequenceIter<'_> {
                 indices.clear();
                 Some(Rc::new(Object::List(result)))
             }
+            // Concrete collection sources for transducer-like lazy evaluation
+            LazyValue::FromList {
+                ref items,
+                ref mut index,
+            } => {
+                if *index >= items.len() {
+                    return None;
+                }
+                let next = Rc::clone(&items[*index]);
+                *index += 1;
+                Some(next)
+            }
+            LazyValue::FromSet {
+                ref items,
+                ref mut index,
+            } => {
+                if *index >= items.len() {
+                    return None;
+                }
+                let next = Rc::clone(&items[*index]);
+                *index += 1;
+                Some(next)
+            }
+            LazyValue::FromDict {
+                ref items,
+                ref mut index,
+            } => {
+                if *index >= items.len() {
+                    return None;
+                }
+                let (key, value) = &items[*index];
+                let pair = Vector::from(vec![Rc::clone(key), Rc::clone(value)]);
+                *index += 1;
+                Some(Rc::new(Object::List(pair)))
+            }
+            LazyValue::FromString {
+                ref chars,
+                ref mut index,
+            } => {
+                if *index >= chars.len() {
+                    return None;
+                }
+                let next = Rc::new(Object::String(chars[*index].to_string()));
+                *index += 1;
+                Some(next)
+            }
         }
     }
 
@@ -349,12 +455,18 @@ impl LazySequenceIter<'_> {
             functions: self.functions.clone(),
         }
     }
+
 }
 
 impl Iterator for LazySequenceIter<'_> {
     type Item = Rc<Object>;
 
     fn next(&mut self) -> Option<Rc<Object>> {
+        // First check for buffered items from FlatMap
+        if let Some(buffered) = self.flat_map_buffer.pop() {
+            return Some(buffered);
+        }
+
         'next: loop {
             let mut next = self.next_value()?;
 
@@ -388,6 +500,56 @@ impl Iterator for LazySequenceIter<'_> {
                             continue 'next;
                         }
                     }
+                    LazyFn::Take(total) => {
+                        if *total == 0 {
+                            return None;
+                        }
+                        *function = LazyFn::Take(*total - 1);
+                    }
+                    LazyFn::FlatMap(mapper) => {
+                        // Apply the mapper to get a collection/sequence
+                        let result = mapper
+                            .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
+                            .ok()?;
+
+                        // Extract items from the result
+                        // For LazySequence, we need to collect it within its own scope
+                        let mut items: Vec<Rc<Object>> = match &*result {
+                            Object::List(list) => list.iter().cloned().collect(),
+                            Object::LazySequence(seq) => {
+                                // Clone the sequence and collect items
+                                // Need to create a new iterator to avoid lifetime issues
+                                let seq = seq.clone();
+                                let mut inner_iter = LazySequenceIter {
+                                    value: seq.value.clone(),
+                                    functions: seq.functions.clone(),
+                                    zip_iterators: HashMap::new(),
+                                    flat_map_buffer: Vec::new(),
+                                    evaluator: Rc::clone(&self.evaluator),
+                                    source: self.source,
+                                };
+                                let mut collected = Vec::new();
+                                while let Some(item) = inner_iter.next() {
+                                    collected.push(item);
+                                }
+                                collected
+                            }
+                            _ => {
+                                // Non-collection result is treated as single element
+                                vec![Rc::clone(&result)]
+                            }
+                        };
+
+                        if items.is_empty() {
+                            continue 'next; // Empty result, get next source item
+                        }
+
+                        // Take first item and buffer the rest (reversed so we can pop)
+                        let first = items.remove(0);
+                        items.reverse();
+                        self.flat_map_buffer = items;
+                        next = first;
+                    }
                     LazyFn::Zip(sequences) => {
                         let mut entry = Vector::new();
                         entry.push_back(next);
@@ -402,6 +564,7 @@ impl Iterator for LazySequenceIter<'_> {
                                         value: sequence.value.clone(),
                                         functions: sequence.functions.clone(),
                                         zip_iterators: HashMap::new(),
+                                        flat_map_buffer: Vec::new(),
                                         evaluator: Rc::clone(&self.evaluator),
                                         source: self.source,
                                     })

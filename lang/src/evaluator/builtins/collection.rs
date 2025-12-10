@@ -44,43 +44,33 @@ builtin! {
 builtin! {
     map(mapper, collection) [evaluator, source] match {
         (Object::Function(mapper), Object::List(list)) => {
-            let mut elements = Vector::new();
-            for element in list {
-                elements.push_back(mapper.apply(evaluator, vec![Rc::clone(element)], source)?);
-            }
-            Ok(Rc::new(Object::List(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_list(list.clone()).with_fn(LazyFn::Map(mapper.clone()))
+            )))
         }
         (Object::Function(mapper), Object::Set(set)) => {
-            let mut elements = HashSet::default();
-            for element in set {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
-                if !mapped.is_hashable() {
-                    return Err(RuntimeErr {
-                        message: format!("Unable to include a {} within an Set", element.name()),
-                        source,
-                        trace: evaluator.get_trace()
-                    });
-                }
-                elements.insert(mapper.apply(evaluator, vec![Rc::clone(element)], source)?);
-            }
-            Ok(Rc::new(Object::Set(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            let items: Vec<_> = set.iter().cloned().collect();
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_set(items).with_fn(LazyFn::Map(mapper.clone()))
+            )))
         }
         (Object::Function(mapper), Object::Dictionary(map)) => {
-            let mut elements = HashMap::default();
-            for (key, value) in map {
-                elements.insert(Rc::clone(key), mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?);
-            }
-            Ok(Rc::new(Object::Dictionary(elements)))
+            // Return lazy sequence yielding [key, mapped_value] pairs
+            let items: Vec<_> = map.iter().map(|(k, v)| (Rc::clone(k), Rc::clone(v))).collect();
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_dict(items).with_fn(LazyFn::Map(mapper.clone()))
+            )))
         }
         (Object::Function(mapper), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Map(mapper.clone())))))
         }
         (Object::Function(mapper), Object::String(string)) => {
-            let mut elements = Vector::new();
-            for character in string.chars() {
-                elements.push_back(mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?);
-            }
-            Ok(Rc::new(Object::List(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_string(string).with_fn(LazyFn::Map(mapper.clone()))
+            )))
         }
     }
 }
@@ -88,44 +78,33 @@ builtin! {
 builtin! {
     filter(predicate, collection) [evaluator, source] match {
         (Object::Function(predicate), Object::List(list)) => {
-            let mut elements = Vector::new();
-            for element in list {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
-                    elements.push_back(Rc::clone(element));
-                }
-            }
-            Ok(Rc::new(Object::List(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_list(list.clone()).with_fn(LazyFn::Filter(predicate.clone()))
+            )))
         }
-        (Object::Function(predicate), Object::Set(list)) => {
-            let mut elements = HashSet::default();
-            for element in list {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
-                    elements.insert(Rc::clone(element));
-                }
-            }
-            Ok(Rc::new(Object::Set(elements)))
+        (Object::Function(predicate), Object::Set(set)) => {
+            // Return lazy sequence for transducer-like evaluation
+            let items: Vec<_> = set.iter().cloned().collect();
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_set(items).with_fn(LazyFn::Filter(predicate.clone()))
+            )))
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
-            let mut elements = HashMap::default();
-            for (key, value) in map {
-                if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
-                    elements.insert(Rc::clone(key), Rc::clone(value));
-                }
-            }
-            Ok(Rc::new(Object::Dictionary(elements)))
+            // Return lazy sequence yielding [key, value] pairs that match predicate
+            let items: Vec<_> = map.iter().map(|(k, v)| (Rc::clone(k), Rc::clone(v))).collect();
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_dict(items).with_fn(LazyFn::Filter(predicate.clone()))
+            )))
         }
         (Object::Function(predicate), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Filter(predicate.clone())))))
         }
         (Object::Function(predicate), Object::String(string)) => {
-            let mut elements = Vector::new();
-            for character in string.chars() {
-                let object = Rc::new(Object::String(character.to_string()));
-                if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
-                    elements.push_back(Rc::clone(&object));
-                }
-            }
-            Ok(Rc::new(Object::List(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_string(string).with_fn(LazyFn::Filter(predicate.clone()))
+            )))
         }
     }
 }
@@ -333,35 +312,17 @@ builtin! {
     }
 }
 
-fn resolve_to_list(obj: Rc<Object>, evaluator: &mut Evaluator, source: Location) -> Vector<Rc<Object>> {
-    match &*obj {
-        Object::List(list) => list.clone(),
-        Object::LazySequence(sequence) => {
-            let shared_evaluator = Rc::new(RefCell::new(evaluator));
-            sequence.resolve_iter(Rc::clone(&shared_evaluator), source).collect()
-        }
-        _ => Vector::new(),
-    }
-}
-
 builtin! {
     flat_map(mapper, collection) [evaluator, source] match {
         (Object::Function(mapper), Object::List(list)) => {
-            let mut elements = Vector::new();
-            for element in list {
-                let result = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
-                elements.append(resolve_to_list(result, evaluator, source));
-            }
-            Ok(Rc::new(Object::List(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_list(list.clone()).with_fn(LazyFn::FlatMap(mapper.clone()))
+            )))
         }
         (Object::Function(mapper), Object::LazySequence(sequence)) => {
-            let shared_evaluator = Rc::new(RefCell::new(evaluator));
-            let mut elements = Vector::new();
-            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
-                let result = mapper.apply(&mut shared_evaluator.borrow_mut(), vec![element], source)?;
-                elements.append(resolve_to_list(result, &mut shared_evaluator.borrow_mut(), source));
-            }
-            Ok(Rc::new(Object::List(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::FlatMap(mapper.clone())))))
         }
     }
 }
@@ -617,7 +578,10 @@ builtin! {
 builtin! {
     skip(total, collection) [evaluator, source] match {
         (Object::Integer(total), Object::List(list)) => {
-            Ok(Rc::new(Object::List(list.clone().into_iter().skip(*total as usize).collect())))
+            // Return lazy sequence for transducer-like evaluation
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_list(list.clone()).with_fn(LazyFn::Skip(*total as usize))
+            )))
         }
         (Object::Integer(total), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Skip(*total as usize)))))
@@ -628,10 +592,14 @@ builtin! {
 builtin! {
     take(total, collection) [evaluator, source] match {
         (Object::Integer(total), Object::List(list)) => {
-            Ok(Rc::new(Object::List(list.clone().into_iter().take(*total as usize).collect())))
+            // Return lazy sequence for transducer-like evaluation
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_list(list.clone()).with_fn(LazyFn::Take(*total as usize))
+            )))
         }
         (Object::Integer(total), Object::LazySequence(sequence)) => {
-            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).take(*total as usize).collect::<Vector<Rc<Object>>>())))
+            // Return lazy sequence instead of materializing immediately
+            Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::Take(*total as usize)))))
         }
     }
 }
@@ -1501,54 +1469,33 @@ builtin! {
 builtin! {
     filter_map(mapper, collection) [evaluator, source] match {
         (Object::Function(mapper), Object::List(list)) => {
-            let mut elements = Vector::new();
-            for element in list {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
-                if mapped.is_truthy() {
-                    elements.push_back(mapped);
-                }
-            }
-            Ok(Rc::new(Object::List(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_list(list.clone()).with_fn(LazyFn::FilterMap(mapper.clone()))
+            )))
         }
         (Object::Function(mapper), Object::Set(set)) => {
-            let mut elements = HashSet::default();
-            for element in set {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
-                if !mapped.is_hashable() {
-                    return Err(RuntimeErr {
-                        message: format!("Unable to include a {} within an Set", element.name()),
-                        source,
-                        trace: evaluator.get_trace()
-                    });
-                }
-                if mapped.is_truthy() {
-                    elements.insert(mapped);
-                }
-            }
-            Ok(Rc::new(Object::Set(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            let items: Vec<_> = set.iter().cloned().collect();
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_set(items).with_fn(LazyFn::FilterMap(mapper.clone()))
+            )))
         }
         (Object::Function(mapper), Object::Dictionary(map)) => {
-            let mut elements = HashMap::default();
-            for (key, value) in map {
-                let mapped = mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?;
-                if mapped.is_truthy() {
-                    elements.insert(Rc::clone(key), mapped);
-                }
-            }
-            Ok(Rc::new(Object::Dictionary(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            let items: Vec<_> = map.iter().map(|(k, v)| (Rc::clone(k), Rc::clone(v))).collect();
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_dict(items).with_fn(LazyFn::FilterMap(mapper.clone()))
+            )))
         }
         (Object::Function(mapper), Object::LazySequence(sequence)) => {
             Ok(Rc::new(Object::LazySequence(sequence.with_fn(LazyFn::FilterMap(mapper.clone())))))
         }
         (Object::Function(mapper), Object::String(string)) => {
-            let mut elements = Vector::new();
-            for character in string.chars() {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
-                if mapped.is_truthy() {
-                    elements.push_back(mapped);
-                }
-            }
-            Ok(Rc::new(Object::List(elements)))
+            // Return lazy sequence for transducer-like evaluation
+            Ok(Rc::new(Object::LazySequence(
+                LazySequence::from_string(string).with_fn(LazyFn::FilterMap(mapper.clone()))
+            )))
         }
     }
 }
