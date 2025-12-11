@@ -27,6 +27,9 @@ fn main() -> Result<()> {
     opts.optflag("t", "test", "run the solution's test suite");
     opts.optflag("s", "slow", "include slow tests (marked with @slow)");
     opts.optflag("r", "repl", "begin an interactive REPL session");
+    opts.optflag("f", "fmt", "format source code to stdout");
+    opts.optflag("", "fmt-write", "format source code in place");
+    opts.optflag("", "fmt-check", "check if source is formatted (exit 1 if not)");
     opts.optflag("h", "help", "list available commands");
     opts.optflag("v", "version", "display version information");
     #[cfg(feature = "profile")]
@@ -46,6 +49,15 @@ fn main() -> Result<()> {
 
     if matches.opt_present("r") {
         return repl();
+    }
+
+    // Handle formatting options
+    let fmt_stdout = matches.opt_present("f");
+    let fmt_write = matches.opt_present("fmt-write");
+    let fmt_check = matches.opt_present("fmt-check");
+
+    if fmt_stdout || fmt_write || fmt_check {
+        return handle_format(&matches, fmt_stdout, fmt_write, fmt_check);
     }
 
     // Determine source: -e flag > file argument > stdin
@@ -274,6 +286,59 @@ fn aoc_test(source: &str, source_path: Option<&str>, include_slow: bool) -> Resu
         }
         Err(error) => {
             print_error(source_path.unwrap_or("<stdin>"), source, error);
+            std::process::exit(2);
+        }
+    }
+}
+
+fn handle_format(matches: &getopts::Matches, to_stdout: bool, write_file: bool, check_only: bool) -> Result<()> {
+    // Determine source: -e flag > file argument > stdin
+    let (source, source_path): (String, Option<String>) = if let Some(eval_script) = matches.opt_str("e") {
+        (eval_script, None)
+    } else if matches.free.len() == 1 {
+        let path = &matches.free[0];
+        let canonical = fs::canonicalize(path)?;
+        let source = fs::read_to_string(&canonical)?;
+        (source, Some(canonical.to_string_lossy().into_owned()))
+    } else if !atty::is(atty::Stream::Stdin) {
+        let mut source = String::new();
+        std::io::stdin().read_to_string(&mut source)?;
+        (source, None)
+    } else {
+        eprintln!("Error: No source provided for formatting");
+        std::process::exit(1);
+    };
+
+    match santa_lang::format(&source) {
+        Ok(formatted) => {
+            if check_only {
+                if formatted == source {
+                    // Already formatted
+                    std::process::exit(0);
+                } else {
+                    // Needs formatting
+                    if let Some(path) = &source_path {
+                        eprintln!("{} needs formatting", path);
+                    } else {
+                        eprintln!("Input needs formatting");
+                    }
+                    std::process::exit(1);
+                }
+            } else if write_file {
+                if let Some(path) = &source_path {
+                    fs::write(path, &formatted)?;
+                    println!("Formatted {}", path);
+                } else {
+                    eprintln!("Error: --fmt-write requires a file path");
+                    std::process::exit(1);
+                }
+            } else if to_stdout {
+                print!("{}", formatted);
+            }
+            Ok(())
+        }
+        Err(error) => {
+            eprintln!("Parse error: {}", error.message);
             std::process::exit(2);
         }
     }

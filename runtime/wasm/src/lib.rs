@@ -68,3 +68,19 @@ pub fn evaluate(expression: &str, js_functions: Option<Object>) -> Result<JsValu
         Err(error) => Err(serde_wasm_bindgen::to_value(&error).unwrap()),
     }
 }
+
+#[wasm_bindgen]
+pub fn format(source: &str) -> Result<JsValue, JsValue> {
+    match santa_lang::format(source) {
+        Ok(formatted) => Ok(JsValue::from_str(&formatted)),
+        Err(error) => Err(serde_wasm_bindgen::to_value(&error).unwrap()),
+    }
+}
+
+#[wasm_bindgen]
+pub fn is_formatted(source: &str) -> Result<bool, JsValue> {
+    match santa_lang::is_formatted(source) {
+        Ok(result) => Ok(result),
+        Err(error) => Err(serde_wasm_bindgen::to_value(&error).unwrap()),
+    }
+}
