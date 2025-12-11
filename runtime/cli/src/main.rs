@@ -28,6 +28,7 @@ fn main() -> Result<()> {
     opts.optflag("s", "slow", "include slow tests (marked with @slow)");
     opts.optflag("r", "repl", "begin an interactive REPL session");
     opts.optflag("h", "help", "list available commands");
+    opts.optflag("v", "version", "display version information");
     #[cfg(feature = "profile")]
     opts.optflag("p", "profile", "profile the execution");
 
@@ -35,6 +36,11 @@ fn main() -> Result<()> {
 
     if matches.opt_present("h") {
         print_usage(&program, opts);
+        return Ok(());
+    }
+
+    if matches.opt_present("v") {
+        println!("santa-lang Comet {}", env!("CARGO_PKG_VERSION"));
         return Ok(());
     }
 
