@@ -214,25 +214,44 @@ fn build_call(function: &Expression, arguments: &[Expression]) -> Doc {
         return Doc::concat(vec![build_expression(function), Doc::text("()")]);
     }
 
-    // Check for trailing closure syntax: multi-statement lambda as last argument
-    if let Some(trailing) = extract_trailing_closure(arguments) {
-        let trailing_lambda = build_lambda_with_block(trailing.parameters, trailing.body);
+    let Some(trailing) = extract_trailing_closure(arguments) else {
+        let args: Vec<Doc> = arguments.iter().map(build_expression).collect();
+        return Doc::concat(vec![build_expression(function), Doc::bracketed("(", args, ")", false)]);
+    };
 
+    let func = build_expression(function);
+    let block_lambda = build_lambda_with_block(trailing.parameters, trailing.body);
+
+    let build_trailing_doc = |func: Doc, lambda: Doc| -> Doc {
         if trailing.is_only_argument {
-            return Doc::concat(vec![build_expression(function), Doc::text(" "), trailing_lambda]);
+            Doc::concat(vec![func, Doc::text(" "), lambda])
         } else {
             let other_args: Vec<Doc> = arguments[..arguments.len() - 1].iter().map(build_expression).collect();
-            return Doc::concat(vec![
-                build_expression(function),
+            Doc::concat(vec![
+                func,
                 Doc::bracketed("(", other_args, ")", false),
                 Doc::text(" "),
-                trailing_lambda,
-            ]);
+                lambda,
+            ])
         }
+    };
+
+    // Multi-statement lambdas always use trailing syntax
+    if trailing.is_multi_statement {
+        return build_trailing_doc(func, block_lambda);
     }
 
-    let args: Vec<Doc> = arguments.iter().map(build_expression).collect();
-    Doc::concat(vec![build_expression(function), Doc::bracketed("(", args, ")", false)])
+    // Single-statement: use trailing with block if line would exceed width
+    let inline_lambda = build_lambda(trailing.parameters, trailing.body);
+    let inline_doc = if trailing.is_only_argument {
+        Doc::concat(vec![func.clone(), Doc::text("("), inline_lambda, Doc::text(")")])
+    } else {
+        let all_args: Vec<Doc> = arguments.iter().map(build_expression).collect();
+        Doc::concat(vec![func.clone(), Doc::bracketed("(", all_args, ")", false)])
+    };
+
+    let trailing_doc = build_trailing_doc(func, block_lambda);
+    Doc::group(Doc::if_break(trailing_doc, inline_doc))
 }
 
 fn build_composition(functions: &[Expression]) -> Doc {
@@ -349,11 +368,12 @@ fn build_string(value: &str) -> Doc {
     Doc::text(format!("\"{}\"", escaped))
 }
 
-/// Detects if the last argument is a multi-statement lambda suitable for trailing closure syntax
+/// Extracts the last argument if it's a lambda function
 struct TrailingClosure<'a> {
     parameters: &'a [Expression],
     body: &'a Statement,
     is_only_argument: bool,
+    is_multi_statement: bool,
 }
 
 fn extract_trailing_closure(arguments: &[Expression]) -> Option<TrailingClosure<'_>> {
@@ -364,19 +384,16 @@ fn extract_trailing_closure(arguments: &[Expression]) -> Option<TrailingClosure<
         _ => return None,
     };
 
-    let is_multi_statement_block = match &body.kind {
+    let is_multi_statement = match &body.kind {
         StatementKind::Block(stmts) => stmts.len() > 1,
         _ => false,
     };
-
-    if !is_multi_statement_block {
-        return None;
-    }
 
     Some(TrailingClosure {
         parameters,
         body,
         is_only_argument: arguments.len() == 1,
+        is_multi_statement,
     })
 }
 
@@ -409,6 +426,19 @@ fn build_block_statement(stmt: &Statement) -> Doc {
 }
 
 fn build_chain(initial: &Expression, functions: &[Expression], op: &str) -> Doc {
+    // Special case: single-pipe chain with trailing block lambda
+    // Format as `initial |> func |params| { block }` without group wrapping
+    // to prevent the block's HardLines from forcing the pipe to break
+    if functions.len() == 1 {
+        if let Some(call_doc) = build_call_for_chain(&functions[0]) {
+            return Doc::concat(vec![
+                build_expression(initial),
+                Doc::text(format!(" {} ", op)),
+                call_doc,
+            ]);
+        }
+    }
+
     let force_break = functions.len() > 1;
 
     let chain: Vec<Doc> = functions
@@ -428,6 +458,64 @@ fn build_chain(initial: &Expression, functions: &[Expression], op: &str) -> Doc 
     ]);
 
     if force_break { doc } else { Doc::group(doc) }
+}
+
+/// Build a call expression for use in a single-element pipe chain.
+/// Returns Some(Doc) if the call has a trailing lambda that will use block syntax,
+/// allowing the pipe to stay on one line while the block breaks.
+/// Returns None for regular calls or short inline lambdas (use normal build_expression).
+fn build_call_for_chain(expr: &Expression) -> Option<Doc> {
+    let ExpressionKind::Call { function, arguments } = &expr.kind else {
+        return None;
+    };
+
+    let trailing = extract_trailing_closure(arguments)?;
+
+    // Multi-statement lambdas always use trailing block syntax
+    if trailing.is_multi_statement {
+        let func = build_expression(function);
+        let block_lambda = build_lambda_with_block(trailing.parameters, trailing.body);
+
+        return Some(if trailing.is_only_argument {
+            Doc::concat(vec![func, Doc::text(" "), block_lambda])
+        } else {
+            let other_args: Vec<Doc> = arguments[..arguments.len() - 1].iter().map(build_expression).collect();
+            Doc::concat(vec![
+                func,
+                Doc::bracketed("(", other_args, ")", false),
+                Doc::text(" "),
+                block_lambda,
+            ])
+        });
+    }
+
+    // For single-statement lambdas, check if inline form would be short enough
+    // If not, use trailing block syntax to keep pipe on one line
+    let func = build_expression(function);
+    let inline_lambda = build_lambda(trailing.parameters, trailing.body);
+    let block_lambda = build_lambda_with_block(trailing.parameters, trailing.body);
+
+    let inline_doc = if trailing.is_only_argument {
+        Doc::concat(vec![func.clone(), Doc::text("("), inline_lambda, Doc::text(")")])
+    } else {
+        let all_args: Vec<Doc> = arguments.iter().map(build_expression).collect();
+        Doc::concat(vec![func.clone(), Doc::bracketed("(", all_args, ")", false)])
+    };
+
+    let trailing_doc = if trailing.is_only_argument {
+        Doc::concat(vec![func, Doc::text(" "), block_lambda])
+    } else {
+        let other_args: Vec<Doc> = arguments[..arguments.len() - 1].iter().map(build_expression).collect();
+        Doc::concat(vec![
+            func,
+            Doc::bracketed("(", other_args, ")", false),
+            Doc::text(" "),
+            block_lambda,
+        ])
+    };
+
+    // Return a group that chooses between inline and trailing based on width
+    Some(Doc::group(Doc::if_break(trailing_doc, inline_doc)))
 }
 
 fn build_collection(open: &str, elements: &[Expression], close: &str) -> Doc {
@@ -529,7 +617,7 @@ fn build_lambda_with_block(parameters: &[Expression], body: &Statement) -> Doc {
 
     let body_doc = match &body.kind {
         StatementKind::Block(stmts) => build_block_body(stmts),
-        _ => build_statement(body, false),
+        _ => build_block_statement(body),
     };
 
     Doc::concat(vec![Doc::text("|"), params_doc, Doc::text("| "), body_doc])

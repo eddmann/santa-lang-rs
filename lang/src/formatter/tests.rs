@@ -357,16 +357,37 @@ fn format_trailing_closure_preserved() {
 fn format_trailing_closure_in_pipe() {
     assert_eq!(
         format("[1, 2] |> each |x| { let y = x\nputs(y) }").unwrap(),
-        "[1, 2]\n  |> each |x| {\n    let y = x;\n\n    puts(y)\n  }\n"
+        "[1, 2] |> each |x| {\n  let y = x;\n\n  puts(y)\n}\n"
     );
 }
 
 #[test]
 fn format_single_statement_lambda_inside_parens() {
-    // Single-statement lambda stays inside parens (not trailing)
-    let input = "map(|x| x + 1)";
-    let output = format(input).unwrap();
-    assert_eq!(output, "map(|x| x + 1)\n");
+    assert_eq!(format("map(|x| x + 1)").unwrap(), "map(|x| x + 1)\n");
+}
+
+#[test]
+fn format_single_statement_lambda_trailing_when_long() {
+    let input =
+        "map(|some_very_long_parameter_name| some_very_long_parameter_name + another_very_long_expression_here)";
+    let expected = "map |some_very_long_parameter_name| {\n  some_very_long_parameter_name + another_very_long_expression_here\n}\n";
+    assert_eq!(format(input).unwrap(), expected);
+}
+
+#[test]
+fn format_lambda_with_other_args_inline_when_short() {
+    assert_eq!(
+        format("fold(0, |acc, x| acc + x)").unwrap(),
+        "fold(0, |acc, x| acc + x)\n"
+    );
+}
+
+#[test]
+fn format_lambda_with_other_args_trailing_when_long() {
+    let input =
+        "fold_s([[], []], |[prefixes, prefix], key| [prefixes + [[..prefix, key]], [..prefix, key, extra, more]])";
+    let expected = "fold_s([[], []]) |[prefixes, prefix], key| {\n  [prefixes + [[..prefix, key]], [..prefix, key, extra, more]]\n}\n";
+    assert_eq!(format(input).unwrap(), expected);
 }
 
 #[test]
