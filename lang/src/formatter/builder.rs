@@ -240,26 +240,19 @@ fn build_composition(functions: &[Expression]) -> Doc {
         return Doc::Nil;
     }
 
-    // Force multiline for 3+ composed functions (similar to pipes at 2+)
-    // Composition chains are often read right-to-left, so vertical layout helps
-    let force_break = functions.len() > 2;
-
+    // Line-width based formatting: let the printer decide when to break
+    // based on the 100-character line width limit
     let docs: Vec<Doc> = functions.iter().map(build_expression).collect();
 
     let rest: Vec<Doc> = docs[1..]
         .iter()
-        .map(|d| {
-            Doc::concat(vec![
-                if force_break { Doc::HardLine } else { Doc::line() },
-                Doc::text(">> "),
-                d.clone(),
-            ])
-        })
+        .map(|d| Doc::concat(vec![Doc::line(), Doc::text(">> "), d.clone()]))
         .collect();
 
-    let doc = Doc::concat(vec![docs[0].clone(), Doc::nest(INDENT_SIZE, Doc::concat(rest))]);
-
-    if force_break { doc } else { Doc::group(doc) }
+    Doc::group(Doc::concat(vec![
+        docs[0].clone(),
+        Doc::nest(INDENT_SIZE, Doc::concat(rest)),
+    ]))
 }
 
 fn build_dictionary(entries: &[(Expression, Expression)]) -> Doc {

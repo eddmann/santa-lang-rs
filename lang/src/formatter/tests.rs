@@ -455,17 +455,26 @@ fn format_composition_two_functions_inline() {
 }
 
 #[test]
-fn format_composition_three_functions_forces_multiline() {
-    // Three or more composed functions force multiline for readability
-    assert_eq!(format("f >> g >> h").unwrap(), "f\n  >> g\n  >> h\n");
+fn format_composition_three_functions_inline_when_fits() {
+    // Composition uses line-width based formatting (stays inline if it fits)
+    assert_eq!(format("f >> g >> h").unwrap(), "f >> g >> h\n");
 }
 
 #[test]
-fn format_composition_long_wraps() {
-    // Long composition chains are always multiline
+fn format_composition_wraps_at_line_width() {
+    // Composition wraps when exceeding line width (100 chars)
     assert_eq!(
-        format("very_long_func_one >> very_long_func_two >> very_long_func_three >> very_long_func_four").unwrap(),
-        "very_long_func_one\n  >> very_long_func_two\n  >> very_long_func_three\n  >> very_long_func_four\n"
+        format("very_long_function_name_one >> very_long_function_name_two >> very_long_function_name_three >> very_long_function_name_four").unwrap(),
+        "very_long_function_name_one\n  >> very_long_function_name_two\n  >> very_long_function_name_three\n  >> very_long_function_name_four\n"
+    );
+}
+
+#[test]
+fn format_composition_many_short_functions_inline() {
+    // Many short functions stay inline if they fit within line width
+    assert_eq!(
+        format("a >> b >> c >> d >> e >> f").unwrap(),
+        "a >> b >> c >> d >> e >> f\n"
     );
 }
 
@@ -869,11 +878,8 @@ fn format_lambda_preserves_braces_for_pipe_body() {
 
 #[test]
 fn format_lambda_preserves_braces_for_composition_body() {
-    // Composition with 3+ functions forces multiline
-    assert_eq!(
-        format("|x| { f >> g >> h }").unwrap(),
-        "|x| {\n  f\n    >> g\n    >> h\n}\n"
-    );
+    // Lambda body with composition needs braces to avoid binding issues
+    assert_eq!(format("|x| { f >> g >> h }").unwrap(), "|x| {\n  f >> g >> h\n}\n");
 }
 
 #[test]

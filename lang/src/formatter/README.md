@@ -22,13 +22,13 @@ Source Code → Lexer → Parser → AST
 
 ### Components
 
-| File | Purpose |
-|------|---------|
-| `mod.rs` | Public API (`format()`, `is_formatted()`) |
-| `doc.rs` | Document intermediate representation (IR) |
+| File         | Purpose                                   |
+| ------------ | ----------------------------------------- |
+| `mod.rs`     | Public API (`format()`, `is_formatted()`) |
+| `doc.rs`     | Document intermediate representation (IR) |
 | `builder.rs` | Converts AST to Doc IR (formatting logic) |
-| `printer.rs` | Renders Doc IR to formatted string |
-| `tests.rs` | Comprehensive test suite |
+| `printer.rs` | Renders Doc IR to formatted string        |
+| `tests.rs`   | Comprehensive test suite                  |
 
 ### Document IR
 
@@ -49,6 +49,7 @@ enum Doc {
 ```
 
 Key helpers:
+
 - `Doc::bracketed(open, docs, close, trailing_comma)` - Smart collection formatting
 - `Doc::join(docs, sep)` - Join documents with separator
 - `Doc::soft_line()` - Optional line break (nothing in flat mode, newline in break mode)
@@ -64,13 +65,13 @@ Key helpers:
 
 ### Spacing
 
-| Context | Rule | Example |
-|---------|------|---------|
-| Binary operators | Spaces around | `1 + 2` |
-| Commas | Space after | `[1, 2, 3]` |
-| Colons (dict/section) | Space after | `key: value` |
-| Function calls | No space before parens | `func(arg)` |
-| Lambda parameters | No space inside pipes | `\|x, y\|` |
+| Context               | Rule                   | Example      |
+| --------------------- | ---------------------- | ------------ |
+| Binary operators      | Spaces around          | `1 + 2`      |
+| Commas                | Space after            | `[1, 2, 3]`  |
+| Colons (dict/section) | Space after            | `key: value` |
+| Function calls        | No space before parens | `func(arg)`  |
+| Lambda parameters     | No space inside pipes  | `\|x, y\|`   |
 
 ### Collections
 
@@ -93,9 +94,9 @@ Collections (lists, sets, dictionaries) use smart wrapping:
 
 ### Pipe Chains (`|>`)
 
-| Chain length | Format |
-|--------------|--------|
-| Single pipe (2 elements) | Inline: `data \|> sum` |
+| Chain length                 | Format                        |
+| ---------------------------- | ----------------------------- |
+| Single pipe (2 elements)     | Inline: `data \|> sum`        |
 | Multiple pipes (3+ elements) | Multiline with 2-space indent |
 
 ```santa
@@ -111,20 +112,24 @@ Collections (lists, sets, dictionaries) use smart wrapping:
 
 ### Function Composition (`>>`)
 
-| Chain length | Format |
-|--------------|--------|
-| Two functions | Inline: `f >> g` |
-| Three+ functions | Multiline with 2-space indent |
+Composition uses **line-width based** formatting:
+
+| Scenario              | Format                        |
+| --------------------- | ----------------------------- |
+| Fits within 100 chars | Inline: `f >> g >> h`         |
+| Exceeds 100 chars     | Multiline with 2-space indent |
 
 ```santa
-// Two functions stay inline
-parse >> transform
+// Short chains stay inline regardless of function count
+parse >> validate >> transform
 
-// Three or more functions break to multiple lines
-parse
-  >> validate
-  >> transform
+// Long chains wrap at line width
+very_long_function_name
+  >> another_long_function
+  >> third_long_function
 ```
+
+Note: This differs from pipe chains (`|>`), which always force multiline with 2+ functions.
 
 ### Lambda Functions
 
@@ -244,6 +249,7 @@ a - (b - c)     // Parens preserved (changes meaning)
 ```
 
 Precedence levels (lowest to highest):
+
 1. `&&`, `||` (AndOr)
 2. `==`, `!=` (Equals)
 3. `<`, `<=`, `>`, `>=` (LessGreater)
@@ -255,13 +261,13 @@ Precedence levels (lowest to highest):
 
 Special characters are escaped:
 
-| Character | Escaped |
-|-----------|---------|
-| Backslash | `\\` |
-| Double quote | `\"` |
-| Tab | `\t` |
-| Carriage return | `\r` |
-| Newline | `\n` (conditional) |
+| Character       | Escaped            |
+| --------------- | ------------------ |
+| Backslash       | `\\`               |
+| Double quote    | `\"`               |
+| Tab             | `\t`               |
+| Carriage return | `\r`               |
+| Newline         | `\n` (conditional) |
 
 **Newline handling**: Literal newlines are preserved in "multiline" strings (>50 characters or >2 newlines). Otherwise, newlines are escaped as `\n`.
 
@@ -330,9 +336,9 @@ echo "1+2" | santa-cli -f
 ### WASM
 
 ```javascript
-import { format, isFormatted } from 'santa-lang-wasm';
+import { format, isFormatted } from "santa-lang-wasm";
 
-const formatted = format('let x=1+2');
+const formatted = format("let x=1+2");
 const needsFormat = !isFormatted(source);
 ```
 

@@ -15,6 +15,7 @@
 //! - **Line width**: 100 characters
 //! - **Indentation**: 2 spaces
 //! - **Pipe chains** (`|>`): Always multiline when 2+ functions
+//! - **Composition** (`>>`): Line-width based (inline if fits, otherwise multiline)
 //! - **Trailing closures**: Preserved for multi-statement lambdas
 //! - **Operator spacing**: Always padded (`1 + 2`, not `1+2`)
 //! - **Collections**: Inline if under line width, otherwise multiline

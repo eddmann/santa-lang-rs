@@ -135,5 +135,6 @@ fn measure_flat(doc: &Doc, remaining: usize) -> Option<usize> {
         }
     }
 
-    Some(width)
+    // Final check: ensure total width doesn't exceed remaining space
+    if width > remaining { None } else { Some(width) }
 }
