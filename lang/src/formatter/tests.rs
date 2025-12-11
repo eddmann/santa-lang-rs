@@ -949,3 +949,29 @@ fn round_trip_lambda_with_match_list_subject() {
     let reformatted = format(&formatted).unwrap();
     assert_eq!(formatted, reformatted);
 }
+
+#[test]
+fn format_dict_shorthand_preserved() {
+    assert_eq!(format("#{foo}").unwrap(), "#{foo}\n");
+    assert_eq!(format("#{foo, bar, baz}").unwrap(), "#{foo, bar, baz}\n");
+}
+
+#[test]
+fn format_dict_explicit_to_shorthand() {
+    assert_eq!(format("#{\"foo\": foo}").unwrap(), "#{foo}\n");
+    assert_eq!(format("#{\"foo\": foo, \"bar\": bar}").unwrap(), "#{foo, bar}\n");
+}
+
+#[test]
+fn format_dict_shorthand_mixed() {
+    assert_eq!(format("#{foo, \"bar\": baz}").unwrap(), "#{foo, \"bar\": baz}\n");
+    assert_eq!(format("#{\"key\": value}").unwrap(), "#{\"key\": value}\n");
+}
+
+#[test]
+fn round_trip_dict_shorthand() {
+    let input = "#{a, b, c, \"key\": value}";
+    let formatted = format(input).unwrap();
+    let reformatted = format(&formatted).unwrap();
+    assert_eq!(formatted, reformatted);
+}

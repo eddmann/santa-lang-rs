@@ -92,6 +92,21 @@ Collections (lists, sets, dictionaries) use smart wrapping:
 - **No trailing commas** in any mode
 - Empty collections: `[]`, `{}`, `#{}`
 
+### Dictionaries
+
+Dictionary shorthand syntax is used when a key string matches the variable name:
+
+```santa
+// Shorthand syntax preferred
+#{foo, bar, baz}
+
+// Explicit syntax only when key differs from variable
+#{"key": value, name}
+
+// Explicit form is converted to shorthand
+#{"foo": foo}  // becomes: #{foo}
+```
+
 ### Pipe Chains (`|>`)
 
 | Chain length                 | Format                        |

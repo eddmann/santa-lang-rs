@@ -262,7 +262,15 @@ fn build_dictionary(entries: &[(Expression, Expression)]) -> Doc {
 
     let docs: Vec<Doc> = entries
         .iter()
-        .map(|(k, v)| Doc::concat(vec![build_expression(k), Doc::text(": "), build_expression(v)]))
+        .map(|(k, v)| {
+            // Use shorthand syntax when key is a string and value is an identifier with the same name
+            if let (ExpressionKind::String(key_name), ExpressionKind::Identifier(var_name)) = (&k.kind, &v.kind) {
+                if key_name == var_name {
+                    return build_expression(v);
+                }
+            }
+            Doc::concat(vec![build_expression(k), Doc::text(": "), build_expression(v)])
+        })
         .collect();
 
     Doc::concat(vec![Doc::text("#"), Doc::bracketed("{", docs, "}", false)])
