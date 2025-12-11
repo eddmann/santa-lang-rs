@@ -70,6 +70,11 @@ santa-cli -e '1 + 2'
 
 # Interactive REPL
 santa-cli -r
+
+# Format source code
+santa-cli -f solution.santa       # format to stdout
+santa-cli --fmt-write solution.santa  # format in place
+santa-cli --fmt-check solution.santa  # check if formatted (for CI)
 ```
 
 ## Example

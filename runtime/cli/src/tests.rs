@@ -99,3 +99,83 @@ fn stdin_empty() {
     // Empty program should succeed with no output
     assert.success();
 }
+
+#[test]
+fn fmt_stdout_simple_expression() {
+    #[allow(deprecated)]
+    let mut cmd = Command::cargo_bin("santa-cli").unwrap();
+    let assert = cmd.arg("-f").arg("-e").arg("1+2").assert();
+    assert.success().stdout("1 + 2\n");
+}
+
+#[test]
+fn fmt_stdout_list() {
+    #[allow(deprecated)]
+    let mut cmd = Command::cargo_bin("santa-cli").unwrap();
+    let assert = cmd.arg("-f").arg("-e").arg("[1,2,3]").assert();
+    assert.success().stdout("[1, 2, 3]\n");
+}
+
+#[test]
+fn fmt_stdout_lambda() {
+    #[allow(deprecated)]
+    let mut cmd = Command::cargo_bin("santa-cli").unwrap();
+    let assert = cmd.arg("-f").arg("-e").arg("|x|x+1").assert();
+    assert.success().stdout("|x| x + 1\n");
+}
+
+#[test]
+fn fmt_stdout_let() {
+    #[allow(deprecated)]
+    let mut cmd = Command::cargo_bin("santa-cli").unwrap();
+    let assert = cmd.arg("-f").arg("-e").arg("let x=1").assert();
+    assert.success().stdout("let x = 1\n");
+}
+
+#[test]
+fn fmt_stdout_string_with_escapes() {
+    #[allow(deprecated)]
+    let mut cmd = Command::cargo_bin("santa-cli").unwrap();
+    let assert = cmd.arg("-f").arg("-e").arg(r#""hello\nworld""#).assert();
+    assert.success().stdout("\"hello\\nworld\"\n");
+}
+
+#[test]
+fn fmt_stdin() {
+    #[allow(deprecated)]
+    let mut cmd = Command::cargo_bin("santa-cli").unwrap();
+    let assert = cmd.arg("-f").write_stdin("1+2").assert();
+    assert.success().stdout("1 + 2\n");
+}
+
+#[test]
+fn fmt_check_passes_for_formatted() {
+    #[allow(deprecated)]
+    let mut cmd = Command::cargo_bin("santa-cli").unwrap();
+    let assert = cmd.arg("--fmt-check").arg("-e").arg("1 + 2\n").assert();
+    assert.success();
+}
+
+#[test]
+fn fmt_check_fails_for_unformatted() {
+    #[allow(deprecated)]
+    let mut cmd = Command::cargo_bin("santa-cli").unwrap();
+    let assert = cmd.arg("--fmt-check").arg("-e").arg("1+2").assert();
+    assert.code(1);
+}
+
+#[test]
+fn fmt_write_requires_file() {
+    #[allow(deprecated)]
+    let mut cmd = Command::cargo_bin("santa-cli").unwrap();
+    let assert = cmd.arg("--fmt-write").arg("-e").arg("1+2").assert();
+    assert.code(1).stderr(predicate::str::contains("requires a file path"));
+}
+
+#[test]
+fn fmt_invalid_syntax_returns_error() {
+    #[allow(deprecated)]
+    let mut cmd = Command::cargo_bin("santa-cli").unwrap();
+    let assert = cmd.arg("-f").arg("-e").arg("let = ").assert();
+    assert.code(2).stderr(predicate::str::contains("Parse error"));
+}

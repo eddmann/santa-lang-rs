@@ -171,6 +171,22 @@ The runner:
 - Validates test cases
 - Handles `break` keyword for early termination
 
+### Formatter
+
+`lang/src/formatter/` implements an opinionated code formatter using the Wadler-Lindig pretty printing algorithm:
+
+- **Document IR** (`doc.rs`) - Intermediate representation for pretty printing
+- **Builder** (`builder.rs`) - Converts AST to Document IR
+- **Printer** (`printer.rs`) - Renders Document IR to formatted string with intelligent line-breaking
+
+Key formatting rules:
+- 100-character line width, 2-space indentation
+- Smart wrapping for collections, pipe chains, and function composition
+- Trailing lambda syntax for multi-statement closures
+- Idempotent: `format(format(x)) == format(x)`
+
+See `lang/src/formatter/README.md` for complete formatting rules.
+
 ### Multi-Runtime Architecture
 
 All runtimes (`runtime/*/`) share the core `santa-lang` library but differ in:
@@ -203,6 +219,7 @@ santa-lang-rs/
 │       ├── lexer/          # Tokenization
 │       ├── parser/         # AST construction + parsing logic
 │       ├── evaluator/      # Tree-walking interpreter + builtins
+│       ├── formatter/      # Opinionated code formatter
 │       └── runner/         # AoC section handling + test framework
 │
 ├── runtime/                # Runtime-specific implementations
@@ -245,6 +262,7 @@ Tests are organized hierarchically:
    - `lang/src/lexer/tests.rs` - Tokenization tests
    - `lang/src/parser/tests.rs` - Parsing tests
    - `lang/src/evaluator/tests/` - Extensive evaluator test suite
+   - `lang/src/formatter/tests.rs` - Formatter tests (idempotency, round-trip, edge cases)
    - Uses `expect-test` crate for snapshot testing
 
 2. **Integration tests** - Runtime-specific

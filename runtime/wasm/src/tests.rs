@@ -97,3 +97,35 @@ fn evaluation() {
 
     assert_eq!("14", result.as_string().unwrap())
 }
+
+#[wasm_bindgen_test]
+fn format_code() {
+    let unformatted = "let x=1+2;";
+    let result = format(unformatted).unwrap();
+
+    assert_eq!("let x = 1 + 2\n", result.as_string().unwrap());
+}
+
+#[wasm_bindgen_test]
+fn format_invalid_syntax() {
+    let invalid = "let x = ";
+    let result = format(invalid);
+
+    assert!(result.is_err());
+}
+
+#[wasm_bindgen_test]
+fn is_formatted_true() {
+    let formatted = "let x = 1 + 2\n";
+    let result = is_formatted(formatted).unwrap();
+
+    assert!(result);
+}
+
+#[wasm_bindgen_test]
+fn is_formatted_false() {
+    let unformatted = "let x=1+2;";
+    let result = is_formatted(unformatted).unwrap();
+
+    assert!(!result);
+}
