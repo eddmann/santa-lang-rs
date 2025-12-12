@@ -105,8 +105,8 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn capture_trailing_comment(&mut self, stmt_end_line: usize) -> Option<Box<str>> {
-        if self.current_token.kind == T![CMT] && self.current_token.line == stmt_end_line {
+    fn consume_trailing_comment_on_line(&mut self, line: usize) -> Option<Box<str>> {
+        if self.current_token.kind == T![CMT] && self.current_token.line == line {
             let comment = self.lexer.get_source(&self.current_token).into();
             self.next_token();
             Some(comment)
@@ -192,7 +192,7 @@ impl<'a> Parser<'a> {
         let value = Box::new(self.parse_expression(Precedence::Lowest)?);
         let end_line = self.prev_token_line;
         self.consume_if(T![;]);
-        let trailing_comment = self.capture_trailing_comment(end_line);
+        let trailing_comment = self.consume_trailing_comment_on_line(end_line);
 
         Ok(Statement {
             kind: StatementKind::Return(value),
@@ -209,7 +209,7 @@ impl<'a> Parser<'a> {
         let value = Box::new(self.parse_expression(Precedence::Lowest)?);
         let end_line = self.prev_token_line;
         self.consume_if(T![;]);
-        let trailing_comment = self.capture_trailing_comment(end_line);
+        let trailing_comment = self.consume_trailing_comment_on_line(end_line);
 
         Ok(Statement {
             kind: StatementKind::Break(value),
@@ -264,7 +264,7 @@ impl<'a> Parser<'a> {
         let expression = Box::new(self.parse_expression(Precedence::Lowest)?);
         let end_line = self.prev_token_line;
         self.consume_if(T![;]);
-        let trailing_comment = self.capture_trailing_comment(end_line);
+        let trailing_comment = self.consume_trailing_comment_on_line(end_line);
 
         Ok(Statement {
             kind: StatementKind::Expression(expression),
@@ -843,7 +843,7 @@ impl<'a> Parser<'a> {
             let consequence = Box::new(self.parse_block_statement()?);
             let end_line = self.current_token.line;
             let _ = self.consume_if(T![,]);
-            let trailing_comment = self.capture_trailing_comment(end_line);
+            let trailing_comment = self.consume_trailing_comment_on_line(end_line);
 
             cases.push(MatchCase {
                 pattern,

@@ -1025,7 +1025,6 @@ fn format_preserves_trailing_comment_after_semicolon() {
 
 #[test]
 fn format_trailing_comment_not_attached_from_next_line() {
-    // Comment on separate line should remain a standalone comment
     assert_eq!(
         format("let x = 1\n// standalone").unwrap(),
         "let x = 1\n\n// standalone\n"
@@ -1045,7 +1044,6 @@ fn format_trailing_comment_in_section() {
 
 #[test]
 fn format_preserves_blank_line_between_statements_in_block() {
-    // User-authored blank line between statements is preserved
     assert_eq!(
         format("|x| { let a = 1\n\nlet b = 2\na + b }").unwrap(),
         "|x| {\n  let a = 1\n\n  let b = 2;\n\n  a + b\n}\n"
@@ -1054,9 +1052,34 @@ fn format_preserves_blank_line_between_statements_in_block() {
 
 #[test]
 fn format_single_newline_no_blank_in_block() {
-    // Single newline (no blank) between statements doesn't add extra blank
     assert_eq!(
         format("|x| { let a = 1\nlet b = 2\na + b }").unwrap(),
         "|x| {\n  let a = 1\n  let b = 2;\n\n  a + b\n}\n"
     );
+}
+
+#[test]
+fn format_preserves_trailing_comment_on_return() {
+    assert_eq!(format("return x // done").unwrap(), "return x // done\n");
+}
+
+#[test]
+fn format_preserves_trailing_comment_on_break() {
+    assert_eq!(format("break x // early exit").unwrap(), "break x // early exit\n");
+}
+
+#[test]
+fn round_trip_trailing_comments() {
+    let input = "let x = 1 // comment\nlet y = 2 // another";
+    let formatted = format(input).unwrap();
+    let reformatted = format(&formatted).unwrap();
+    assert_eq!(formatted, reformatted);
+}
+
+#[test]
+fn round_trip_blank_lines() {
+    let input = "|x| {\n  let a = 1\n\n  let b = 2\n\n  a + b\n}";
+    let formatted = format(input).unwrap();
+    let reformatted = format(&formatted).unwrap();
+    assert_eq!(formatted, reformatted);
 }

@@ -4,6 +4,7 @@ mod token;
 mod tests;
 
 const EOF_CHAR: char = '\0';
+const MIN_NEWLINES_FOR_BLANK_LINE: usize = 2;
 
 use crate::T;
 use std::iter::Peekable;
@@ -244,7 +245,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn skip_whitespace(&mut self) {
-        let mut newlines = 0;
+        let mut newline_count = 0;
         loop {
             match self.peek() {
                 ' ' | '\t' | '\r' => {
@@ -253,12 +254,12 @@ impl<'a> Lexer<'a> {
                 '\n' => {
                     self.consume();
                     self.line += 1;
-                    newlines += 1;
+                    newline_count += 1;
                 }
                 _ => break,
             }
         }
-        self.blank_lines_before = newlines >= 2;
+        self.blank_lines_before = newline_count >= MIN_NEWLINES_FOR_BLANK_LINE;
     }
 
     pub fn get_source(&self, token: &Token) -> &'a str {
