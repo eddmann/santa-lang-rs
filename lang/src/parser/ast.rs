@@ -19,6 +19,8 @@ pub struct Attribute {
 pub struct Statement {
     pub kind: StatementKind,
     pub source: Location,
+    pub preceded_by_blank_line: bool,
+    pub trailing_comment: Option<Box<str>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -40,6 +42,7 @@ pub struct MatchCase {
     pub pattern: Box<Expression>,
     pub guard: Option<Expression>,
     pub consequence: Box<Statement>,
+    pub trailing_comment: Option<Box<str>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

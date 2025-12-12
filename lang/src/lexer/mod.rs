@@ -4,6 +4,7 @@ mod token;
 mod tests;
 
 const EOF_CHAR: char = '\0';
+const MIN_NEWLINES_FOR_BLANK_LINE: usize = 2;
 
 use crate::T;
 use std::iter::Peekable;
@@ -15,6 +16,8 @@ pub struct Lexer<'a> {
     position: usize,
     remaining_chars: Peekable<Chars<'a>>,
     token_buffer: Option<Token>,
+    line: usize,
+    blank_lines_before: bool,
 }
 
 impl<'a> Lexer<'a> {
@@ -24,6 +27,8 @@ impl<'a> Lexer<'a> {
             position: 0,
             remaining_chars: input.chars().peekable(),
             token_buffer: None,
+            line: 1,
+            blank_lines_before: false,
         }
     }
 
@@ -33,9 +38,12 @@ impl<'a> Lexer<'a> {
             return token;
         }
 
-        self.consume_while(|ch| ch.is_whitespace());
+        self.skip_whitespace();
 
         let start = self.position;
+        let line = self.line;
+        let blank_lines_before = self.blank_lines_before;
+        self.blank_lines_before = false;
 
         let token = match self.consume() {
             '=' => match self.peek() {
@@ -132,14 +140,14 @@ impl<'a> Lexer<'a> {
 
             '`' => self.consume_backtick(),
             '"' => self.consume_string(),
-            '0'..='9' => return self.consume_number(start),
+            '0'..='9' => return self.consume_number(start, line, blank_lines_before),
             'a'..='z' | 'A'..='Z' => self.consume_identifier_or_keyword(start),
 
             EOF_CHAR => T![EOF],
             _ => T![ILLEGAL],
         };
 
-        Token::new(token, start, self.position)
+        Token::new(token, start, self.position, line, blank_lines_before)
     }
 
     fn consume_backtick(&mut self) -> TokenKind {
@@ -173,11 +181,11 @@ impl<'a> Lexer<'a> {
         T![STR]
     }
 
-    fn consume_number(&mut self, start: usize) -> Token {
+    fn consume_number(&mut self, start: usize, line: usize, blank_lines_before: bool) -> Token {
         self.consume_while(|ch| matches!(ch, '0'..='9' | '_'));
 
         if self.peek() != '.' {
-            return Token::new(T![INT], start, self.position);
+            return Token::new(T![INT], start, self.position, line, blank_lines_before);
         }
 
         let position = self.position;
@@ -187,17 +195,17 @@ impl<'a> Lexer<'a> {
             self.consume();
             if self.peek() == '=' {
                 self.consume();
-                self.token_buffer = Some(Token::new(T![..=], position, self.position));
+                self.token_buffer = Some(Token::new(T![..=], position, self.position, line, false));
             } else {
-                self.token_buffer = Some(Token::new(T![..], position, self.position));
+                self.token_buffer = Some(Token::new(T![..], position, self.position, line, false));
             }
 
-            return Token::new(T![INT], start, position);
+            return Token::new(T![INT], start, position, line, blank_lines_before);
         }
 
         self.consume_while(|ch| matches!(ch, '0'..='9' | '_'));
 
-        Token::new(T![DEC], start, self.position)
+        Token::new(T![DEC], start, self.position, line, blank_lines_before)
     }
 
     fn consume_identifier_or_keyword(&mut self, start: usize) -> TokenKind {
@@ -234,6 +242,24 @@ impl<'a> Lexer<'a> {
         while predicate(self.peek()) {
             self.consume();
         }
+    }
+
+    fn skip_whitespace(&mut self) {
+        let mut newline_count = 0;
+        loop {
+            match self.peek() {
+                ' ' | '\t' | '\r' => {
+                    self.consume();
+                }
+                '\n' => {
+                    self.consume();
+                    self.line += 1;
+                    newline_count += 1;
+                }
+                _ => break,
+            }
+        }
+        self.blank_lines_before = newline_count >= MIN_NEWLINES_FOR_BLANK_LINE;
     }
 
     pub fn get_source(&self, token: &Token) -> &'a str {

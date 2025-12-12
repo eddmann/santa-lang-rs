@@ -22,6 +22,8 @@ fn integers() {
                             },
                         ),
                         source: 0..15,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -33,6 +35,8 @@ fn integers() {
                             },
                         ),
                         source: 15..25,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..25,
@@ -60,6 +64,8 @@ fn decimals() {
                             },
                         ),
                         source: 0..17,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -71,6 +77,8 @@ fn decimals() {
                             },
                         ),
                         source: 17..30,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..30,
@@ -99,6 +107,8 @@ fn strings() {
                             },
                         ),
                         source: 0..28,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -110,6 +120,8 @@ fn strings() {
                             },
                         ),
                         source: 28..49,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -121,6 +133,8 @@ fn strings() {
                             },
                         ),
                         source: 49..60,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..60,
@@ -148,6 +162,8 @@ fn booleans() {
                             },
                         ),
                         source: 0..18,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -159,6 +175,8 @@ fn booleans() {
                             },
                         ),
                         source: 18..24,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..24,
@@ -181,6 +199,8 @@ fn nil() {
                             },
                         ),
                         source: 0..4,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..4,
@@ -203,6 +223,8 @@ fn comments() {
                             "// full line comment",
                         ),
                         source: 0..20,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -213,13 +235,11 @@ fn comments() {
                                 source: 33..34,
                             },
                         ),
-                        source: 33..36,
-                    },
-                    Statement {
-                        kind: Comment(
+                        source: 33..58,
+                        preceded_by_blank_line: false,
+                        trailing_comment: Some(
                             "// end of line comment",
                         ),
-                        source: 36..58,
                     },
                 ],
                 source: 0..58,
@@ -294,6 +314,8 @@ fn list() {
                             },
                         ),
                         source: 0..41,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..41,
@@ -391,6 +413,8 @@ fn dictionary() {
                             },
                         ),
                         source: 0..45,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..45,
@@ -454,6 +478,8 @@ fn set() {
                             },
                         ),
                         source: 0..35,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..35,
@@ -493,6 +519,8 @@ fn ranges() {
                             },
                         ),
                         source: 0..7,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -515,6 +543,8 @@ fn ranges() {
                             },
                         ),
                         source: 7..13,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -543,6 +573,8 @@ fn ranges() {
                             },
                         ),
                         source: 13..20,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -571,6 +603,8 @@ fn ranges() {
                             },
                         ),
                         source: 20..27,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -593,6 +627,8 @@ fn ranges() {
                             },
                         ),
                         source: 27..49,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -615,6 +651,8 @@ fn ranges() {
                             },
                         ),
                         source: 49..57,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -637,6 +675,8 @@ fn ranges() {
                             },
                         ),
                         source: 57..64,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -665,6 +705,8 @@ fn ranges() {
                             },
                         ),
                         source: 64..72,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -693,6 +735,8 @@ fn ranges() {
                             },
                         ),
                         source: 72..80,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -715,6 +759,8 @@ fn ranges() {
                             },
                         ),
                         source: 80..103,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -731,6 +777,8 @@ fn ranges() {
                             },
                         ),
                         source: 103..108,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -747,6 +795,8 @@ fn ranges() {
                             },
                         ),
                         source: 108..113,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -769,6 +819,8 @@ fn ranges() {
                             },
                         ),
                         source: 113..119,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -785,6 +837,8 @@ fn ranges() {
                             },
                         ),
                         source: 119..125,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..125,
@@ -825,6 +879,8 @@ fn let_assignments() {
                             },
                         ),
                         source: 0..23,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -847,6 +903,8 @@ fn let_assignments() {
                             },
                         ),
                         source: 23..50,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -869,6 +927,8 @@ fn let_assignments() {
                             },
                         ),
                         source: 50..69,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -967,6 +1027,8 @@ fn let_assignments() {
                             },
                         ),
                         source: 69..113,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..113,
@@ -1020,10 +1082,14 @@ fn if_expressions() {
                                                         },
                                                     ),
                                                     source: 11..13,
+                                                    preceded_by_blank_line: false,
+                                                    trailing_comment: None,
                                                 },
                                             ],
                                         ),
                                         source: 9..27,
+                                        preceded_by_blank_line: false,
+                                        trailing_comment: None,
                                     },
                                     alternative: None,
                                 },
@@ -1031,6 +1097,8 @@ fn if_expressions() {
                             },
                         ),
                         source: 0..27,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1067,10 +1135,14 @@ fn if_expressions() {
                                                         },
                                                     ),
                                                     source: 38..40,
+                                                    preceded_by_blank_line: false,
+                                                    trailing_comment: None,
                                                 },
                                             ],
                                         ),
                                         source: 36..42,
+                                        preceded_by_blank_line: false,
+                                        trailing_comment: None,
                                     },
                                     alternative: Some(
                                         Statement {
@@ -1086,10 +1158,14 @@ fn if_expressions() {
                                                             },
                                                         ),
                                                         source: 49..51,
+                                                        preceded_by_blank_line: false,
+                                                        trailing_comment: None,
                                                     },
                                                 ],
                                             ),
                                             source: 47..65,
+                                            preceded_by_blank_line: false,
+                                            trailing_comment: None,
                                         },
                                     ),
                                 },
@@ -1097,6 +1173,8 @@ fn if_expressions() {
                             },
                         ),
                         source: 27..65,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1132,10 +1210,14 @@ fn if_expressions() {
                                                         },
                                                     ),
                                                     source: 80..82,
+                                                    preceded_by_blank_line: false,
+                                                    trailing_comment: None,
                                                 },
                                             ],
                                         ),
                                         source: 78..83,
+                                        preceded_by_blank_line: false,
+                                        trailing_comment: None,
                                     },
                                     alternative: None,
                                 },
@@ -1143,6 +1225,8 @@ fn if_expressions() {
                             },
                         ),
                         source: 65..83,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..83,
@@ -1179,6 +1263,8 @@ fn prefix_operators() {
                             },
                         ),
                         source: 0..16,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1202,6 +1288,8 @@ fn prefix_operators() {
                             },
                         ),
                         source: 16..33,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1231,6 +1319,8 @@ fn prefix_operators() {
                             },
                         ),
                         source: 33..53,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1248,6 +1338,8 @@ fn prefix_operators() {
                             },
                         ),
                         source: 53..72,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1271,6 +1363,8 @@ fn prefix_operators() {
                             },
                         ),
                         source: 72..79,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..79,
@@ -1315,6 +1409,8 @@ fn infix_operators() {
                             },
                         ),
                         source: 0..19,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1338,6 +1434,8 @@ fn infix_operators() {
                             },
                         ),
                         source: 19..38,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1361,6 +1459,8 @@ fn infix_operators() {
                             },
                         ),
                         source: 38..57,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1384,6 +1484,8 @@ fn infix_operators() {
                             },
                         ),
                         source: 57..76,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1431,6 +1533,8 @@ fn infix_operators() {
                             },
                         ),
                         source: 76..106,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1478,6 +1582,8 @@ fn infix_operators() {
                             },
                         ),
                         source: 106..135,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1525,6 +1631,8 @@ fn infix_operators() {
                             },
                         ),
                         source: 135..152,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..152,
@@ -1586,16 +1694,22 @@ fn function_literals() {
                                                         },
                                                     ),
                                                     source: 9..16,
+                                                    preceded_by_blank_line: false,
+                                                    trailing_comment: None,
                                                 },
                                             ],
                                         ),
                                         source: 7..17,
+                                        preceded_by_blank_line: false,
+                                        trailing_comment: None,
                                     },
                                 },
                                 source: 0..17,
                             },
                         ),
                         source: 0..31,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1640,16 +1754,22 @@ fn function_literals() {
                                                         },
                                                     ),
                                                     source: 38..57,
+                                                    preceded_by_blank_line: false,
+                                                    trailing_comment: None,
                                                 },
                                             ],
                                         ),
                                         source: 38..57,
+                                        preceded_by_blank_line: false,
+                                        trailing_comment: None,
                                     },
                                 },
                                 source: 31..57,
                             },
                         ),
                         source: 31..57,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1701,16 +1821,22 @@ fn function_literals() {
                                                         },
                                                     ),
                                                     source: 77..78,
+                                                    preceded_by_blank_line: false,
+                                                    trailing_comment: None,
                                                 },
                                             ],
                                         ),
                                         source: 77..78,
+                                        preceded_by_blank_line: false,
+                                        trailing_comment: None,
                                     },
                                 },
                                 source: 57..78,
                             },
                         ),
                         source: 57..78,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..78,
@@ -1760,6 +1886,8 @@ fn call_expressions() {
                             },
                         ),
                         source: 0..23,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1802,6 +1930,8 @@ fn call_expressions() {
                             },
                         ),
                         source: 23..50,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1831,6 +1961,8 @@ fn call_expressions() {
                             },
                         ),
                         source: 50..73,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1861,6 +1993,8 @@ fn call_expressions() {
                             },
                         ),
                         source: 73..96,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1891,6 +2025,8 @@ fn call_expressions() {
                             },
                         ),
                         source: 96..106,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..106,
@@ -1932,6 +2068,8 @@ fn partial_application_using_placeholders() {
                             },
                         ),
                         source: 0..19,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1953,6 +2091,8 @@ fn partial_application_using_placeholders() {
                             },
                         ),
                         source: 19..38,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -1981,6 +2121,8 @@ fn partial_application_using_placeholders() {
                             },
                         ),
                         source: 38..59,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2009,6 +2151,8 @@ fn partial_application_using_placeholders() {
                             },
                         ),
                         source: 59..79,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2037,6 +2181,8 @@ fn partial_application_using_placeholders() {
                             },
                         ),
                         source: 79..102,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2065,6 +2211,8 @@ fn partial_application_using_placeholders() {
                             },
                         ),
                         source: 102..112,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..112,
@@ -2146,6 +2294,8 @@ fn infix_operators_as_identifiers() {
                             },
                         ),
                         source: 0..30,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..30,
@@ -2214,6 +2364,8 @@ fn function_composition() {
                             },
                         ),
                         source: 0..22,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..22,
@@ -2305,10 +2457,14 @@ fn function_threading() {
                                                                                 },
                                                                             ),
                                                                             source: 21..26,
+                                                                            preceded_by_blank_line: false,
+                                                                            trailing_comment: None,
                                                                         },
                                                                     ],
                                                                 ),
                                                                 source: 21..26,
+                                                                preceded_by_blank_line: false,
+                                                                trailing_comment: None,
                                                             },
                                                         },
                                                         source: 17..26,
@@ -2323,6 +2479,8 @@ fn function_threading() {
                             },
                         ),
                         source: 0..41,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2389,10 +2547,14 @@ fn function_threading() {
                                                                     },
                                                                 ),
                                                                 source: 62..68,
+                                                                preceded_by_blank_line: false,
+                                                                trailing_comment: None,
                                                             },
                                                         ],
                                                     ),
                                                     source: 60..70,
+                                                    preceded_by_blank_line: false,
+                                                    trailing_comment: None,
                                                 },
                                             },
                                             source: 56..70,
@@ -2425,6 +2587,8 @@ fn function_threading() {
                             },
                         ),
                         source: 41..86,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..86,
@@ -2482,10 +2646,14 @@ fn trailing_lambdas() {
                                                                     },
                                                                 ),
                                                                 source: 15..17,
+                                                                preceded_by_blank_line: false,
+                                                                trailing_comment: None,
                                                             },
                                                         ],
                                                     ),
                                                     source: 13..18,
+                                                    preceded_by_blank_line: false,
+                                                    trailing_comment: None,
                                                 },
                                             },
                                             source: 9..18,
@@ -2496,6 +2664,8 @@ fn trailing_lambdas() {
                             },
                         ),
                         source: 0..32,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2572,10 +2742,14 @@ fn trailing_lambdas() {
                                                                                 },
                                                                             ),
                                                                             source: 56..64,
+                                                                            preceded_by_blank_line: false,
+                                                                            trailing_comment: None,
                                                                         },
                                                                     ],
                                                                 ),
                                                                 source: 54..65,
+                                                                preceded_by_blank_line: false,
+                                                                trailing_comment: None,
                                                             },
                                                         },
                                                         source: 50..65,
@@ -2590,6 +2764,8 @@ fn trailing_lambdas() {
                             },
                         ),
                         source: 32..66,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..66,
@@ -2634,6 +2810,8 @@ fn collection_indexing() {
                             },
                         ),
                         source: 0..20,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2662,6 +2840,8 @@ fn collection_indexing() {
                             },
                         ),
                         source: 20..41,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2695,6 +2875,8 @@ fn collection_indexing() {
                             },
                         ),
                         source: 41..65,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2728,6 +2910,8 @@ fn collection_indexing() {
                             },
                         ),
                         source: 65..88,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2761,6 +2945,8 @@ fn collection_indexing() {
                             },
                         ),
                         source: 88..111,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2800,6 +2986,8 @@ fn collection_indexing() {
                             },
                         ),
                         source: 111..136,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2839,6 +3027,8 @@ fn collection_indexing() {
                             },
                         ),
                         source: 136..160,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Expression(
@@ -2861,6 +3051,8 @@ fn collection_indexing() {
                             },
                         ),
                         source: 160..171,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..171,
@@ -2896,6 +3088,8 @@ fn sections() {
                                             },
                                         ),
                                         source: 15..24,
+                                        preceded_by_blank_line: false,
+                                        trailing_comment: None,
                                     },
                                 ],
                                 source: 0..25,
@@ -2903,6 +3097,8 @@ fn sections() {
                             attributes: [],
                         },
                         source: 0..39,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Section {
@@ -2919,6 +3115,8 @@ fn sections() {
                                             },
                                         ),
                                         source: 52..74,
+                                        preceded_by_blank_line: false,
+                                        trailing_comment: None,
                                     },
                                 ],
                                 source: 39..74,
@@ -2926,6 +3124,8 @@ fn sections() {
                             attributes: [],
                         },
                         source: 39..74,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                     Statement {
                         kind: Section {
@@ -2947,6 +3147,8 @@ fn sections() {
                                                             },
                                                         ),
                                                         source: 121..143,
+                                                        preceded_by_blank_line: false,
+                                                        trailing_comment: None,
                                                     },
                                                 ],
                                                 source: 107..143,
@@ -2954,6 +3156,8 @@ fn sections() {
                                             attributes: [],
                                         },
                                         source: 107..143,
+                                        preceded_by_blank_line: false,
+                                        trailing_comment: None,
                                     },
                                 ],
                                 source: 74..144,
@@ -2961,6 +3165,8 @@ fn sections() {
                             attributes: [],
                         },
                         source: 74..145,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..145,
@@ -3014,11 +3220,16 @@ fn match_with_primitives() {
                                                                 },
                                                             ),
                                                             source: 30..36,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 28..37,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                         MatchCase {
                                             pattern: Expression {
@@ -3041,11 +3252,16 @@ fn match_with_primitives() {
                                                                 },
                                                             ),
                                                             source: 61..67,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 59..68,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                         MatchCase {
                                             pattern: Expression {
@@ -3068,11 +3284,16 @@ fn match_with_primitives() {
                                                                 },
                                                             ),
                                                             source: 93..101,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 91..102,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                         MatchCase {
                                             pattern: Expression {
@@ -3095,11 +3316,16 @@ fn match_with_primitives() {
                                                                 },
                                                             ),
                                                             source: 129..131,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 127..145,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                     ],
                                 },
@@ -3107,6 +3333,8 @@ fn match_with_primitives() {
                             },
                         ),
                         source: 0..146,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..146,
@@ -3170,11 +3398,16 @@ fn match_with_ranges() {
                                                                 },
                                                             ),
                                                             source: 33..39,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 31..40,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                         MatchCase {
                                             pattern: Expression {
@@ -3208,11 +3441,16 @@ fn match_with_ranges() {
                                                                 },
                                                             ),
                                                             source: 66..72,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 64..73,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                         MatchCase {
                                             pattern: Expression {
@@ -3240,11 +3478,16 @@ fn match_with_ranges() {
                                                                 },
                                                             ),
                                                             source: 97..104,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 95..118,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                     ],
                                 },
@@ -3252,6 +3495,8 @@ fn match_with_ranges() {
                             },
                         ),
                         source: 0..119,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..119,
@@ -3323,11 +3568,16 @@ fn match_with_if_guards() {
                                                                 },
                                                             ),
                                                             source: 40..46,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 38..47,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                         MatchCase {
                                             pattern: Expression {
@@ -3375,11 +3625,16 @@ fn match_with_if_guards() {
                                                                 },
                                                             ),
                                                             source: 89..95,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 87..96,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                         MatchCase {
                                             pattern: Expression {
@@ -3421,11 +3676,16 @@ fn match_with_if_guards() {
                                                                 },
                                                             ),
                                                             source: 127..148,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 125..162,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                     ],
                                 },
@@ -3433,6 +3693,8 @@ fn match_with_if_guards() {
                             },
                         ),
                         source: 0..163,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..163,
@@ -3486,11 +3748,16 @@ fn match_with_list_destructing() {
                                                                 },
                                                             ),
                                                             source: 31..39,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 29..40,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                         MatchCase {
                                             pattern: Expression {
@@ -3520,11 +3787,16 @@ fn match_with_list_destructing() {
                                                                 },
                                                             ),
                                                             source: 64..75,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 62..76,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                         MatchCase {
                                             pattern: Expression {
@@ -3560,11 +3832,16 @@ fn match_with_list_destructing() {
                                                                 },
                                                             ),
                                                             source: 106..119,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 104..120,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                         MatchCase {
                                             pattern: Expression {
@@ -3585,11 +3862,16 @@ fn match_with_list_destructing() {
                                                                 },
                                                             ),
                                                             source: 142..152,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
                                                         },
                                                     ],
                                                 ),
                                                 source: 140..154,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
                                             },
+                                            trailing_comment: None,
                                         },
                                     ],
                                 },
@@ -3597,6 +3879,8 @@ fn match_with_list_destructing() {
                             },
                         ),
                         source: 0..168,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
                     },
                 ],
                 source: 0..168,

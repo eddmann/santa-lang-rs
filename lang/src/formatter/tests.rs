@@ -357,16 +357,37 @@ fn format_trailing_closure_preserved() {
 fn format_trailing_closure_in_pipe() {
     assert_eq!(
         format("[1, 2] |> each |x| { let y = x\nputs(y) }").unwrap(),
-        "[1, 2]\n  |> each |x| {\n    let y = x;\n\n    puts(y)\n  }\n"
+        "[1, 2] |> each |x| {\n  let y = x;\n\n  puts(y)\n}\n"
     );
 }
 
 #[test]
 fn format_single_statement_lambda_inside_parens() {
-    // Single-statement lambda stays inside parens (not trailing)
-    let input = "map(|x| x + 1)";
-    let output = format(input).unwrap();
-    assert_eq!(output, "map(|x| x + 1)\n");
+    assert_eq!(format("map(|x| x + 1)").unwrap(), "map(|x| x + 1)\n");
+}
+
+#[test]
+fn format_single_statement_lambda_trailing_when_long() {
+    let input =
+        "map(|some_very_long_parameter_name| some_very_long_parameter_name + another_very_long_expression_here)";
+    let expected = "map |some_very_long_parameter_name| {\n  some_very_long_parameter_name + another_very_long_expression_here\n}\n";
+    assert_eq!(format(input).unwrap(), expected);
+}
+
+#[test]
+fn format_lambda_with_other_args_inline_when_short() {
+    assert_eq!(
+        format("fold(0, |acc, x| acc + x)").unwrap(),
+        "fold(0, |acc, x| acc + x)\n"
+    );
+}
+
+#[test]
+fn format_lambda_with_other_args_trailing_when_long() {
+    let input =
+        "fold_s([[], []], |[prefixes, prefix], key| [prefixes + [[..prefix, key]], [..prefix, key, extra, more]])";
+    let expected = "fold_s([[], []]) |[prefixes, prefix], key| {\n  [prefixes + [[..prefix, key]], [..prefix, key, extra, more]]\n}\n";
+    assert_eq!(format(input).unwrap(), expected);
 }
 
 #[test]
@@ -422,6 +443,14 @@ fn format_match_multiline_when_complex() {
     assert_eq!(
         format("match x { 1 { let y = 2\ny } }").unwrap(),
         "match x {\n  1 {\n    let y = 2;\n\n    y\n  }\n}\n"
+    );
+}
+
+#[test]
+fn format_match_preserves_trailing_comment_on_case() {
+    assert_eq!(
+        format("match x { 1 { a } // comment\n2 { b } }").unwrap(),
+        "match x {\n  1 { a } // comment\n  2 { b }\n}\n"
     );
 }
 
@@ -945,6 +974,111 @@ fn round_trip_lambda_with_set() {
 #[test]
 fn round_trip_lambda_with_match_list_subject() {
     let input = "|j| { match [j >= len, j < len] { [true, _] { j } _ { j + 1 } } }";
+    let formatted = format(input).unwrap();
+    let reformatted = format(&formatted).unwrap();
+    assert_eq!(formatted, reformatted);
+}
+
+#[test]
+fn format_dict_shorthand_preserved() {
+    assert_eq!(format("#{foo}").unwrap(), "#{foo}\n");
+    assert_eq!(format("#{foo, bar, baz}").unwrap(), "#{foo, bar, baz}\n");
+}
+
+#[test]
+fn format_dict_explicit_to_shorthand() {
+    assert_eq!(format("#{\"foo\": foo}").unwrap(), "#{foo}\n");
+    assert_eq!(format("#{\"foo\": foo, \"bar\": bar}").unwrap(), "#{foo, bar}\n");
+}
+
+#[test]
+fn format_dict_shorthand_mixed() {
+    assert_eq!(format("#{foo, \"bar\": baz}").unwrap(), "#{foo, \"bar\": baz}\n");
+    assert_eq!(format("#{\"key\": value}").unwrap(), "#{\"key\": value}\n");
+}
+
+#[test]
+fn round_trip_dict_shorthand() {
+    let input = "#{a, b, c, \"key\": value}";
+    let formatted = format(input).unwrap();
+    let reformatted = format(&formatted).unwrap();
+    assert_eq!(formatted, reformatted);
+}
+
+// Trailing comment tests
+
+#[test]
+fn format_preserves_trailing_comment_on_let() {
+    assert_eq!(format("let x = 1  // comment").unwrap(), "let x = 1 // comment\n");
+}
+
+#[test]
+fn format_preserves_trailing_comment_on_expression() {
+    assert_eq!(format("foo(bar)  // inline note").unwrap(), "foo(bar) // inline note\n");
+}
+
+#[test]
+fn format_preserves_trailing_comment_after_semicolon() {
+    // Note: Formatter removes unnecessary semicolons but preserves the trailing comment
+    assert_eq!(format("let x = 1;  // comment").unwrap(), "let x = 1 // comment\n");
+}
+
+#[test]
+fn format_trailing_comment_not_attached_from_next_line() {
+    assert_eq!(
+        format("let x = 1\n// standalone").unwrap(),
+        "let x = 1\n\n// standalone\n"
+    );
+}
+
+#[test]
+fn format_trailing_comment_in_section() {
+    // Trailing comments work in sections (wrapped in braces due to trailing content)
+    assert_eq!(
+        format("part_one: let x = 1  // inline").unwrap(),
+        "part_one: {\n  let x = 1 // inline\n}\n"
+    );
+}
+
+// Blank line preservation tests
+
+#[test]
+fn format_preserves_blank_line_between_statements_in_block() {
+    assert_eq!(
+        format("|x| { let a = 1\n\nlet b = 2\na + b }").unwrap(),
+        "|x| {\n  let a = 1\n\n  let b = 2;\n\n  a + b\n}\n"
+    );
+}
+
+#[test]
+fn format_single_newline_no_blank_in_block() {
+    assert_eq!(
+        format("|x| { let a = 1\nlet b = 2\na + b }").unwrap(),
+        "|x| {\n  let a = 1\n  let b = 2;\n\n  a + b\n}\n"
+    );
+}
+
+#[test]
+fn format_preserves_trailing_comment_on_return() {
+    assert_eq!(format("return x // done").unwrap(), "return x // done\n");
+}
+
+#[test]
+fn format_preserves_trailing_comment_on_break() {
+    assert_eq!(format("break x // early exit").unwrap(), "break x // early exit\n");
+}
+
+#[test]
+fn round_trip_trailing_comments() {
+    let input = "let x = 1 // comment\nlet y = 2 // another";
+    let formatted = format(input).unwrap();
+    let reformatted = format(&formatted).unwrap();
+    assert_eq!(formatted, reformatted);
+}
+
+#[test]
+fn round_trip_blank_lines() {
+    let input = "|x| {\n  let a = 1\n\n  let b = 2\n\n  a + b\n}";
     let formatted = format(input).unwrap();
     let reformatted = format(&formatted).unwrap();
     assert_eq!(formatted, reformatted);

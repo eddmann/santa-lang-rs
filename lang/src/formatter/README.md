@@ -92,6 +92,21 @@ Collections (lists, sets, dictionaries) use smart wrapping:
 - **No trailing commas** in any mode
 - Empty collections: `[]`, `{}`, `#{}`
 
+### Dictionaries
+
+Dictionary shorthand syntax is used when a key string matches the variable name:
+
+```santa
+// Shorthand syntax preferred
+#{foo, bar, baz}
+
+// Explicit syntax only when key differs from variable
+#{"key": value, name}
+
+// Explicit form is converted to shorthand
+#{"foo": foo}  // becomes: #{foo}
+```
+
 ### Pipe Chains (`|>`)
 
 | Chain length                 | Format                        |
@@ -158,19 +173,30 @@ Multi-statement bodies use braces:
 
 ### Trailing Lambda Syntax
 
-Multi-statement lambdas as the last argument use trailing lambda style:
+Trailing lambda syntax is used based on line width and statement count:
+
+| Scenario                            | Format                     |
+| ----------------------------------- | -------------------------- |
+| Multi-statement lambda              | Always trailing with block |
+| Single-statement, fits in 100 chars | Inline: `map(\|x\| x + 1)` |
+| Single-statement, exceeds 100 chars | Trailing with block        |
 
 ```santa
-// Instead of keeping inside parentheses:
-items |> map(|x| { let y = x * 2; y + 1 })
+// Short lambdas stay inline
+items |> map(|x| x + 1)
+items |> fold(0, |acc, x| acc + x)
 
-// Formatted with trailing lambda:
-items
-  |> map |x| {
-    let y = x * 2;
+// Long lambdas (>100 chars) use trailing syntax with block
+items |> map |x| {
+  value1 + value2 + value3 + value4 + value5 + value6 + value7 + value8 + value9 + value10 + x
+}
 
-    y + 1
-  }
+// Multi-statement always trailing
+items |> each |x| {
+  let y = x * 2;
+
+  puts(y)
+}
 ```
 
 ### If-Else Expressions
@@ -286,7 +312,9 @@ A semicolon is inserted on the last statement before an implicit return expressi
 
 ### Comments
 
-Comments are preserved at top-level with blank line separation:
+Comments are preserved throughout the code:
+
+**Top-level comments** have blank lines added for separation:
 
 ```santa
 // First section
@@ -296,6 +324,37 @@ let a = 1
 // Second section
 
 let b = 2
+```
+
+**Trailing comments** on statements are preserved:
+
+```santa
+let x = 1 // important value
+let y = compute(x) // derived value
+```
+
+**Trailing comments on match cases** are preserved:
+
+```santa
+match direction {
+  "N" { [y - 1, x] } // north
+  "S" { [y + 1, x] } // south
+  "E" { [y, x + 1] } // east
+  "W" { [y, x - 1] } // west
+}
+```
+
+**Blank lines** within blocks are preserved when authored by the user:
+
+```santa
+let solve = |input| {
+  let parsed = parse(input)
+  let step1 = transform(parsed)
+
+  let step2 = validate(step1)
+
+  finalize(step2)
+}
 ```
 
 ## Usage

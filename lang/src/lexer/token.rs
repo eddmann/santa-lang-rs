@@ -5,6 +5,8 @@ use std::fmt;
 pub struct Token {
     pub kind: TokenKind,
     pub source: Location,
+    pub line: usize,
+    pub preceded_by_blank_line: bool,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, Eq, Hash)]
@@ -86,10 +88,12 @@ impl fmt::Debug for Location {
 }
 
 impl Token {
-    pub fn new(kind: TokenKind, start: usize, end: usize) -> Token {
+    pub fn new(kind: TokenKind, start: usize, end: usize, line: usize, preceded_by_blank_line: bool) -> Token {
         Token {
             kind,
             source: Location { start, end },
+            line,
+            preceded_by_blank_line,
         }
     }
 
