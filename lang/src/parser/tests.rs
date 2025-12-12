@@ -3996,6 +3996,458 @@ fn illegal_token() {
     );
 }
 
+#[test]
+fn let_dictionary_pattern_shorthand() {
+    assert_ast(
+        "let #{name} = x",
+        expect![[r#"
+            Program {
+                statements: [
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Let {
+                                    name: Expression {
+                                        kind: IdentifierDictionaryPattern(
+                                            [
+                                                Expression {
+                                                    kind: Identifier(
+                                                        "name",
+                                                    ),
+                                                    source: 6..10,
+                                                },
+                                            ],
+                                        ),
+                                        source: 0..12,
+                                    },
+                                    value: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 14..15,
+                                    },
+                                },
+                                source: 0..15,
+                            },
+                        ),
+                        source: 0..15,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
+                    },
+                ],
+                source: 0..15,
+            }"#]],
+    );
+}
+
+#[test]
+fn let_dictionary_pattern_explicit_key() {
+    assert_ast(
+        r#"let #{"key": value} = x"#,
+        expect![[r#"
+            Program {
+                statements: [
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Let {
+                                    name: Expression {
+                                        kind: IdentifierDictionaryPattern(
+                                            [
+                                                Expression {
+                                                    kind: DictionaryEntryPattern {
+                                                        key: Expression {
+                                                            kind: String(
+                                                                "key",
+                                                            ),
+                                                            source: 6..11,
+                                                        },
+                                                        value: Expression {
+                                                            kind: Identifier(
+                                                                "value",
+                                                            ),
+                                                            source: 13..18,
+                                                        },
+                                                    },
+                                                    source: 6..18,
+                                                },
+                                            ],
+                                        ),
+                                        source: 0..20,
+                                    },
+                                    value: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 22..23,
+                                    },
+                                },
+                                source: 0..23,
+                            },
+                        ),
+                        source: 0..23,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
+                    },
+                ],
+                source: 0..23,
+            }"#]],
+    );
+}
+
+#[test]
+fn let_dictionary_pattern_with_rest() {
+    assert_ast(
+        "let #{name, ..rest} = x",
+        expect![[r#"
+            Program {
+                statements: [
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Let {
+                                    name: Expression {
+                                        kind: IdentifierDictionaryPattern(
+                                            [
+                                                Expression {
+                                                    kind: Identifier(
+                                                        "name",
+                                                    ),
+                                                    source: 6..10,
+                                                },
+                                                Expression {
+                                                    kind: RestIdentifier(
+                                                        "rest",
+                                                    ),
+                                                    source: 12..18,
+                                                },
+                                            ],
+                                        ),
+                                        source: 0..20,
+                                    },
+                                    value: Expression {
+                                        kind: Identifier(
+                                            "x",
+                                        ),
+                                        source: 22..23,
+                                    },
+                                },
+                                source: 0..23,
+                            },
+                        ),
+                        source: 0..23,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
+                    },
+                ],
+                source: 0..23,
+            }"#]],
+    );
+}
+
+#[test]
+fn let_dictionary_pattern_nested() {
+    assert_ast(
+        r#"let #{"coords": [x, y]} = d"#,
+        expect![[r#"
+            Program {
+                statements: [
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Let {
+                                    name: Expression {
+                                        kind: IdentifierDictionaryPattern(
+                                            [
+                                                Expression {
+                                                    kind: DictionaryEntryPattern {
+                                                        key: Expression {
+                                                            kind: String(
+                                                                "coords",
+                                                            ),
+                                                            source: 6..14,
+                                                        },
+                                                        value: Expression {
+                                                            kind: IdentifierListPattern(
+                                                                [
+                                                                    Expression {
+                                                                        kind: Identifier(
+                                                                            "x",
+                                                                        ),
+                                                                        source: 17..18,
+                                                                    },
+                                                                    Expression {
+                                                                        kind: Identifier(
+                                                                            "y",
+                                                                        ),
+                                                                        source: 20..21,
+                                                                    },
+                                                                ],
+                                                            ),
+                                                            source: 16..22,
+                                                        },
+                                                    },
+                                                    source: 6..22,
+                                                },
+                                            ],
+                                        ),
+                                        source: 0..24,
+                                    },
+                                    value: Expression {
+                                        kind: Identifier(
+                                            "d",
+                                        ),
+                                        source: 26..27,
+                                    },
+                                },
+                                source: 0..27,
+                            },
+                        ),
+                        source: 0..27,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
+                    },
+                ],
+                source: 0..27,
+            }"#]],
+    );
+}
+
+#[test]
+fn function_dictionary_parameter() {
+    assert_ast(
+        "|#{x, y}| x + y",
+        expect![[r#"
+            Program {
+                statements: [
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Function {
+                                    parameters: [
+                                        Expression {
+                                            kind: IdentifierDictionaryPattern(
+                                                [
+                                                    Expression {
+                                                        kind: Identifier(
+                                                            "x",
+                                                        ),
+                                                        source: 3..4,
+                                                    },
+                                                    Expression {
+                                                        kind: Identifier(
+                                                            "y",
+                                                        ),
+                                                        source: 6..7,
+                                                    },
+                                                ],
+                                            ),
+                                            source: 1..8,
+                                        },
+                                    ],
+                                    body: Statement {
+                                        kind: Block(
+                                            [
+                                                Statement {
+                                                    kind: Expression(
+                                                        Expression {
+                                                            kind: Infix {
+                                                                operator: Plus,
+                                                                left: Expression {
+                                                                    kind: Identifier(
+                                                                        "x",
+                                                                    ),
+                                                                    source: 10..11,
+                                                                },
+                                                                right: Expression {
+                                                                    kind: Identifier(
+                                                                        "y",
+                                                                    ),
+                                                                    source: 14..15,
+                                                                },
+                                                            },
+                                                            source: 12..15,
+                                                        },
+                                                    ),
+                                                    source: 10..15,
+                                                    preceded_by_blank_line: false,
+                                                    trailing_comment: None,
+                                                },
+                                            ],
+                                        ),
+                                        source: 10..15,
+                                        preceded_by_blank_line: false,
+                                        trailing_comment: None,
+                                    },
+                                },
+                                source: 0..15,
+                            },
+                        ),
+                        source: 0..15,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
+                    },
+                ],
+                source: 0..15,
+            }"#]],
+    );
+}
+
+#[test]
+fn match_dictionary_pattern() {
+    assert_ast(
+        "match d { #{name} { name } }",
+        expect![[r#"
+            Program {
+                statements: [
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Match {
+                                    subject: Expression {
+                                        kind: Identifier(
+                                            "d",
+                                        ),
+                                        source: 6..7,
+                                    },
+                                    cases: [
+                                        MatchCase {
+                                            pattern: Expression {
+                                                kind: DictionaryMatchPattern(
+                                                    [
+                                                        Expression {
+                                                            kind: Identifier(
+                                                                "name",
+                                                            ),
+                                                            source: 12..16,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 10..18,
+                                            },
+                                            guard: None,
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: Identifier(
+                                                                        "name",
+                                                                    ),
+                                                                    source: 20..24,
+                                                                },
+                                                            ),
+                                                            source: 20..25,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 18..27,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
+                                            },
+                                            trailing_comment: None,
+                                        },
+                                    ],
+                                },
+                                source: 0..28,
+                            },
+                        ),
+                        source: 0..28,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
+                    },
+                ],
+                source: 0..28,
+            }"#]],
+    );
+}
+
+#[test]
+fn match_dictionary_pattern_with_entry() {
+    assert_ast(
+        r#"match d { #{"key": val} { val } }"#,
+        expect![[r#"
+            Program {
+                statements: [
+                    Statement {
+                        kind: Expression(
+                            Expression {
+                                kind: Match {
+                                    subject: Expression {
+                                        kind: Identifier(
+                                            "d",
+                                        ),
+                                        source: 6..7,
+                                    },
+                                    cases: [
+                                        MatchCase {
+                                            pattern: Expression {
+                                                kind: DictionaryMatchPattern(
+                                                    [
+                                                        Expression {
+                                                            kind: DictionaryEntryPattern {
+                                                                key: Expression {
+                                                                    kind: String(
+                                                                        "key",
+                                                                    ),
+                                                                    source: 12..17,
+                                                                },
+                                                                value: Expression {
+                                                                    kind: Identifier(
+                                                                        "val",
+                                                                    ),
+                                                                    source: 19..22,
+                                                                },
+                                                            },
+                                                            source: 12..22,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 10..24,
+                                            },
+                                            guard: None,
+                                            consequence: Statement {
+                                                kind: Block(
+                                                    [
+                                                        Statement {
+                                                            kind: Expression(
+                                                                Expression {
+                                                                    kind: Identifier(
+                                                                        "val",
+                                                                    ),
+                                                                    source: 26..29,
+                                                                },
+                                                            ),
+                                                            source: 26..30,
+                                                            preceded_by_blank_line: false,
+                                                            trailing_comment: None,
+                                                        },
+                                                    ],
+                                                ),
+                                                source: 24..32,
+                                                preceded_by_blank_line: false,
+                                                trailing_comment: None,
+                                            },
+                                            trailing_comment: None,
+                                        },
+                                    ],
+                                },
+                                source: 0..33,
+                            },
+                        ),
+                        source: 0..33,
+                        preceded_by_blank_line: false,
+                        trailing_comment: None,
+                    },
+                ],
+                source: 0..33,
+            }"#]],
+    );
+}
+
 fn assert_ast(input: &str, expected: Expect) {
     let mut parser = Parser::new(Lexer::new(input.trim()));
     let program = parser.parse();

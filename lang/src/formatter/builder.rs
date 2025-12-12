@@ -213,6 +213,11 @@ fn build_expression(expr: &Expression) -> Doc {
         ExpressionKind::Spread(inner) => Doc::concat(vec![Doc::text(".."), build_expression(inner)]),
         ExpressionKind::IdentifierListPattern(elements) => build_pattern(elements),
         ExpressionKind::ListMatchPattern(elements) => build_pattern(elements),
+        ExpressionKind::IdentifierDictionaryPattern(elements) => build_dictionary_pattern(elements),
+        ExpressionKind::DictionaryMatchPattern(elements) => build_dictionary_pattern(elements),
+        ExpressionKind::DictionaryEntryPattern { key, value } => {
+            Doc::concat(vec![build_expression(key), Doc::text(": "), build_expression(value)])
+        }
     }
 }
 
@@ -359,6 +364,11 @@ fn build_match(subject: &Expression, cases: &[MatchCase]) -> Doc {
 fn build_pattern(elements: &[Expression]) -> Doc {
     let docs: Vec<Doc> = elements.iter().map(build_expression).collect();
     Doc::concat(vec![Doc::text("["), Doc::join(docs, Doc::text(", ")), Doc::text("]")])
+}
+
+fn build_dictionary_pattern(elements: &[Expression]) -> Doc {
+    let docs: Vec<Doc> = elements.iter().map(build_expression).collect();
+    Doc::concat(vec![Doc::text("#{"), Doc::join(docs, Doc::text(", ")), Doc::text("}")])
 }
 
 fn build_prefix_expr(operator: &Prefix, right: &Expression) -> Doc {
