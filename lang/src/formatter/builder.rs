@@ -608,11 +608,9 @@ fn build_lambda(parameters: &[Expression], body: &Statement) -> Doc {
                     // 1. Expression is a set or dictionary - braces would be confused with lambda body
                     // 2. Expression contains pipes or compositions - they would bind to the lambda definition
                     //    instead of being part of the lambda body
-                    // 3. Expression is a match with list/set subject - the subject would be parsed as lambda body
                     match &expr.kind {
                         ExpressionKind::Set(_) | ExpressionKind::Dictionary(_) => build_block_body(stmts),
                         _ if has_pipe_or_composition(expr) => build_block_body(stmts),
-                        _ if is_match_with_collection_subject(expr) => build_block_body(stmts),
                         _ => build_expression(expr),
                     }
                 }
@@ -759,17 +757,6 @@ fn has_pipe_or_composition(expr: &Expression) -> bool {
     matches!(
         &expr.kind,
         ExpressionKind::FunctionThread { .. } | ExpressionKind::FunctionComposition(_)
-    )
-}
-
-/// Check if an expression is a match with a list/set subject
-/// Without braces around the lambda body, `|x| match [a, b] { ... }` would parse
-/// the `[a, b]` as the lambda body, not the match subject
-fn is_match_with_collection_subject(expr: &Expression) -> bool {
-    matches!(
-        &expr.kind,
-        ExpressionKind::Match { subject, .. }
-            if matches!(subject.kind, ExpressionKind::List(_) | ExpressionKind::Set(_))
     )
 }
 

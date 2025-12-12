@@ -912,10 +912,10 @@ fn format_lambda_preserves_braces_for_composition_body() {
 }
 
 #[test]
-fn format_lambda_preserves_braces_for_match_with_list_subject() {
+fn format_lambda_unwraps_match_with_list_subject() {
     assert_eq!(
         format("|x| { match [a, b] { [1, _] { true } _ { false } } }").unwrap(),
-        "|x| {\n  match [a, b] {\n    [1, _] { true }\n    _ { false }\n  }\n}\n"
+        "|x| match [a, b] {\n  [1, _] { true }\n  _ { false }\n}\n"
     );
 }
 

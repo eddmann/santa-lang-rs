@@ -169,7 +169,6 @@ Multi-statement bodies use braces:
 
 1. **Set/Dictionary bodies** - `|x| {1, 2}` would parse `{1, 2}` as lambda body end
 2. **Pipe/Composition bodies** - operators would bind to the lambda definition
-3. **Match with collection subject** - `|x| match [a, b] { ... }` would parse `[a, b]` as body
 
 ### Trailing Lambda Syntax
 
