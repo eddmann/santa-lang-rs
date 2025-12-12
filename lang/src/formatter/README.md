@@ -312,7 +312,9 @@ A semicolon is inserted on the last statement before an implicit return expressi
 
 ### Comments
 
-Comments are preserved at top-level with blank line separation:
+Comments are preserved throughout the code:
+
+**Top-level comments** have blank lines added for separation:
 
 ```santa
 // First section
@@ -322,6 +324,37 @@ let a = 1
 // Second section
 
 let b = 2
+```
+
+**Trailing comments** on statements are preserved:
+
+```santa
+let x = 1 // important value
+let y = compute(x) // derived value
+```
+
+**Trailing comments on match cases** are preserved:
+
+```santa
+match direction {
+  "N" { [y - 1, x] } // north
+  "S" { [y + 1, x] } // south
+  "E" { [y, x + 1] } // east
+  "W" { [y, x - 1] } // west
+}
+```
+
+**Blank lines** within blocks are preserved when authored by the user:
+
+```santa
+let solve = |input| {
+  let parsed = parse(input)
+  let step1 = transform(parsed)
+
+  let step2 = validate(step1)
+
+  finalize(step2)
+}
 ```
 
 ## Usage

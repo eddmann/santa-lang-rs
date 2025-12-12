@@ -42,6 +42,8 @@ pub fn apply(
                         source,
                     })),
                     source,
+                    preceded_by_blank_line: false,
+                    trailing_comment: None,
                 },
                 environment: evaluator.environment(),
             })));
@@ -65,6 +67,8 @@ pub fn apply(
                         source,
                     })),
                     source,
+                    preceded_by_blank_line: false,
+                    trailing_comment: None,
                 },
                 environment: evaluator.environment(),
             })));
@@ -88,6 +92,8 @@ pub fn apply(
                         source,
                     })),
                     source,
+                    preceded_by_blank_line: false,
+                    trailing_comment: None,
                 },
                 environment: evaluator.environment(),
             })));

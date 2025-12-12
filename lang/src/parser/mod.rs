@@ -52,6 +52,7 @@ pub struct Parser<'a> {
     lexer: Lexer<'a>,
     current_token: Token,
     next_token: Token,
+    prev_token_line: usize,
 }
 
 impl<'a> Parser<'a> {
@@ -63,6 +64,7 @@ impl<'a> Parser<'a> {
             lexer,
             current_token,
             next_token,
+            prev_token_line: 1,
         }
     }
 
@@ -76,6 +78,7 @@ impl<'a> Parser<'a> {
     }
 
     fn next_token(&mut self) {
+        self.prev_token_line = self.current_token.line;
         self.current_token = self.next_token;
         self.next_token = self.lexer.next_token();
     }
@@ -102,6 +105,16 @@ impl<'a> Parser<'a> {
         })
     }
 
+    fn capture_trailing_comment(&mut self, stmt_end_line: usize) -> Option<Box<str>> {
+        if self.current_token.kind == T![CMT] && self.current_token.line == stmt_end_line {
+            let comment = self.lexer.get_source(&self.current_token).into();
+            self.next_token();
+            Some(comment)
+        } else {
+            None
+        }
+    }
+
     fn parse_statements(&mut self) -> Result<Vec<Statement>, ParserErr> {
         let mut statements: Vec<Statement> = Vec::new();
 
@@ -113,6 +126,9 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_statement(&mut self) -> Result<Option<Statement>, ParserErr> {
+        // Capture trivia before anything else
+        let preceded_by_blank_line = self.current_token.preceded_by_blank_line;
+
         // Collect any leading attributes
         let attributes = self.parse_attributes()?;
 
@@ -124,7 +140,9 @@ impl<'a> Parser<'a> {
             T![RETURN] => Ok(Some(self.parse_return_statement()?)),
             T![BREAK] => Ok(Some(self.parse_break_statement()?)),
             T![CMT] => Ok(Some(self.parse_comment_statement()?)),
-            T![ID] if self.next_token.kind == T![:] => Ok(Some(self.parse_section_statement(attributes)?)),
+            T![ID] if self.next_token.kind == T![:] => {
+                Ok(Some(self.parse_section_statement(attributes, preceded_by_blank_line)?))
+            }
             T!['}'] | T![EOF] => {
                 if !attributes.is_empty() {
                     return Err(ParserErr {
@@ -168,40 +186,53 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_return_statement(&mut self) -> RStatement {
+        let preceded_by_blank_line = self.current_token.preceded_by_blank_line;
         let start = self.expect(T![RETURN])?;
 
         let value = Box::new(self.parse_expression(Precedence::Lowest)?);
+        let end_line = self.prev_token_line;
         self.consume_if(T![;]);
+        let trailing_comment = self.capture_trailing_comment(end_line);
 
         Ok(Statement {
             kind: StatementKind::Return(value),
             source: start.source_range(&self.current_token),
+            preceded_by_blank_line,
+            trailing_comment,
         })
     }
 
     fn parse_break_statement(&mut self) -> RStatement {
+        let preceded_by_blank_line = self.current_token.preceded_by_blank_line;
         let start = self.expect(T![BREAK])?;
 
         let value = Box::new(self.parse_expression(Precedence::Lowest)?);
+        let end_line = self.prev_token_line;
         self.consume_if(T![;]);
+        let trailing_comment = self.capture_trailing_comment(end_line);
 
         Ok(Statement {
             kind: StatementKind::Break(value),
             source: start.source_range(&self.current_token),
+            preceded_by_blank_line,
+            trailing_comment,
         })
     }
 
     fn parse_comment_statement(&mut self) -> RStatement {
+        let preceded_by_blank_line = self.current_token.preceded_by_blank_line;
         let token = self.expect(T![CMT])?;
         let value = self.lexer.get_source(&token).to_string();
 
         Ok(Statement {
             kind: StatementKind::Comment(value),
             source: token.source,
+            preceded_by_blank_line,
+            trailing_comment: None,
         })
     }
 
-    fn parse_section_statement(&mut self, attributes: Vec<Attribute>) -> RStatement {
+    fn parse_section_statement(&mut self, attributes: Vec<Attribute>, preceded_by_blank_line: bool) -> RStatement {
         let token = self.expect(T![ID])?;
         let name = self.lexer.get_source(&token).to_string();
         self.expect(T![:])?;
@@ -221,22 +252,30 @@ impl<'a> Parser<'a> {
         Ok(Statement {
             kind: StatementKind::Section { name, body, attributes },
             source: token.source_range(&self.current_token),
+            preceded_by_blank_line,
+            trailing_comment: None,
         })
     }
 
     fn parse_expression_statement(&mut self) -> RStatement {
+        let preceded_by_blank_line = self.current_token.preceded_by_blank_line;
         let start = self.current_token;
 
         let expression = Box::new(self.parse_expression(Precedence::Lowest)?);
+        let end_line = self.prev_token_line;
         self.consume_if(T![;]);
+        let trailing_comment = self.capture_trailing_comment(end_line);
 
         Ok(Statement {
             kind: StatementKind::Expression(expression),
             source: start.source_range(&self.current_token),
+            preceded_by_blank_line,
+            trailing_comment,
         })
     }
 
     fn parse_block_statement(&mut self) -> RStatement {
+        let preceded_by_blank_line = self.current_token.preceded_by_blank_line;
         let start = self.current_token;
 
         let statements = if self.consume_if(T!['{']) {
@@ -250,6 +289,8 @@ impl<'a> Parser<'a> {
         Ok(Statement {
             kind: StatementKind::Block(statements),
             source: start.source_range(&self.current_token),
+            preceded_by_blank_line,
+            trailing_comment: None,
         })
     }
 
@@ -628,6 +669,8 @@ impl<'a> Parser<'a> {
             Some(Box::new(Statement {
                 kind: StatementKind::Block(statements),
                 source: alt_start.source_range(&self.current_token),
+                preceded_by_blank_line: false,
+                trailing_comment: None,
             }))
         } else {
             None
@@ -791,17 +834,23 @@ impl<'a> Parser<'a> {
 
         let mut cases = vec![];
         while !self.consume_if(T!['}']) {
-            cases.push(MatchCase {
-                pattern: Box::new(self.parse_match_pattern()?),
-                guard: if self.consume_if(T![IF]) {
-                    Some(self.parse_expression(Precedence::Lowest)?)
-                } else {
-                    None
-                },
-                consequence: Box::new(self.parse_block_statement()?),
-            });
+            let pattern = Box::new(self.parse_match_pattern()?);
+            let guard = if self.consume_if(T![IF]) {
+                Some(self.parse_expression(Precedence::Lowest)?)
+            } else {
+                None
+            };
+            let consequence = Box::new(self.parse_block_statement()?);
+            let end_line = self.current_token.line;
+            let _ = self.consume_if(T![,]);
+            let trailing_comment = self.capture_trailing_comment(end_line);
 
-            let _ = self.consume_if(T![,]) || self.consume_if(T![CMT]);
+            cases.push(MatchCase {
+                pattern,
+                guard,
+                consequence,
+                trailing_comment,
+            });
         }
 
         Ok(Expression {

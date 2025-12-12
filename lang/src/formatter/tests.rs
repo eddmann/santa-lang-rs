@@ -447,6 +447,14 @@ fn format_match_multiline_when_complex() {
 }
 
 #[test]
+fn format_match_preserves_trailing_comment_on_case() {
+    assert_eq!(
+        format("match x { 1 { a } // comment\n2 { b } }").unwrap(),
+        "match x {\n  1 { a } // comment\n  2 { b }\n}\n"
+    );
+}
+
+#[test]
 fn format_pipe_two_elements_inline() {
     // Two elements (one pipe) stays on one line
     let output = format("[1, 2] |> sum").unwrap();
@@ -995,4 +1003,60 @@ fn round_trip_dict_shorthand() {
     let formatted = format(input).unwrap();
     let reformatted = format(&formatted).unwrap();
     assert_eq!(formatted, reformatted);
+}
+
+// Trailing comment tests
+
+#[test]
+fn format_preserves_trailing_comment_on_let() {
+    assert_eq!(format("let x = 1  // comment").unwrap(), "let x = 1 // comment\n");
+}
+
+#[test]
+fn format_preserves_trailing_comment_on_expression() {
+    assert_eq!(format("foo(bar)  // inline note").unwrap(), "foo(bar) // inline note\n");
+}
+
+#[test]
+fn format_preserves_trailing_comment_after_semicolon() {
+    // Note: Formatter removes unnecessary semicolons but preserves the trailing comment
+    assert_eq!(format("let x = 1;  // comment").unwrap(), "let x = 1 // comment\n");
+}
+
+#[test]
+fn format_trailing_comment_not_attached_from_next_line() {
+    // Comment on separate line should remain a standalone comment
+    assert_eq!(
+        format("let x = 1\n// standalone").unwrap(),
+        "let x = 1\n\n// standalone\n"
+    );
+}
+
+#[test]
+fn format_trailing_comment_in_section() {
+    // Trailing comments work in sections (wrapped in braces due to trailing content)
+    assert_eq!(
+        format("part_one: let x = 1  // inline").unwrap(),
+        "part_one: {\n  let x = 1 // inline\n}\n"
+    );
+}
+
+// Blank line preservation tests
+
+#[test]
+fn format_preserves_blank_line_between_statements_in_block() {
+    // User-authored blank line between statements is preserved
+    assert_eq!(
+        format("|x| { let a = 1\n\nlet b = 2\na + b }").unwrap(),
+        "|x| {\n  let a = 1\n\n  let b = 2;\n\n  a + b\n}\n"
+    );
+}
+
+#[test]
+fn format_single_newline_no_blank_in_block() {
+    // Single newline (no blank) between statements doesn't add extra blank
+    assert_eq!(
+        format("|x| { let a = 1\nlet b = 2\na + b }").unwrap(),
+        "|x| {\n  let a = 1\n  let b = 2;\n\n  a + b\n}\n"
+    );
 }

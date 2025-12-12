@@ -17,19 +17,23 @@ enum Precedence {
 }
 
 pub fn build_program(program: &Program) -> Doc {
-    let docs: Vec<Doc> = program.statements.iter().map(|s| build_statement(s, true)).collect();
-
-    if docs.is_empty() {
+    if program.statements.is_empty() {
         return Doc::Nil;
     }
 
     let mut result = Vec::new();
-    for (i, doc) in docs.into_iter().enumerate() {
+    for (i, stmt) in program.statements.iter().enumerate() {
         if i > 0 {
+            // Always blank line between top-level statements
             result.push(Doc::HardLine);
             result.push(Doc::HardLine);
         }
-        result.push(doc);
+        result.push(build_statement(stmt, true));
+
+        // Emit trailing comment if present
+        if let Some(comment) = &stmt.trailing_comment {
+            result.push(Doc::text(format!(" {}", comment)));
+        }
     }
     result.push(Doc::HardLine);
 
@@ -62,14 +66,16 @@ fn build_statements(statements: &[Statement]) -> Doc {
 
     for (i, stmt) in statements.iter().enumerate() {
         if i > 0 {
-            let needs_blank = match &stmt.kind {
-                StatementKind::Expression(expr) if i == len - 1 && len > 1 => !matches!(
-                    expr.kind,
-                    ExpressionKind::Let { .. } | ExpressionKind::MutableLet { .. }
-                ),
-                StatementKind::Return(expr) if len > 1 => is_multiline_expression(expr),
-                _ => false,
-            };
+            // Preserve user blank lines from source, or add for implicit returns
+            let needs_blank = stmt.preceded_by_blank_line
+                || match &stmt.kind {
+                    StatementKind::Expression(expr) if i == len - 1 && len > 1 => !matches!(
+                        expr.kind,
+                        ExpressionKind::Let { .. } | ExpressionKind::MutableLet { .. }
+                    ),
+                    StatementKind::Return(expr) if len > 1 => is_multiline_expression(expr),
+                    _ => false,
+                };
 
             if needs_blank {
                 result.push(Doc::BlankLine);
@@ -82,6 +88,11 @@ fn build_statements(statements: &[Statement]) -> Doc {
 
         if semicolon_index == Some(i) {
             result.push(Doc::text(";"));
+        }
+
+        // Emit trailing comment if present
+        if let Some(comment) = &stmt.trailing_comment {
+            result.push(Doc::text(format!(" {}", comment)));
         }
     }
 
@@ -649,6 +660,10 @@ fn build_match_case(case: &MatchCase) -> Doc {
     } else {
         parts.push(Doc::text(" "));
         parts.push(build_block_statement(&case.consequence));
+    }
+
+    if let Some(comment) = &case.trailing_comment {
+        parts.push(Doc::text(format!(" {}", comment)));
     }
 
     Doc::concat(parts)
