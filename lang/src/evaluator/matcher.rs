@@ -69,6 +69,25 @@ pub fn matcher(evaluator: &mut Evaluator, subject: &Expression, cases: &[MatchCa
                 evaluator.pop_frame();
                 return Ok(result);
             }
+            ExpressionKind::DictionaryMatchPattern(pattern) => {
+                evaluator.push_frame(Frame::Block {
+                    _source: case.pattern.source,
+                    environment: Environment::from(evaluator.environment()),
+                });
+                if !destructure_match_dictionary_pattern(evaluator, pattern, Rc::clone(&evaluated_subject))? {
+                    evaluator.pop_frame();
+                    continue;
+                }
+                if let Some(guard) = &case.guard {
+                    if !evaluator.eval_expression(guard)?.is_truthy() {
+                        evaluator.pop_frame();
+                        continue;
+                    }
+                }
+                let result = evaluator.eval_statement(&case.consequence)?;
+                evaluator.pop_frame();
+                return Ok(result);
+            }
             ExpressionKind::InclusiveRange { from, to } => {
                 if let (ExpressionKind::Integer(from), ExpressionKind::Integer(to), Object::Integer(index)) =
                     (&from.kind, &to.kind, &*evaluated_subject)
@@ -217,6 +236,136 @@ fn destructure_match_list_pattern(
     }
 }
 
+fn destructure_match_dictionary_pattern(
+    evaluator: &mut Evaluator,
+    pattern: &[Expression],
+    subject: Rc<Object>,
+) -> Result<PatternMatch, RuntimeErr> {
+    let dict = match &*subject {
+        Object::Dictionary(dict) => dict,
+        _ => return Ok(false),
+    };
+
+    // Track remaining keys for rest pattern
+    #[allow(clippy::mutable_key_type)]
+    let mut remaining_keys: std::collections::HashSet<Rc<Object>> = dict.keys().cloned().collect();
+
+    for element in pattern {
+        match &element.kind {
+            // Shorthand: #{name} -> key "name", var name
+            ExpressionKind::Identifier(name) => {
+                let key = Rc::new(Object::String(name.clone()));
+                // Key must exist for the pattern to match
+                if !dict.contains_key(&key) {
+                    return Ok(false);
+                }
+                let value = dict.get(&key).unwrap();
+                remaining_keys.remove(&key);
+
+                match evaluator
+                    .environment()
+                    .borrow_mut()
+                    .declare_variable(name, Rc::clone(value), false)
+                {
+                    Ok(_) => {}
+                    Err(EnvironmentErr { message }) => {
+                        return Err(RuntimeErr {
+                            message,
+                            source: element.source,
+                            trace: evaluator.get_trace(),
+                        });
+                    }
+                }
+            }
+            // Explicit: #{"key": binding}
+            ExpressionKind::DictionaryEntryPattern { key, value: binding } => {
+                let evaluated_key = evaluator.eval_expression(key)?;
+                // Key must exist for the pattern to match
+                if !dict.contains_key(&evaluated_key) {
+                    return Ok(false);
+                }
+                let dict_value = dict.get(&evaluated_key).unwrap();
+                remaining_keys.remove(&evaluated_key);
+
+                // Match the binding (could be literal, identifier, or nested pattern)
+                if !match_dictionary_binding(evaluator, binding, Rc::clone(dict_value))? {
+                    return Ok(false);
+                }
+            }
+            // Rest: #{..rest}
+            ExpressionKind::RestIdentifier(name) => {
+                let mut rest_dict = im_rc::HashMap::default();
+                for k in &remaining_keys {
+                    if let Some(v) = dict.get(k) {
+                        rest_dict.insert(Rc::clone(k), Rc::clone(v));
+                    }
+                }
+
+                match evaluator.environment().borrow_mut().declare_variable(
+                    name,
+                    Rc::new(Object::Dictionary(rest_dict)),
+                    false,
+                ) {
+                    Ok(_) => {}
+                    Err(EnvironmentErr { message }) => {
+                        return Err(RuntimeErr {
+                            message,
+                            source: element.source,
+                            trace: evaluator.get_trace(),
+                        });
+                    }
+                }
+            }
+            ExpressionKind::Placeholder => continue,
+            _ => {
+                return Err(RuntimeErr {
+                    message: format!("Unexpected dictionary match pattern: {}", element.kind),
+                    source: element.source,
+                    trace: evaluator.get_trace(),
+                });
+            }
+        }
+    }
+
+    Ok(true)
+}
+
+fn match_dictionary_binding(
+    evaluator: &mut Evaluator,
+    binding: &Expression,
+    value: Rc<Object>,
+) -> Result<PatternMatch, RuntimeErr> {
+    match &binding.kind {
+        ExpressionKind::Placeholder => Ok(true),
+        ExpressionKind::Identifier(name) => {
+            match evaluator
+                .environment()
+                .borrow_mut()
+                .declare_variable(name, value, false)
+            {
+                Ok(_) => Ok(true),
+                Err(EnvironmentErr { message }) => Err(RuntimeErr {
+                    message,
+                    source: binding.source,
+                    trace: evaluator.get_trace(),
+                }),
+            }
+        }
+        ExpressionKind::ListMatchPattern(pattern) => destructure_match_list_pattern(evaluator, pattern, value),
+        ExpressionKind::DictionaryMatchPattern(pattern) => {
+            destructure_match_dictionary_pattern(evaluator, pattern, value)
+        }
+        // Literal match - compare evaluated value
+        _ => {
+            if value != evaluator.eval_expression(binding)? {
+                Ok(false)
+            } else {
+                Ok(true)
+            }
+        }
+    }
+}
+
 fn match_single_pattern(
     evaluator: &mut Evaluator,
     sub_pattern: &Expression,
@@ -239,6 +388,9 @@ fn match_single_pattern(
             }
         }
         ExpressionKind::ListMatchPattern(pattern) => destructure_match_list_pattern(evaluator, pattern, element),
+        ExpressionKind::DictionaryMatchPattern(pattern) => {
+            destructure_match_dictionary_pattern(evaluator, pattern, element)
+        }
         ExpressionKind::InclusiveRange { from, to } => {
             if let (ExpressionKind::Integer(from), ExpressionKind::Integer(to), Object::Integer(index)) =
                 (&from.kind, &to.kind, &*element)

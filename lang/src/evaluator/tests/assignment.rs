@@ -51,3 +51,117 @@ test_eval! {
         mutable_parent_variable_is_modified_from_within_function
     )
 }
+
+test_eval! {
+    suite dictionary_destructuring;
+
+    // Basic shorthand destructuring
+    (
+        r#"
+            let #{name, age} = #{"name": "Alice", "age": 30};
+            [name, age]
+        "#,
+        "[\"Alice\", 30]",
+        shorthand_destructuring
+    ),
+    // Explicit key binding
+    (
+        r#"
+            let #{"name": n, "age": a} = #{"name": "Bob", "age": 25};
+            [n, a]
+        "#,
+        "[\"Bob\", 25]",
+        explicit_key_binding
+    ),
+    // Rest pattern captures remaining keys (test key existence, not order)
+    (
+        r#"
+            let #{name, ..rest} = #{"name": "Charlie", "age": 35, "city": "NYC"};
+            [name, rest["age"], rest["city"]]
+        "#,
+        "[\"Charlie\", 35, \"NYC\"]",
+        rest_pattern
+    ),
+    // Subset matching - extra keys allowed
+    (
+        r#"
+            let #{name} = #{"name": "Diana", "age": 40, "extra": "value"};
+            name
+        "#,
+        "\"Diana\"",
+        subset_matching_allows_extra_keys
+    ),
+    // Placeholder ignores value
+    (
+        r#"
+            let #{name, "age": _} = #{"name": "Eve", "age": 50};
+            name
+        "#,
+        "\"Eve\"",
+        placeholder_ignores_value
+    ),
+    // Nested list destructuring inside dictionary
+    (
+        r#"
+            let #{"coords": [x, y]} = #{"coords": [10, 20]};
+            [x, y]
+        "#,
+        "[10, 20]",
+        nested_list_destructuring
+    ),
+    // Nested dictionary destructuring
+    (
+        r#"
+            let #{"person": #{name, age}} = #{"person": #{"name": "Frank", "age": 60}};
+            [name, age]
+        "#,
+        "[\"Frank\", 60]",
+        nested_dictionary_destructuring
+    ),
+    // Mutable dictionary destructuring
+    (
+        r#"
+            let mut #{x, y} = #{"x": 1, "y": 2};
+            x = 100;
+            [x, y]
+        "#,
+        "[100, 2]",
+        mutable_dictionary_destructuring
+    ),
+    // Missing key returns nil (subset matching semantics)
+    (
+        r#"
+            let #{missing} = #{"name": "Ghost"};
+            missing
+        "#,
+        "nil",
+        missing_key_returns_nil
+    ),
+    // Error: non-dictionary subject
+    (
+        r#"
+            let #{name} = [1, 2, 3];
+            name
+        "#,
+        "Expected a Dictionary to destructure, found: List",
+        non_dictionary_error
+    ),
+    // Rest with explicit keys combined
+    (
+        r#"
+            let #{"a": x, ..rest} = #{"a": 1, "b": 2, "c": 3};
+            [x, rest["b"], rest["c"]]
+        "#,
+        "[1, 2, 3]",
+        rest_with_explicit_keys
+    ),
+    // Deeply nested (3 levels)
+    (
+        r#"
+            let #{outer: #{middle: #{inner}}} = #{"outer": #{"middle": #{"inner": 42}}};
+            inner
+        "#,
+        "42",
+        deeply_nested_three_levels
+    )
+}

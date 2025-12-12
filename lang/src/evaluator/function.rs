@@ -286,6 +286,14 @@ impl Function {
                         parameter.source,
                     )?;
                 }
+                ExpressionKind::IdentifierDictionaryPattern(pattern) => {
+                    Self::destructure_dictionary_pattern_parameter(
+                        Rc::clone(&environment),
+                        pattern,
+                        Rc::clone(argument),
+                        parameter.source,
+                    )?;
+                }
                 ExpressionKind::Placeholder => {
                     continue;
                 }
@@ -404,6 +412,107 @@ impl Function {
         }
 
         Ok(argument)
+    }
+
+    fn destructure_dictionary_pattern_parameter(
+        environment: EnvironmentRef,
+        parameter: &[Expression],
+        argument: Rc<Object>,
+        source: Location,
+    ) -> Evaluation {
+        let dict = match &*argument {
+            Object::Dictionary(dict) => dict,
+            _ => {
+                return Err(RuntimeErr {
+                    message: format!(
+                        "Expected a Dictionary argument to destructure, found: {}",
+                        argument.name()
+                    ),
+                    source,
+                    trace: vec![],
+                });
+            }
+        };
+
+        // Track remaining keys for rest pattern
+        #[allow(clippy::mutable_key_type)]
+        let mut remaining_keys: std::collections::HashSet<Rc<Object>> = dict.keys().cloned().collect();
+
+        for element in parameter {
+            match &element.kind {
+                // Shorthand: #{name} -> key "name", var name
+                ExpressionKind::Identifier(name) => {
+                    let key = Rc::new(Object::String(name.clone()));
+                    let value = dict.get(&key).cloned().unwrap_or_else(|| Rc::new(Object::Nil));
+                    remaining_keys.remove(&key);
+                    environment.borrow_mut().set_variable(name, value);
+                }
+                // Explicit: #{"key": binding}
+                ExpressionKind::DictionaryEntryPattern { key, value: binding } => {
+                    // For function parameters, key must be a string literal
+                    let key_str = match &key.kind {
+                        ExpressionKind::String(s) => s.clone(),
+                        _ => {
+                            return Err(RuntimeErr {
+                                message: "Dictionary pattern key must be a string literal in function parameters"
+                                    .to_owned(),
+                                source: key.source,
+                                trace: vec![],
+                            });
+                        }
+                    };
+                    let dict_key = Rc::new(Object::String(key_str));
+                    let value = dict.get(&dict_key).cloned().unwrap_or_else(|| Rc::new(Object::Nil));
+                    remaining_keys.remove(&dict_key);
+
+                    Self::bind_parameter_pattern(Rc::clone(&environment), binding, value)?;
+                }
+                // Rest: #{..rest}
+                ExpressionKind::RestIdentifier(name) => {
+                    let mut rest_dict = im_rc::HashMap::default();
+                    for k in &remaining_keys {
+                        if let Some(v) = dict.get(k) {
+                            rest_dict.insert(Rc::clone(k), Rc::clone(v));
+                        }
+                    }
+                    environment
+                        .borrow_mut()
+                        .set_variable(name, Rc::new(Object::Dictionary(rest_dict)));
+                    break;
+                }
+                ExpressionKind::Placeholder => continue,
+                _ => {
+                    return Err(RuntimeErr {
+                        message: format!("Unexpected Dictionary pattern parameter: {}", element.kind),
+                        source: element.source,
+                        trace: vec![],
+                    });
+                }
+            }
+        }
+
+        Ok(argument)
+    }
+
+    fn bind_parameter_pattern(environment: EnvironmentRef, binding: &Expression, value: Rc<Object>) -> Evaluation {
+        match &binding.kind {
+            ExpressionKind::Identifier(name) => {
+                environment.borrow_mut().set_variable(name, Rc::clone(&value));
+                Ok(value)
+            }
+            ExpressionKind::Placeholder => Ok(value),
+            ExpressionKind::IdentifierListPattern(pattern) => {
+                Self::destructure_list_pattern_parameter(environment, pattern, value, binding.source)
+            }
+            ExpressionKind::IdentifierDictionaryPattern(pattern) => {
+                Self::destructure_dictionary_pattern_parameter(environment, pattern, value, binding.source)
+            }
+            _ => Err(RuntimeErr {
+                message: format!("Invalid parameter binding: {}", binding.kind),
+                source: binding.source,
+                trace: vec![],
+            }),
+        }
     }
 }
 

@@ -1083,3 +1083,82 @@ fn round_trip_blank_lines() {
     let reformatted = format(&formatted).unwrap();
     assert_eq!(formatted, reformatted);
 }
+
+#[test]
+fn format_let_dictionary_pattern_shorthand() {
+    assert_eq!(format("let #{name}=x").unwrap(), "let #{name} = x\n");
+}
+
+#[test]
+fn format_let_dictionary_pattern_multiple() {
+    assert_eq!(format("let #{name,age}=x").unwrap(), "let #{name, age} = x\n");
+}
+
+#[test]
+fn format_let_dictionary_pattern_explicit_key() {
+    assert_eq!(
+        format(r#"let #{"key":value}=x"#).unwrap(),
+        "let #{\"key\": value} = x\n"
+    );
+}
+
+#[test]
+fn format_let_dictionary_pattern_rest() {
+    assert_eq!(format("let #{name,..rest}=x").unwrap(), "let #{name, ..rest} = x\n");
+}
+
+#[test]
+fn format_function_dictionary_parameter() {
+    assert_eq!(format("|#{x,y}|x+y").unwrap(), "|#{x, y}| x + y\n");
+}
+
+#[test]
+fn format_function_dictionary_parameter_explicit_key() {
+    assert_eq!(
+        format(r#"|#{"a":x,"b":y}|x+y"#).unwrap(),
+        "|#{\"a\": x, \"b\": y}| x + y\n"
+    );
+}
+
+#[test]
+fn format_match_dictionary_pattern() {
+    assert_eq!(
+        format("match d { #{name} { name } }").unwrap(),
+        "match d {\n  #{name} { name }\n}\n"
+    );
+}
+
+#[test]
+fn idempotent_dictionary_pattern_let() {
+    assert_idempotent("let #{name, age} = x");
+}
+
+#[test]
+fn idempotent_dictionary_pattern_rest() {
+    assert_idempotent("let #{name, ..rest} = x");
+}
+
+#[test]
+fn idempotent_dictionary_parameter() {
+    assert_idempotent("|#{x, y}| x + y");
+}
+
+#[test]
+fn round_trip_dictionary_pattern_let() {
+    assert_round_trip("let #{name, age} = dict");
+}
+
+#[test]
+fn round_trip_dictionary_pattern_rest() {
+    assert_round_trip("let #{name, ..rest} = dict");
+}
+
+#[test]
+fn round_trip_dictionary_parameter() {
+    assert_round_trip("|#{x, y}| x + y");
+}
+
+#[test]
+fn round_trip_match_dictionary() {
+    assert_round_trip("match d { #{name} { name } }");
+}

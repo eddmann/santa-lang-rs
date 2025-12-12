@@ -426,6 +426,9 @@ impl Evaluator {
             ExpressionKind::IdentifierListPattern(pattern) => {
                 self.destructure_let_list_pattern(pattern, evaluated_value, false, name.source)
             }
+            ExpressionKind::IdentifierDictionaryPattern(pattern) => {
+                self.destructure_let_dictionary_pattern(pattern, evaluated_value, false, name.source)
+            }
             _ => Err(RuntimeErr {
                 message: format!("Unexpected Let identifier, found: {}", name.kind),
                 source: name.source,
@@ -454,6 +457,9 @@ impl Evaluator {
             }
             ExpressionKind::IdentifierListPattern(pattern) => {
                 self.destructure_let_list_pattern(pattern, evaluated_value, true, name.source)
+            }
+            ExpressionKind::IdentifierDictionaryPattern(pattern) => {
+                self.destructure_let_dictionary_pattern(pattern, evaluated_value, true, name.source)
             }
             _ => Err(RuntimeErr {
                 message: format!("Unexpected Let identifier, found: {}", name.kind),
@@ -618,6 +624,137 @@ impl Evaluator {
         }
 
         Ok(subject)
+    }
+
+    fn destructure_let_dictionary_pattern(
+        &mut self,
+        pattern: &[Expression],
+        subject: Rc<Object>,
+        is_mutable: bool,
+        source: Location,
+    ) -> Evaluation {
+        let dict = match &*subject {
+            Object::Dictionary(dict) => dict,
+            _ => {
+                return Err(RuntimeErr {
+                    message: format!("Expected a Dictionary to destructure, found: {}", subject.name()),
+                    source,
+                    trace: self.get_trace(),
+                });
+            }
+        };
+
+        // Track remaining keys for rest pattern
+        #[allow(clippy::mutable_key_type)]
+        let mut remaining_keys: std::collections::HashSet<Rc<Object>> = dict.keys().cloned().collect();
+
+        for element in pattern {
+            match &element.kind {
+                // Shorthand: #{name} -> key "name", var name
+                ExpressionKind::Identifier(name) => {
+                    let key = Rc::new(Object::String(name.clone()));
+                    let value = dict.get(&key).cloned().unwrap_or_else(|| Rc::new(Object::Nil));
+                    remaining_keys.remove(&key);
+
+                    match self
+                        .environment()
+                        .borrow_mut()
+                        .declare_variable(name, value, is_mutable)
+                    {
+                        Ok(_) => {}
+                        Err(EnvironmentErr { message }) => {
+                            return Err(RuntimeErr {
+                                message,
+                                source: element.source,
+                                trace: self.get_trace(),
+                            });
+                        }
+                    }
+                }
+                // Explicit: #{"key": binding}
+                ExpressionKind::DictionaryEntryPattern { key, value: binding } => {
+                    let evaluated_key = self.eval_expression(key)?;
+                    let dict_value = dict
+                        .get(&evaluated_key)
+                        .cloned()
+                        .unwrap_or_else(|| Rc::new(Object::Nil));
+                    remaining_keys.remove(&evaluated_key);
+
+                    self.bind_dictionary_pattern_value(binding, dict_value, is_mutable)?;
+                }
+                // Rest: #{..rest}
+                ExpressionKind::RestIdentifier(name) => {
+                    let mut rest_dict = HashMap::default();
+                    for k in &remaining_keys {
+                        if let Some(v) = dict.get(k) {
+                            rest_dict.insert(Rc::clone(k), Rc::clone(v));
+                        }
+                    }
+
+                    match self.environment().borrow_mut().declare_variable(
+                        name,
+                        Rc::new(Object::Dictionary(rest_dict)),
+                        is_mutable,
+                    ) {
+                        Ok(_) => {}
+                        Err(EnvironmentErr { message }) => {
+                            return Err(RuntimeErr {
+                                message,
+                                source: element.source,
+                                trace: self.get_trace(),
+                            });
+                        }
+                    }
+                    break;
+                }
+                ExpressionKind::Placeholder => continue,
+                _ => {
+                    return Err(RuntimeErr {
+                        message: format!("Unexpected Dictionary destructuring pattern: {}", element.kind),
+                        source: element.source,
+                        trace: self.get_trace(),
+                    });
+                }
+            }
+        }
+
+        Ok(subject)
+    }
+
+    fn bind_dictionary_pattern_value(
+        &mut self,
+        binding: &Expression,
+        value: Rc<Object>,
+        is_mutable: bool,
+    ) -> Evaluation {
+        match &binding.kind {
+            ExpressionKind::Identifier(name) => {
+                match self
+                    .environment()
+                    .borrow_mut()
+                    .declare_variable(name, Rc::clone(&value), is_mutable)
+                {
+                    Ok(_) => Ok(value),
+                    Err(EnvironmentErr { message }) => Err(RuntimeErr {
+                        message,
+                        source: binding.source,
+                        trace: self.get_trace(),
+                    }),
+                }
+            }
+            ExpressionKind::Placeholder => Ok(value),
+            ExpressionKind::IdentifierListPattern(pattern) => {
+                self.destructure_let_list_pattern(pattern, value, is_mutable, binding.source)
+            }
+            ExpressionKind::IdentifierDictionaryPattern(pattern) => {
+                self.destructure_let_dictionary_pattern(pattern, value, is_mutable, binding.source)
+            }
+            _ => Err(RuntimeErr {
+                message: format!("Invalid dictionary pattern binding: {}", binding.kind),
+                source: binding.source,
+                trace: self.get_trace(),
+            }),
+        }
     }
 
     pub fn get_trace(&self) -> Vec<Location> {

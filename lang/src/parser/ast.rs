@@ -147,6 +147,12 @@ pub enum ExpressionKind {
     Spread(Box<Expression>),
     IdentifierListPattern(Vec<Expression>),
     ListMatchPattern(Vec<Expression>),
+    IdentifierDictionaryPattern(Vec<Expression>),
+    DictionaryMatchPattern(Vec<Expression>),
+    DictionaryEntryPattern {
+        key: Box<Expression>,
+        value: Box<Expression>,
+    },
     Placeholder,
     Nil,
 }
@@ -287,6 +293,15 @@ impl fmt::Display for ExpressionKind {
                 let formatted: Vec<String> = pattern.iter().map(|element| element.to_string()).collect();
                 format!("[{}]", formatted.join(", "))
             }
+            Self::IdentifierDictionaryPattern(pattern) => {
+                let formatted: Vec<String> = pattern.iter().map(|element| element.to_string()).collect();
+                format!("#{{{}}}", formatted.join(", "))
+            }
+            Self::DictionaryMatchPattern(pattern) => {
+                let formatted: Vec<String> = pattern.iter().map(|element| element.to_string()).collect();
+                format!("#{{{}}}", formatted.join(", "))
+            }
+            Self::DictionaryEntryPattern { key, value } => format!("{}: {}", key, value),
             Self::Placeholder => "_".to_owned(),
             Self::Nil => "nil".to_owned(),
         };

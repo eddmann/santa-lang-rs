@@ -141,6 +141,70 @@ test_eval! {
         "#,
         "832040",
         recursive_memoization
+    ),
+    // Dictionary parameter destructuring
+    (
+        r#"
+            let get_full_name = |#{first, last}| first + " " + last;
+            get_full_name(#{"first": "John", "last": "Doe"})
+        "#,
+        "\"John Doe\"",
+        dictionary_parameter_destructuring
+    ),
+    // Dictionary parameter with rest (test key existence, not order)
+    (
+        r#"
+            let extract_name = |#{name, ..rest}| [name, rest["age"], rest["city"]];
+            extract_name(#{"name": "Alice", "age": 30, "city": "NYC"})
+        "#,
+        "[\"Alice\", 30, \"NYC\"]",
+        dictionary_parameter_with_rest
+    ),
+    // Dictionary parameter with explicit keys
+    (
+        r#"
+            let swap = |#{"a": x, "b": y}| [y, x];
+            swap(#{"a": 1, "b": 2})
+        "#,
+        "[2, 1]",
+        dictionary_parameter_explicit_keys
+    ),
+    // Nested dictionary and list parameter destructuring
+    (
+        r#"
+            let fn = |#{"point": [x, y], "label": name}| [name, x, y];
+            fn(#{"point": [10, 20], "label": "origin"})
+        "#,
+        "[\"origin\", 10, 20]",
+        nested_dictionary_list_parameter_destructuring
+    ),
+    // Mixed list and dictionary parameters
+    (
+        r#"
+            let fn = |[a, b], #{x, y}| [a, b, x, y];
+            fn([1, 2], #{"x": 3, "y": 4})
+        "#,
+        "[1, 2, 3, 4]",
+        mixed_list_dictionary_parameters
+    ),
+    // Placeholder in dictionary parameter
+    (
+        r#"
+            let fn = |#{name, "age": _}| name;
+            fn(#{"name": "Alice", "age": 30})
+        "#,
+        "\"Alice\"",
+        placeholder_in_dictionary_parameter
+    ),
+    // Currying with dictionary parameter
+    (
+        r#"
+            let fn = |x, #{y}| x + y;
+            let partial = fn(10);
+            partial(#{"y": 5})
+        "#,
+        "15",
+        currying_with_dictionary_parameter
     )
 }
 

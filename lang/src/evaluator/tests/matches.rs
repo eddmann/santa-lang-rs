@@ -192,3 +192,133 @@ test_eval! {
         negative_value
     )
 }
+
+test_eval! {
+    suite dictionaries;
+
+    // Note: In subset matching semantics (like Python/Elixir), #{} matches ANY dictionary
+    // because it requires zero keys. More specific patterns need to come before less specific ones.
+
+    sut r#"
+        let sut = |x| match x {
+            #{"type": "point", "x": px, "y": py} { ["point", px, py] }
+            #{name, age} { ["name_age", name, age] }
+            #{name} { ["name_only", name] }
+            #{..rest} if size(rest) == 0 { "empty" }
+            #{..rest} { ["has_keys", size(rest)] }
+            _ { "fallback" }
+        };
+    "#;
+
+    ("sut(#{})", "\"empty\"", empty_dictionary),
+    ("sut(#{\"name\": \"Alice\"})", "[\"name_only\", \"Alice\"]", name_only),
+    ("sut(#{\"name\": \"Bob\", \"age\": 30})", "[\"name_age\", \"Bob\", 30]", name_and_age),
+    ("sut(#{\"type\": \"point\", \"x\": 10, \"y\": 20})", "[\"point\", 10, 20]", explicit_keys),
+    ("sut(#{\"unknown\": \"value\"})", "[\"has_keys\", 1]", unmatched_keys),
+    ("sut(\"not a dict\")", "\"fallback\"", non_dictionary_fallback)
+}
+
+test_eval! {
+    suite dictionary_with_guards;
+
+    sut r#"
+        let sut = |x| match x {
+            #{name, age} if age >= 18 { ["adult", name] }
+            #{name, age} if age < 18 { ["minor", name] }
+            #{name} { ["unknown_age", name] }
+            _ { "no match" }
+        };
+    "#;
+
+    ("sut(#{\"name\": \"Alice\", \"age\": 30})", "[\"adult\", \"Alice\"]", adult_guard),
+    ("sut(#{\"name\": \"Bob\", \"age\": 10})", "[\"minor\", \"Bob\"]", minor_guard),
+    ("sut(#{\"name\": \"Charlie\"})", "[\"unknown_age\", \"Charlie\"]", no_age)
+}
+
+test_eval! {
+    suite dictionary_nested_patterns;
+
+    sut r#"
+        let sut = |x| match x {
+            #{"coords": [x, y]} { ["point", x, y] }
+            #{"person": #{name, age}} { ["person", name, age] }
+            #{"nested": #{"deep": [a, b]}} { ["deep", a, b] }
+            _ { "no match" }
+        };
+    "#;
+
+    ("sut(#{\"coords\": [5, 10]})", "[\"point\", 5, 10]", nested_list),
+    ("sut(#{\"person\": #{\"name\": \"Alice\", \"age\": 25}})", "[\"person\", \"Alice\", 25]", nested_dictionary),
+    ("sut(#{\"nested\": #{\"deep\": [1, 2]}})", "[\"deep\", 1, 2]", deeply_nested)
+}
+
+test_eval! {
+    suite dictionary_subset_matching;
+
+    // Test that extra keys don't prevent matching (subset semantics)
+    (
+        r#"
+            match #{"name": "Alice", "age": 30, "city": "NYC", "country": "USA"} {
+                #{name} { name }
+            }
+        "#,
+        "\"Alice\"",
+        subset_match_with_many_extra_keys
+    ),
+    // Test that required keys must exist
+    (
+        r#"
+            match #{"age": 30} {
+                #{name, age} { [name, age] }
+                _ { "fallback" }
+            }
+        "#,
+        "\"fallback\"",
+        missing_required_key_falls_through
+    ),
+    // Test rest pattern captures all remaining keys (check values, not order)
+    (
+        r#"
+            match #{"a": 1, "b": 2, "c": 3, "d": 4} {
+                #{a, b, ..rest} { [a, b, rest["c"], rest["d"]] }
+            }
+        "#,
+        "[1, 2, 3, 4]",
+        rest_captures_remaining
+    )
+}
+
+test_eval! {
+    suite dictionary_literal_value_matching;
+
+    (
+        r#"
+            match #{"status": "ok", "code": 200} {
+                #{"status": "ok", "code": code} { ["success", code] }
+                #{"status": "error", "code": code} { ["error", code] }
+            }
+        "#,
+        "[\"success\", 200]",
+        literal_value_in_pattern
+    ),
+    (
+        r#"
+            match #{"status": "error", "code": 500} {
+                #{"status": "ok"} { "success" }
+                #{"status": "error", "code": code} { ["error", code] }
+            }
+        "#,
+        "[\"error\", 500]",
+        literal_mismatch_falls_through
+    ),
+    // Explicit key with rest pattern combined
+    (
+        r#"
+            match #{"a": 1, "b": 2, "c": 3} {
+                #{"a": x, ..rest} { [x, rest["b"], rest["c"]] }
+            }
+        "#,
+        "[1, 2, 3]",
+        explicit_key_with_rest
+    )
+}

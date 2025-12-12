@@ -752,6 +752,14 @@ impl<'a> Parser<'a> {
                     source: start.source_range(&self.current_token),
                 }
             }
+            T!["#{"] => {
+                self.next_token();
+                let pattern = self.parse_dictionary_pattern(T!['}'])?;
+                Expression {
+                    kind: ExpressionKind::IdentifierDictionaryPattern(pattern),
+                    source: start.source_range(&self.current_token),
+                }
+            }
             _ => {
                 return Err(ParserErr {
                     message: format!("{:?} is not legal within a let identifier", self.current_token.kind),
@@ -871,6 +879,7 @@ impl<'a> Parser<'a> {
                 source: self.expect(T![_])?.source,
             }),
             T!['['] => self.parse_match_list_pattern(),
+            T!["#{"] => self.parse_match_dictionary_pattern(),
             T![-] => self.parse_prefix_operator_expression(),
             T![..] => {
                 let start = self.expect(T![..])?;
@@ -912,6 +921,151 @@ impl<'a> Parser<'a> {
         })
     }
 
+    fn parse_match_dictionary_pattern(&mut self) -> RExpression {
+        let start = self.expect(T!["#{"])?;
+
+        let mut pattern = Vec::<Expression>::new();
+
+        if self.consume_if(T!['}']) {
+            return Ok(Expression {
+                kind: ExpressionKind::DictionaryMatchPattern(pattern),
+                source: start.source,
+            });
+        }
+
+        pattern.push(self.parse_dictionary_pattern_entry(true)?);
+        while self.consume_if(T![,]) {
+            pattern.push(self.parse_dictionary_pattern_entry(true)?);
+        }
+        self.expect(T!['}'])?;
+
+        Ok(Expression {
+            kind: ExpressionKind::DictionaryMatchPattern(pattern),
+            source: start.source_range(&self.current_token),
+        })
+    }
+
+    fn parse_dictionary_pattern(&mut self, terminator: TokenKind) -> RExpressions {
+        let mut values = Vec::<Expression>::new();
+
+        if self.current_token.kind == terminator {
+            return Ok(values);
+        }
+
+        values.push(self.parse_dictionary_pattern_entry(false)?);
+        while self.consume_if(T![,]) {
+            values.push(self.parse_dictionary_pattern_entry(false)?);
+        }
+
+        self.expect(terminator)?;
+
+        Ok(values)
+    }
+
+    fn parse_dictionary_pattern_entry(&mut self, is_match_pattern: bool) -> RExpression {
+        let start = self.current_token;
+
+        // Rest pattern: ..rest
+        if self.current_token.kind == T![..] {
+            self.expect(T![..])?;
+            let name = self.expect(T![ID])?;
+            return Ok(Expression {
+                kind: ExpressionKind::RestIdentifier(self.lexer.get_source(&name).to_string()),
+                source: start.source_range(&self.current_token),
+            });
+        }
+
+        // Shorthand or explicit with identifier key: name or name: binding
+        if self.current_token.kind == T![ID] {
+            let name = self.lexer.get_source(&self.current_token).to_string();
+            let id_token = self.expect(T![ID])?;
+
+            if self.current_token.kind == T![:] {
+                // Explicit: name: binding
+                self.expect(T![:])?;
+                let binding = if is_match_pattern {
+                    self.parse_match_pattern()?
+                } else {
+                    self.parse_dictionary_pattern_binding()?
+                };
+                let key = Expression {
+                    kind: ExpressionKind::String(name),
+                    source: id_token.source,
+                };
+                return Ok(Expression {
+                    kind: ExpressionKind::DictionaryEntryPattern {
+                        key: Box::new(key),
+                        value: Box::new(binding),
+                    },
+                    source: start.source_range(&self.current_token),
+                });
+            }
+
+            // Shorthand: name -> key "name", var name
+            return Ok(Expression {
+                kind: ExpressionKind::Identifier(name),
+                source: id_token.source,
+            });
+        }
+
+        // String key: "key": binding
+        if self.current_token.kind == T![STR] {
+            let key = self.parse_string_expression()?;
+            self.expect(T![:])?;
+            let binding = if is_match_pattern {
+                self.parse_match_pattern()?
+            } else {
+                self.parse_dictionary_pattern_binding()?
+            };
+            return Ok(Expression {
+                kind: ExpressionKind::DictionaryEntryPattern {
+                    key: Box::new(key),
+                    value: Box::new(binding),
+                },
+                source: start.source_range(&self.current_token),
+            });
+        }
+
+        Err(ParserErr {
+            message: format!("{:?} is not valid in dictionary pattern", self.current_token.kind),
+            source: self.current_token.source,
+        })
+    }
+
+    fn parse_dictionary_pattern_binding(&mut self) -> RExpression {
+        match self.current_token.kind {
+            T![ID] => self.parse_identifier_expression(),
+            T![_] => {
+                let start = self.expect(T![_])?;
+                Ok(Expression {
+                    kind: ExpressionKind::Placeholder,
+                    source: start.source_range(&self.current_token),
+                })
+            }
+            T!['['] => {
+                let start = self.expect(T!['['])?;
+                Ok(Expression {
+                    kind: ExpressionKind::IdentifierListPattern(self.parse_parameters(T![']'])?),
+                    source: start.source_range(&self.current_token),
+                })
+            }
+            T!["#{"] => {
+                let start = self.expect(T!["#{"])?;
+                Ok(Expression {
+                    kind: ExpressionKind::IdentifierDictionaryPattern(self.parse_dictionary_pattern(T!['}'])?),
+                    source: start.source_range(&self.current_token),
+                })
+            }
+            _ => Err(ParserErr {
+                message: format!(
+                    "{:?} is not valid as dictionary pattern binding",
+                    self.current_token.kind
+                ),
+                source: self.current_token.source,
+            }),
+        }
+    }
+
     fn parse_parameters(&mut self, terminator: TokenKind) -> RExpressions {
         let mut values = Vec::<Expression>::new();
 
@@ -932,6 +1086,13 @@ impl<'a> Parser<'a> {
                 let start = self.expect(T!['['])?;
                 Expression {
                     kind: ExpressionKind::IdentifierListPattern(self.parse_parameters(T![']'])?),
+                    source: start.source_range(&self.current_token),
+                }
+            }
+            T!["#{"] => {
+                let start = self.expect(T!["#{"])?;
+                Expression {
+                    kind: ExpressionKind::IdentifierDictionaryPattern(self.parse_dictionary_pattern(T!['}'])?),
                     source: start.source_range(&self.current_token),
                 }
             }
@@ -961,6 +1122,13 @@ impl<'a> Parser<'a> {
                     let start = self.expect(T!['['])?;
                     Expression {
                         kind: ExpressionKind::IdentifierListPattern(self.parse_parameters(T![']'])?),
+                        source: start.source_range(&self.current_token),
+                    }
+                }
+                T!["#{"] => {
+                    let start = self.expect(T!["#{"])?;
+                    Expression {
+                        kind: ExpressionKind::IdentifierDictionaryPattern(self.parse_dictionary_pattern(T!['}'])?),
                         source: start.source_range(&self.current_token),
                     }
                 }
