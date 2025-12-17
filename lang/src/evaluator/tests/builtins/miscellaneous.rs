@@ -14,7 +14,10 @@ test_eval! {
     ("type(\"\")", "\"String\"", string),
     ("type(1..10)", "\"BoundedRange\"", bounded_range),
     ("type(1..)", "\"UnboundedRange\"", unbounded_range),
-    ("type(|| 1)", "\"Function\"", function)
+    ("type(|| 1)", "\"Function\"", function),
+    ("type(1.. |> map(_ + 1))", "\"LazySequence\"", unbounded_range_with_map),
+    ("type(1..5 |> filter(_ > 2))", "\"LazySequence\"", bounded_range_with_filter),
+    ("type(1..10 |> map(_ * 2) |> filter(_ > 5))", "\"LazySequence\"", range_with_multiple_transformations)
 }
 
 test_eval! {

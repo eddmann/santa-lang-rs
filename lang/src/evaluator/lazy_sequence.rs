@@ -184,6 +184,10 @@ impl LazySequence {
         }
     }
 
+    pub fn has_transformations(&self) -> bool {
+        !self.functions.is_empty()
+    }
+
     pub fn is_unbounded_negative_range(&self) -> bool {
         match self.value {
             LazyValue::UnboundedRange { current, .. } => current < 0,

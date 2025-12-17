@@ -43,7 +43,9 @@ impl Object {
             Self::Set(_) => "Set".to_owned(),
             Self::Dictionary(_) => "Dictionary".to_owned(),
             Self::LazySequence(sequence) => {
-                if sequence.is_unbounded() {
+                if sequence.has_transformations() {
+                    "LazySequence".to_owned()
+                } else if sequence.is_unbounded() {
                     "UnboundedRange".to_owned()
                 } else {
                     "BoundedRange".to_owned()
