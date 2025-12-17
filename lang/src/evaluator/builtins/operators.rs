@@ -322,14 +322,3 @@ builtin! {
     }
 }
 
-builtin! {
-    and(a, b) {
-        Ok(Rc::new(Object::Boolean(a.is_truthy() && b.is_truthy())))
-    }
-}
-
-builtin! {
-    or(a, b) {
-        Ok(Rc::new(Object::Boolean(a.is_truthy() || b.is_truthy())))
-    }
-}

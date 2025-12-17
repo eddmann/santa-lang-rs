@@ -335,7 +335,8 @@ test_eval! {
     ("last(0..3)", "2", exclusive_range_with_elements),
     ("last(0..=3)", "3", inclusive_range_with_elements),
     ("last(3..0)", "1", descending_exclusive_range),
-    ("last(3..=0)", "0", descending_inclusive_range)
+    ("last(3..=0)", "0", descending_inclusive_range),
+    ("last(1..)", "last is not supported for unbounded sequences", unbounded_range_error)
 }
 
 test_eval! {

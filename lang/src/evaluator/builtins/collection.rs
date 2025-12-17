@@ -962,6 +962,13 @@ builtin! {
             Ok(Rc::new(Object::Nil))
         }
         Object::LazySequence(sequence) => {
+            if sequence.is_unbounded() {
+                return Err(RuntimeErr {
+                    message: "last is not supported for unbounded sequences".to_owned(),
+                    source,
+                    trace: evaluator.get_trace()
+                });
+            }
             let iterator = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source);
             if let Some(last) = iterator.last() {
                 return Ok(Rc::clone(&last));

@@ -15,7 +15,7 @@ builtin! {
 
 builtin! {
     type_name(value) {
-        Ok(Rc::new(Object::String(value.name().to_owned())))
+        Ok(Rc::new(Object::String(value.name())))
     }
 }
 

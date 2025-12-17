@@ -12,7 +12,8 @@ test_eval! {
     ("type(1)", "\"Integer\"", integer),
     ("type(1.5)", "\"Decimal\"", decimal),
     ("type(\"\")", "\"String\"", string),
-    ("type(1..10)", "\"LazySequence\"", lazy_sequence),
+    ("type(1..10)", "\"BoundedRange\"", bounded_range),
+    ("type(1..)", "\"UnboundedRange\"", unbounded_range),
     ("type(|| 1)", "\"Function\"", function)
 }
 

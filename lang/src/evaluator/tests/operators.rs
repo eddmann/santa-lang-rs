@@ -163,7 +163,7 @@ test_eval! {
     ("true && !false", "true", true_value),
     ("true && false", "false", false_value),
     ("let mut x = true; false && (|| x = false)(); x", "true", short_circuit_evaluation),
-    ("and(true, !false)", "true", function_call)
+    ("and(true, false)", "Identifier can not be found: and", no_builtin_function)
 }
 
 test_eval! {
@@ -172,5 +172,5 @@ test_eval! {
     ("true || !false", "true", true_value),
     ("!true || false", "false", false_value),
     ("let mut x = true; true || (|| x = false)(); x", "true", short_circuit_evaluation),
-    ("or(true, false)", "true", function_call)
+    ("or(true, false)", "Identifier can not be found: or", no_builtin_function)
 }

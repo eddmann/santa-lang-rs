@@ -64,7 +64,7 @@ test_eval! {
     ("{1, \"3\", 2.25, {1}, [2], true}", "{1, \"3\", 2.25, {1}, [2], true}", heterogeneous),
     ("{1, \"3\", 2.25, {1}, [2], true, 2.25, {1}, [2]}", "{1, \"3\", 2.25, {1}, [2], true}", heterogeneous_with_duplicates),
     ("{|a| a}", "Unable to include a Function within an Set", function_disallowed),
-    ("{1..5}", "Unable to include a LazySequence within an Set", lazy_sequence_disallowed)
+    ("{1..5}", "Unable to include a BoundedRange within an Set", lazy_sequence_disallowed)
 }
 
 test_eval! {
@@ -75,7 +75,7 @@ test_eval! {
     ("#{1: true, \"2\": {nil}, 3.0: [1..5], {1}: #{1: 2}}", "#{1: true, 3: [1..5], {1}: #{1: 2}, \"2\": {nil}}", heterogeneous),
     ("#{1: true, \"2\": {nil}, 3.0: [1..5], {1}: #{1: 2}, {1}: 2}", "#{1: true, 3: [1..5], {1}: 2, \"2\": {nil}}", heterogeneous_with_duplicates),
     ("#{(|a| a): 1}", "Unable to use a Function as a Dictionary key", function_key_disallowed),
-    ("#{1..5: 1}", "Unable to use a LazySequence as a Dictionary key", lazy_sequence_key_disallowed)
+    ("#{1..5: 1}", "Unable to use a BoundedRange as a Dictionary key", lazy_sequence_key_disallowed)
 }
 
 test_eval! {

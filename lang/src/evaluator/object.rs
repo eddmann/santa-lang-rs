@@ -31,22 +31,28 @@ pub enum Object {
 }
 
 impl Object {
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> String {
         match self {
-            Self::Nil => "Nil",
-            Self::Integer(_) => "Integer",
-            Self::Decimal(_) => "Decimal",
-            Self::Boolean(_) => "Boolean",
-            Self::String(_) => "String",
+            Self::Nil => "Nil".to_owned(),
+            Self::Integer(_) => "Integer".to_owned(),
+            Self::Decimal(_) => "Decimal".to_owned(),
+            Self::Boolean(_) => "Boolean".to_owned(),
+            Self::String(_) => "String".to_owned(),
 
-            Self::List(_) => "List",
-            Self::Set(_) => "Set",
-            Self::Dictionary(_) => "Dictionary",
-            Self::LazySequence(_) => "LazySequence",
+            Self::List(_) => "List".to_owned(),
+            Self::Set(_) => "Set".to_owned(),
+            Self::Dictionary(_) => "Dictionary".to_owned(),
+            Self::LazySequence(sequence) => {
+                if sequence.is_unbounded() {
+                    "UnboundedRange".to_owned()
+                } else {
+                    "BoundedRange".to_owned()
+                }
+            }
 
-            Self::Function(_) => "Function",
+            Self::Function(_) => "Function".to_owned(),
 
-            Self::Placeholder => "Placeholder",
+            Self::Placeholder => "Placeholder".to_owned(),
             Self::Return(v) => v.name(),
             Self::Break(v) => v.name(),
         }

@@ -74,9 +74,7 @@ builtins! {
     miscellaneous::range,
     miscellaneous::id,
     miscellaneous::memoize,
-    miscellaneous::evaluate,
-    operators::or,
-    operators::and
+    miscellaneous::evaluate
 }
 
 builtin_aliases! {

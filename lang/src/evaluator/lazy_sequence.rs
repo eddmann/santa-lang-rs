@@ -177,6 +177,13 @@ impl LazySequence {
         }
     }
 
+    pub fn is_unbounded(&self) -> bool {
+        match self.value {
+            LazyValue::UnboundedRange { .. } | LazyValue::Repeat { .. } | LazyValue::Cycle { .. } | LazyValue::Iterate { .. } => true,
+            _ => false,
+        }
+    }
+
     pub fn is_unbounded_negative_range(&self) -> bool {
         match self.value {
             LazyValue::UnboundedRange { current, .. } => current < 0,
