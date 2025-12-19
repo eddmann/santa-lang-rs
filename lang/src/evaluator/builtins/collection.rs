@@ -46,8 +46,14 @@ builtin! {
     map(mapper, collection) [evaluator, source] match {
         (Object::Function(mapper), Object::List(list)) => {
             let mut elements = Vector::new();
-            for element in list {
-                elements.push_back(mapper.apply(evaluator, vec![Rc::clone(element)], source)?);
+            let pass_index = mapper.arity() >= 2;
+            for (idx, element) in list.iter().enumerate() {
+                let args = if pass_index {
+                    vec![Rc::clone(element), Rc::new(Object::Integer(idx as i64))]
+                } else {
+                    vec![Rc::clone(element)]
+                };
+                elements.push_back(mapper.apply(evaluator, args, source)?);
             }
             Ok(Rc::new(Object::List(elements)))
         }
@@ -62,14 +68,20 @@ builtin! {
                         trace: evaluator.get_trace()
                     });
                 }
-                elements.insert(mapper.apply(evaluator, vec![Rc::clone(element)], source)?);
+                elements.insert(mapped);
             }
             Ok(Rc::new(Object::Set(elements)))
         }
         (Object::Function(mapper), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
+            let pass_key = mapper.arity() >= 2;
             for (key, value) in map {
-                elements.insert(Rc::clone(key), mapper.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?);
+                let args = if pass_key {
+                    vec![Rc::clone(value), Rc::clone(key)]
+                } else {
+                    vec![Rc::clone(value)]
+                };
+                elements.insert(Rc::clone(key), mapper.apply(evaluator, args, source)?);
             }
             Ok(Rc::new(Object::Dictionary(elements)))
         }
@@ -78,8 +90,15 @@ builtin! {
         }
         (Object::Function(mapper), Object::String(string)) => {
             let mut elements = Vector::new();
-            for grapheme in string.graphemes(true) {
-                elements.push_back(mapper.apply(evaluator, vec![Rc::new(Object::String(grapheme.to_string()))], source)?);
+            let pass_index = mapper.arity() >= 2;
+            for (idx, grapheme) in string.graphemes(true).enumerate() {
+                let elem = Rc::new(Object::String(grapheme.to_string()));
+                let args = if pass_index {
+                    vec![elem, Rc::new(Object::Integer(idx as i64))]
+                } else {
+                    vec![elem]
+                };
+                elements.push_back(mapper.apply(evaluator, args, source)?);
             }
             Ok(Rc::new(Object::List(elements)))
         }
@@ -90,16 +109,22 @@ builtin! {
     filter(predicate, collection) [evaluator, source] match {
         (Object::Function(predicate), Object::List(list)) => {
             let mut elements = Vector::new();
-            for element in list {
-                if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
+            let pass_index = predicate.arity() >= 2;
+            for (idx, element) in list.iter().enumerate() {
+                let args = if pass_index {
+                    vec![Rc::clone(element), Rc::new(Object::Integer(idx as i64))]
+                } else {
+                    vec![Rc::clone(element)]
+                };
+                if predicate.apply(evaluator, args, source)?.is_truthy() {
                     elements.push_back(Rc::clone(element));
                 }
             }
             Ok(Rc::new(Object::List(elements)))
         }
-        (Object::Function(predicate), Object::Set(list)) => {
+        (Object::Function(predicate), Object::Set(set)) => {
             let mut elements = HashSet::default();
-            for element in list {
+            for element in set {
                 if predicate.apply(evaluator, vec![Rc::clone(element)], source)?.is_truthy() {
                     elements.insert(Rc::clone(element));
                 }
@@ -108,8 +133,14 @@ builtin! {
         }
         (Object::Function(predicate), Object::Dictionary(map)) => {
             let mut elements = HashMap::default();
+            let pass_key = predicate.arity() >= 2;
             for (key, value) in map {
-                if predicate.apply(evaluator, vec![Rc::clone(value), Rc::clone(key)], source)?.is_truthy() {
+                let args = if pass_key {
+                    vec![Rc::clone(value), Rc::clone(key)]
+                } else {
+                    vec![Rc::clone(value)]
+                };
+                if predicate.apply(evaluator, args, source)?.is_truthy() {
                     elements.insert(Rc::clone(key), Rc::clone(value));
                 }
             }
@@ -120,9 +151,15 @@ builtin! {
         }
         (Object::Function(predicate), Object::String(string)) => {
             let mut elements = Vector::new();
-            for grapheme in string.graphemes(true) {
+            let pass_index = predicate.arity() >= 2;
+            for (idx, grapheme) in string.graphemes(true).enumerate() {
                 let object = Rc::new(Object::String(grapheme.to_string()));
-                if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
+                let args = if pass_index {
+                    vec![Rc::clone(&object), Rc::new(Object::Integer(idx as i64))]
+                } else {
+                    vec![Rc::clone(&object)]
+                };
+                if predicate.apply(evaluator, args, source)?.is_truthy() {
                     elements.push_back(Rc::clone(&object));
                 }
             }

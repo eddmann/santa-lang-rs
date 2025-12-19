@@ -253,6 +253,22 @@ impl Function {
         }
     }
 
+    /// Returns the number of parameters this function expects.
+    /// For variadic functions (with rest parameters), returns 1.
+    pub fn arity(&self) -> usize {
+        match self {
+            Self::Closure { parameters, .. } | Self::MemoizedClosure { parameters, .. } => {
+                parameters.len()
+            }
+            Self::Builtin { parameters, partial, .. } | Self::External { parameters, partial, .. } => {
+                let bound_count = partial.as_ref().map_or(0, |p| p.len());
+                parameters.len().saturating_sub(bound_count)
+            }
+            Self::Composition { .. } => 1,
+            Self::Continuation { .. } => 0,
+        }
+    }
+
     fn assign_closure_parameters(
         &self,
         environment: EnvironmentRef,
