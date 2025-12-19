@@ -40,7 +40,17 @@ test_eval! {
     ("map(_ * 2, \"\")", "[]", empty_string),
     ("map(_ * 2, \"ab\")", "[\"aa\", \"bb\"]", string_with_characters),
     ("map(_ + 1, 0..0) |> list", "[]", empty_lazy_sequence),
-    ("map(_ + 1, 0..2) |> list", "[1, 2]", lazy_sequence_with_elements)
+    ("map(_ + 1, 0..2) |> list", "[1, 2]", lazy_sequence_with_elements),
+    // Arity-aware index/key passing
+    ("map(max, [[1, 2], [3, 4]])", "[2, 4]", arity_one_variadic_function_on_list),
+    ("map(|v, i| [v, i], [10, 20, 30])", "[[10, 0], [20, 1], [30, 2]]", arity_two_with_index_on_list),
+    ("map(|v, i| v + i, [10, 20, 30])", "[10, 21, 32]", arity_two_using_index_on_list),
+    ("map(|v, k| [v, k], #{\"a\": 1, \"b\": 2})", "#{\"a\": [1, \"a\"], \"b\": [2, \"b\"]}", arity_two_with_key_on_dictionary),
+    ("map(|v, k| v + k, #{1: 10, 2: 20})", "#{1: 11, 2: 22}", arity_two_using_key_on_dictionary),
+    ("map(|c, i| c * i, \"abc\")", "[\"\", \"b\", \"cc\"]", arity_two_with_index_on_string),
+    // Error propagation in callbacks
+    ("map(|x| if x == 1 { 1 / 0 } else { x }, [0, 1, 2])", "Division by zero", error_propagation_in_map),
+    ("map(|x| 1 / 0, [1]) |> list", "Division by zero", error_propagation_in_lazy_map)
 }
 
 test_eval! {
@@ -55,7 +65,16 @@ test_eval! {
     ("filter(_ == \"a\", \"\")", "[]", empty_string),
     ("filter(_ == \"a\", \"ab\")", "[\"a\"]", string_with_characters),
     ("filter(_ == 0, 0..0) |> list", "[]", empty_lazy_sequence),
-    ("filter(_ == 0, 0..2) |> list", "[0]", lazy_sequence_with_elements)
+    ("filter(_ == 0, 0..2) |> list", "[0]", lazy_sequence_with_elements),
+    // Arity-aware index/key passing
+    ("filter(|v, i| i % 2 == 0, [10, 20, 30, 40])", "[10, 30]", arity_two_using_index_on_list),
+    ("filter(|v, i| v > i, [5, 2, 10, 1])", "[5, 2, 10]", arity_two_comparing_value_and_index_on_list),
+    ("filter(|v, k| k == \"a\", #{\"a\": 1, \"b\": 2})", "#{\"a\": 1}", arity_two_using_key_on_dictionary),
+    ("filter(|v, k| v == k, #{1: 1, 2: 3})", "#{1: 1}", arity_two_comparing_value_and_key_on_dictionary),
+    ("filter(|c, i| i > 0, \"abc\")", "[\"b\", \"c\"]", arity_two_with_index_on_string),
+    // Error propagation in callbacks
+    ("filter(|x| if x == 1 { 1 / 0 } else { true }, [0, 1, 2])", "Division by zero", error_propagation_in_filter),
+    ("filter(|x| 1 / 0, [1]) |> list", "Division by zero", error_propagation_in_lazy_filter)
 }
 
 test_eval! {

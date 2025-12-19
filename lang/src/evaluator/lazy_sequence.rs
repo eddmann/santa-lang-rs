@@ -179,10 +179,13 @@ impl LazySequence {
     }
 
     pub fn is_unbounded(&self) -> bool {
-        match self.value {
-            LazyValue::UnboundedRange { .. } | LazyValue::Repeat { .. } | LazyValue::Cycle { .. } | LazyValue::Iterate { .. } => true,
-            _ => false,
-        }
+        matches!(
+            self.value,
+            LazyValue::UnboundedRange { .. }
+                | LazyValue::Repeat { .. }
+                | LazyValue::Cycle { .. }
+                | LazyValue::Iterate { .. }
+        )
     }
 
     pub fn has_transformations(&self) -> bool {
@@ -274,7 +277,7 @@ impl LazySequenceIter<'_> {
 
     pub fn try_collect(mut self) -> Result<Vector<Rc<Object>>, crate::evaluator::RuntimeErr> {
         let mut result = Vector::new();
-        while let Some(item) = self.next() {
+        for item in self.by_ref() {
             result.push_back(item);
         }
         if let Some(err) = self.error {
@@ -389,8 +392,7 @@ impl Iterator for LazySequenceIter<'_> {
             for function in self.functions.iter_mut() {
                 match function {
                     LazyFn::Map(mapper) => {
-                        next = match mapper
-                            .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
+                        next = match mapper.apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
                         {
                             Ok(value) => value,
                             Err(err) => {
@@ -400,9 +402,11 @@ impl Iterator for LazySequenceIter<'_> {
                         };
                     }
                     LazyFn::Filter(predicate) => {
-                        let result = match predicate
-                            .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
-                        {
+                        let result = match predicate.apply(
+                            &mut self.evaluator.borrow_mut(),
+                            vec![Rc::clone(&next)],
+                            self.source,
+                        ) {
                             Ok(value) => value,
                             Err(err) => {
                                 self.error = Some(err);
@@ -414,8 +418,7 @@ impl Iterator for LazySequenceIter<'_> {
                         }
                     }
                     LazyFn::FilterMap(mapper) => {
-                        next = match mapper
-                            .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
+                        next = match mapper.apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
                         {
                             Ok(value) => value,
                             Err(err) => {

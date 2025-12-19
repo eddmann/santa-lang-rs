@@ -371,12 +371,18 @@ builtin! {
     }
 }
 
-fn resolve_to_list(obj: Rc<Object>, evaluator: &mut Evaluator, source: Location) -> Result<Vector<Rc<Object>>, RuntimeErr> {
+fn resolve_to_list(
+    obj: Rc<Object>,
+    evaluator: &mut Evaluator,
+    source: Location,
+) -> Result<Vector<Rc<Object>>, RuntimeErr> {
     match &*obj {
         Object::List(list) => Ok(list.clone()),
         Object::LazySequence(sequence) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
-            sequence.resolve_iter(Rc::clone(&shared_evaluator), source).try_collect()
+            sequence
+                .resolve_iter(Rc::clone(&shared_evaluator), source)
+                .try_collect()
         }
         _ => Ok(Vector::new()),
     }
@@ -1030,7 +1036,7 @@ builtin! {
             Ok(Rc::new(Object::Nil))
         }
         Object::String(string) => {
-            if let Some(last) = string.graphemes(true).last() {
+            if let Some(last) = string.graphemes(true).next_back() {
                 return Ok(Rc::new(Object::String(last.to_string())));
             }
             Ok(Rc::new(Object::Nil))
