@@ -4,6 +4,7 @@ use crate::lexer::Location;
 use im_rc::Vector;
 use std::cell::RefCell;
 use std::rc::Rc;
+use unicode_segmentation::UnicodeSegmentation;
 
 #[inline]
 pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, source: Location) -> Evaluation {
@@ -70,7 +71,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
         (Object::String(string), Object::LazySequence(sequence)) => {
             // Adjust negative indices relative to string length
             let adjusted_sequence = sequence
-                .with_adjusted_negative_indices(string.chars().count())
+                .with_adjusted_negative_indices(string.graphemes(true).count())
                 .unwrap_or_else(|| sequence.clone());
 
             let is_unbounded_negative_range = adjusted_sequence.is_unbounded_negative_range();
@@ -82,7 +83,7 @@ pub fn lookup(evaluator: &mut Evaluator, left: Rc<Object>, index: Rc<Object>, so
                         break;
                     }
                     match string_lookup(string, *index) {
-                        Some(character) => result.push(character),
+                        Some(grapheme) => result.push_str(grapheme),
                         None => break,
                     }
                 } else {
@@ -124,10 +125,16 @@ fn list_lookup(list: &Vector<Rc<Object>>, index: i64) -> Option<Rc<Object>> {
     }
 }
 
-fn string_lookup(string: &str, index: i64) -> Option<char> {
+fn string_lookup(string: &str, index: i64) -> Option<&str> {
+    let graphemes: Vec<&str> = string.graphemes(true).collect();
     if index < 0 {
-        string.chars().nth((string.len() as i64 + index) as usize)
+        let adjusted_index = graphemes.len() as i64 + index;
+        if adjusted_index < 0 {
+            None
+        } else {
+            graphemes.get(adjusted_index as usize).copied()
+        }
     } else {
-        string.chars().nth(index as usize)
+        graphemes.get(index as usize).copied()
     }
 }

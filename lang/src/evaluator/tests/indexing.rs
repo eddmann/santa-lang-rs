@@ -73,3 +73,19 @@ test_eval! {
     ("\"a\"[0..-1]", "\"\"", exclusive_drop_last_single_char),
     ("string[-3..-1]", "\"ll\"", exclusive_negative_start_and_end)
 }
+
+test_eval! {
+    suite string_graphemes;
+
+    // Grapheme cluster indexing - complex emoji should be single graphemes
+    ("\"👨‍👩‍👧‍👦\"[0]", "\"👨‍👩‍👧‍👦\"", family_emoji_index_zero),
+    ("\"🇬🇧\"[0]", "\"🇬🇧\"", flag_emoji_index_zero),
+    ("\"a👨‍👩‍👧‍👦b\"[1]", "\"👨‍👩‍👧‍👦\"", emoji_in_middle),
+    ("\"a👨‍👩‍👧‍👦b\"[0]", "\"a\"", char_before_emoji),
+    ("\"a👨‍👩‍👧‍👦b\"[2]", "\"b\"", char_after_emoji),
+    ("\"a👨‍👩‍👧‍👦b\"[-1]", "\"b\"", negative_index_with_emoji),
+    ("\"a👨‍👩‍👧‍👦b\"[-2]", "\"👨‍👩‍👧‍👦\"", negative_index_on_emoji),
+    // Combining characters
+    ("\"é\"[0]", "\"é\"", combining_accent_single_grapheme),
+    ("\"café\"[3]", "\"é\"", combining_accent_in_word)
+}

@@ -4,6 +4,7 @@ use im_rc::Vector;
 use ordered_float::OrderedFloat;
 use regex::Regex;
 use std::rc::Rc;
+use unicode_segmentation::UnicodeSegmentation;
 
 builtin! {
     int(value) match {
@@ -59,7 +60,7 @@ builtin! {
     split(seperator, value) match {
         (Object::String(seperator), Object::String(value)) => {
             if seperator.is_empty() {
-                return Ok(Rc::new(Object::List(value.chars().map(|seperated| Rc::new(Object::String(seperated.to_string()))).collect())))
+                return Ok(Rc::new(Object::List(value.graphemes(true).map(|seperated| Rc::new(Object::String(seperated.to_string()))).collect())))
             }
             Ok(Rc::new(Object::List(value.split(seperator).map(|seperated| Rc::new(Object::String(seperated.to_owned()))).collect())))
         }

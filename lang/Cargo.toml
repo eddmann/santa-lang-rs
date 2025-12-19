@@ -10,6 +10,7 @@ im-rc = { git = "https://github.com/eddmann/im-rs.git", features = ["pool"] }
 ordered-float = "4.5.0"
 regex = "1.11.1"
 md-5 = "0.10"
+unicode-segmentation = "1.12"
 serde = { version = "1.0.217", features = ["derive", "rc"], optional = true }
 
 [dev-dependencies]

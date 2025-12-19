@@ -19,7 +19,13 @@ test_eval! {
     ("size(\"\")", "0", empty_string),
     ("size(\"ab\")", "2", string_with_characters),
     ("size(0..0)", "0", empty_lazy_sequence),
-    ("size(0..2)", "2", lazy_sequence_with_elements)
+    ("size(0..2)", "2", lazy_sequence_with_elements),
+    // Grapheme cluster support
+    ("size(\"👨‍👩‍👧‍👦\")", "1", family_emoji_single_grapheme),
+    ("size(\"🇬🇧\")", "1", flag_emoji_single_grapheme),
+    ("size(\"a👨‍👩‍👧‍👦b\")", "3", mixed_ascii_and_emoji),
+    ("size(\"🇬🇧🇺🇸🇫🇷\")", "3", multiple_flag_emojis),
+    ("size(\"café\")", "4", combining_character)
 }
 
 test_eval! {
@@ -216,7 +222,10 @@ test_eval! {
     ("list(\"\")", "[]", empty_string),
     ("list(\"ab\")", "[\"a\", \"b\"]", string_with_characters),
     ("list(0..0)", "[]", empty_lazy_sequence),
-    ("list(0..2)", "[0, 1]", lazy_sequence_with_elements)
+    ("list(0..2)", "[0, 1]", lazy_sequence_with_elements),
+    // Grapheme cluster support
+    ("list(\"👨‍👩‍👧‍👦🇬🇧a\")", "[\"👨‍👩‍👧‍👦\", \"🇬🇧\", \"a\"]", emoji_to_grapheme_list),
+    ("list(\"café\")", "[\"c\", \"a\", \"f\", \"é\"]", combining_char_to_list)
 }
 
 test_eval! {
@@ -304,7 +313,10 @@ test_eval! {
     ("first(\"\")", "nil", empty_string),
     ("first(\"ab\")", "\"a\"", string_with_characters),
     ("first(0..0)", "nil", empty_lazy_sequence),
-    ("first(0..2)", "0", lazy_sequence_with_elements)
+    ("first(0..2)", "0", lazy_sequence_with_elements),
+    // Grapheme cluster support
+    ("first(\"👨‍👩‍👧‍👦abc\")", "\"👨‍👩‍👧‍👦\"", family_emoji_first),
+    ("first(\"🇬🇧🇺🇸\")", "\"🇬🇧\"", flag_emoji_first)
 }
 
 test_eval! {
@@ -336,7 +348,10 @@ test_eval! {
     ("last(0..=3)", "3", inclusive_range_with_elements),
     ("last(3..0)", "1", descending_exclusive_range),
     ("last(3..=0)", "0", descending_inclusive_range),
-    ("last(1..)", "last is not supported for unbounded sequences", unbounded_range_error)
+    ("last(1..)", "last is not supported for unbounded sequences", unbounded_range_error),
+    // Grapheme cluster support
+    ("last(\"abc👨‍👩‍👧‍👦\")", "\"👨‍👩‍👧‍👦\"", family_emoji_last),
+    ("last(\"🇬🇧🇺🇸\")", "\"🇺🇸\"", flag_emoji_last)
 }
 
 test_eval! {
@@ -349,7 +364,10 @@ test_eval! {
     ("rest(\"\")", "\"\"", empty_string),
     ("rest(\"ab\")", "\"b\"", string_with_characters),
     ("rest(0..0) |> list", "[]", empty_lazy_sequence),
-    ("rest(0..2) |> list", "[1]", lazy_sequence_with_elements)
+    ("rest(0..2) |> list", "[1]", lazy_sequence_with_elements),
+    // Grapheme cluster support
+    ("rest(\"👨‍👩‍👧‍👦abc\")", "\"abc\"", family_emoji_rest),
+    ("rest(\"🇬🇧🇺🇸\")", "\"🇺🇸\"", flag_emoji_rest)
 }
 
 test_eval! {

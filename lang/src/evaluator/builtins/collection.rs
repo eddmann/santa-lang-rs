@@ -5,6 +5,7 @@ use crate::lexer::Location;
 use im_rc::{HashMap, HashSet, Vector};
 use std::cell::RefCell;
 use std::rc::Rc;
+use unicode_segmentation::UnicodeSegmentation;
 
 builtin! {
     push(value, collection) match {
@@ -33,7 +34,7 @@ builtin! {
             Ok(Rc::new(Object::Integer(map.len() as i64)))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::Integer(string.len() as i64)))
+            Ok(Rc::new(Object::Integer(string.graphemes(true).count() as i64)))
         }
         Object::LazySequence(sequence) => {
             Ok(Rc::new(Object::Integer(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).count() as i64)))
@@ -77,8 +78,8 @@ builtin! {
         }
         (Object::Function(mapper), Object::String(string)) => {
             let mut elements = Vector::new();
-            for character in string.chars() {
-                elements.push_back(mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?);
+            for grapheme in string.graphemes(true) {
+                elements.push_back(mapper.apply(evaluator, vec![Rc::new(Object::String(grapheme.to_string()))], source)?);
             }
             Ok(Rc::new(Object::List(elements)))
         }
@@ -119,8 +120,8 @@ builtin! {
         }
         (Object::Function(predicate), Object::String(string)) => {
             let mut elements = Vector::new();
-            for character in string.chars() {
-                let object = Rc::new(Object::String(character.to_string()));
+            for grapheme in string.graphemes(true) {
+                let object = Rc::new(Object::String(grapheme.to_string()));
                 if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
                     elements.push_back(Rc::clone(&object));
                 }
@@ -175,8 +176,8 @@ builtin! {
         }
         (_, Object::Function(folder), Object::String(string)) => {
             let mut accumulator = Rc::clone(initial);
-            for character in string.chars() {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+            for grapheme in string.graphemes(true) {
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(grapheme.to_string()))], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -226,8 +227,8 @@ builtin! {
             Ok(Rc::new(Object::Nil))
         }
         (Object::Function(side_effect), Object::String(string)) => {
-            for character in string.chars() {
-                let result = side_effect.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+            for grapheme in string.graphemes(true) {
+                let result = side_effect.apply(evaluator, vec![Rc::new(Object::String(grapheme.to_string()))], source)?;
                 if let Object::Break(_) = &*result {
                     break;
                 }
@@ -313,17 +314,17 @@ builtin! {
             Ok(Rc::clone(&accumulator))
         }
         (Object::Function(reducer), Object::String(string)) => {
-            let mut characters = string.chars();
-            let mut accumulator = match characters.next() {
-                Some(character) => Rc::new(Object::String(character.to_string())),
+            let mut graphemes = string.graphemes(true);
+            let mut accumulator = match graphemes.next() {
+                Some(grapheme) => Rc::new(Object::String(grapheme.to_string())),
                 None => return Err(RuntimeErr {
                     message: "Unable to reduce an empty String".to_owned(),
                     source,
                     trace: evaluator.get_trace()
                 })
             };
-            for character in characters {
-                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+            for grapheme in graphemes {
+                accumulator = reducer.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(grapheme.to_string()))], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -402,8 +403,8 @@ builtin! {
             Ok(Rc::new(Object::Nil))
         }
         (Object::Function(predicate), Object::String(string)) => {
-            for character in string.chars() {
-                let object = Rc::new(Object::String(character.to_string()));
+            for grapheme in string.graphemes(true) {
+                let object = Rc::new(Object::String(grapheme.to_string()));
                 if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
                     return Ok(Rc::clone(&object))
                 }
@@ -454,8 +455,8 @@ builtin! {
         }
         (Object::Function(predicate), Object::String(string)) => {
             let mut count = 0;
-            for character in string.chars() {
-                let object = Rc::new(Object::String(character.to_string()));
+            for grapheme in string.graphemes(true) {
+                let object = Rc::new(Object::String(grapheme.to_string()));
                 if predicate.apply(evaluator, vec![Rc::clone(&object)], source)?.is_truthy() {
                     count += 1;
                 }
@@ -652,7 +653,7 @@ builtin! {
             Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).collect::<Vector<Rc<Object>>>())))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::List(string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<Vector<Rc<Object>>>())))
+            Ok(Rc::new(Object::List(string.graphemes(true).map(|grapheme| Rc::new(Object::String(grapheme.to_string()))).collect::<Vector<Rc<Object>>>())))
         }
     }
 }
@@ -691,7 +692,7 @@ builtin! {
             Ok(Rc::new(Object::Set(elements)))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::Set(string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>())))
+            Ok(Rc::new(Object::Set(string.graphemes(true).map(|grapheme| Rc::new(Object::String(grapheme.to_string()))).collect::<HashSet<_, _>>())))
         }
     }
 }
@@ -776,8 +777,8 @@ builtin! {
             Ok(Rc::new(Object::LazySequence(LazySequence::cycle(list.clone()))))
         }
         Object::String(string) => {
-            let characters = string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<Vector<Rc<Object>>>();
-            Ok(Rc::new(Object::LazySequence(LazySequence::cycle(characters))))
+            let graphemes = string.graphemes(true).map(|grapheme| Rc::new(Object::String(grapheme.to_string()))).collect::<Vector<Rc<Object>>>();
+            Ok(Rc::new(Object::LazySequence(LazySequence::cycle(graphemes))))
         }
     }
 }
@@ -817,8 +818,8 @@ fn eager_zipper(sequences: Vector<Rc<Object>>, evaluator: &mut Evaluator, source
             Object::List(list) => iterators.push(Box::new(list.clone().into_iter())),
             Object::String(string) => iterators.push(Box::new(
                 string
-                    .chars()
-                    .map(|character| Rc::new(Object::String(character.to_string()))),
+                    .graphemes(true)
+                    .map(|grapheme| Rc::new(Object::String(grapheme.to_string()))),
             )),
             Object::LazySequence(sequence) => {
                 iterators.push(Box::new(sequence.resolve_iter(Rc::clone(&shared_evaluator), source)));
@@ -904,7 +905,7 @@ builtin! {
             Ok(Rc::new(Object::Nil))
         }
         Object::String(string) => {
-            if let Some(first) = string.chars().next() {
+            if let Some(first) = string.graphemes(true).next() {
                 return Ok(Rc::new(Object::String(first.to_string())));
             }
             Ok(Rc::new(Object::Nil))
@@ -937,7 +938,7 @@ builtin! {
             Ok(Rc::new(Object::Nil))
         }
         Object::String(string) => {
-            let mut iterator = string.chars();
+            let mut iterator = string.graphemes(true);
             iterator.next();
             if let Some(second) = iterator.next() {
                 return Ok(Rc::new(Object::String(second.to_string())));
@@ -976,7 +977,7 @@ builtin! {
             Ok(Rc::new(Object::Nil))
         }
         Object::String(string) => {
-            if let Some(last) = string.chars().last() {
+            if let Some(last) = string.graphemes(true).last() {
                 return Ok(Rc::new(Object::String(last.to_string())));
             }
             Ok(Rc::new(Object::Nil))
@@ -1000,7 +1001,7 @@ builtin! {
             Ok(Rc::new(Object::LazySequence(iterator.to_sequence())))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::String(string.chars().skip(1).collect())))
+            Ok(Rc::new(Object::String(string.graphemes(true).skip(1).collect())))
         }
     }
 }
@@ -1103,8 +1104,8 @@ builtin! {
             Ok(Rc::new(Object::Boolean(false)))
         }
         (Object::Function(predicate), Object::String(string)) => {
-            for character in string.chars() {
-                if predicate.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?.is_truthy() {
+            for grapheme in string.graphemes(true) {
+                if predicate.apply(evaluator, vec![Rc::new(Object::String(grapheme.to_string()))], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(true)))
                 }
             }
@@ -1149,8 +1150,8 @@ builtin! {
             Ok(Rc::new(Object::Boolean(true)))
         }
         (Object::Function(predicate), Object::String(string)) => {
-            for character in string.chars() {
-                if !predicate.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?.is_truthy() {
+            for grapheme in string.graphemes(true) {
+                if !predicate.apply(evaluator, vec![Rc::new(Object::String(grapheme.to_string()))], source)?.is_truthy() {
                     return Ok(Rc::new(Object::Boolean(false)))
                 }
             }
@@ -1241,7 +1242,7 @@ builtin! {
                         elements
                     }
                     Object::String(string) => {
-                        string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>()
+                        string.graphemes(true).map(|grapheme| Rc::new(Object::String(grapheme.to_string()))).collect::<HashSet<_, _>>()
                     }
                     _ => {
                         return Err(RuntimeErr {
@@ -1368,7 +1369,7 @@ builtin! {
                         elements
                     }
                     Object::String(string) => {
-                        string.chars().map(|character| Rc::new(Object::String(character.to_string()))).collect::<HashSet<_, _>>()
+                        string.graphemes(true).map(|grapheme| Rc::new(Object::String(grapheme.to_string()))).collect::<HashSet<_, _>>()
                     }
                     _ => {
                         return Err(RuntimeErr {
@@ -1482,8 +1483,8 @@ builtin! {
             let mut elements = Vector::new();
             elements.push_back(Rc::clone(initial));
             let mut previous = Rc::clone(initial);
-            for character in string.chars() {
-                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(Object::String(character.to_string()))], source)?;
+            for grapheme in string.graphemes(true) {
+                previous = folder.apply(evaluator, vec![Rc::clone(&previous), Rc::new(Object::String(grapheme.to_string()))], source)?;
                 elements.push_back(Rc::clone(&previous));
             }
             Ok(Rc::new(Object::List(elements)))
@@ -1500,7 +1501,7 @@ builtin! {
             Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).collect::<Vector<Rc<Object>>>().into_iter().rev().collect())))
         }
         Object::String(string) => {
-            Ok(Rc::new(Object::String(string.chars().rev().collect())))
+            Ok(Rc::new(Object::String(string.graphemes(true).rev().collect())))
         }
     }
 }
@@ -1549,8 +1550,8 @@ builtin! {
         }
         (Object::Function(mapper), Object::String(string)) => {
             let mut elements = Vector::new();
-            for character in string.chars() {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+            for grapheme in string.graphemes(true) {
+                let mapped = mapper.apply(evaluator, vec![Rc::new(Object::String(grapheme.to_string()))], source)?;
                 if mapped.is_truthy() {
                     elements.push_back(mapped);
                 }
@@ -1600,8 +1601,8 @@ builtin! {
             Ok(Rc::new(Object::Nil))
         }
         (Object::Function(mapper), Object::String(string)) => {
-            for character in string.chars() {
-                let mapped = mapper.apply(evaluator, vec![Rc::new(Object::String(character.to_string()))], source)?;
+            for grapheme in string.graphemes(true) {
+                let mapped = mapper.apply(evaluator, vec![Rc::new(Object::String(grapheme.to_string()))], source)?;
                 if mapped.is_truthy() {
                     return Ok(mapped);
                 }
@@ -1762,8 +1763,8 @@ builtin! {
         }
         (_, Object::Function(folder), Object::String(string)) => {
             let mut accumulator = Rc::clone(initial);
-            for character in string.chars() {
-                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(character.to_string()))], source)?;
+            for grapheme in string.graphemes(true) {
+                accumulator = folder.apply(evaluator, vec![Rc::clone(&accumulator), Rc::new(Object::String(grapheme.to_string()))], source)?;
                 if let Object::Break(value) = &*accumulator {
                     return Ok(Rc::clone(value));
                 }
@@ -1816,7 +1817,7 @@ builtin! {
         }
         (Object::Integer(size), Object::String(string)) => {
             let mut chunked: Vector<Rc<Object>> = Vector::new();
-            let mut remaining_elements = string.chars().map(|character| Rc::new(Object::String(character.to_string()))).peekable();
+            let mut remaining_elements = string.graphemes(true).map(|grapheme| Rc::new(Object::String(grapheme.to_string()))).peekable();
             while remaining_elements.peek().is_some() {
                 chunked.push_back(Rc::new(Object::List(remaining_elements.by_ref().take(*size as usize).collect())));
             }
