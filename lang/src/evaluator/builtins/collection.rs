@@ -334,14 +334,14 @@ builtin! {
     }
 }
 
-fn resolve_to_list(obj: Rc<Object>, evaluator: &mut Evaluator, source: Location) -> Vector<Rc<Object>> {
+fn resolve_to_list(obj: Rc<Object>, evaluator: &mut Evaluator, source: Location) -> Result<Vector<Rc<Object>>, RuntimeErr> {
     match &*obj {
-        Object::List(list) => list.clone(),
+        Object::List(list) => Ok(list.clone()),
         Object::LazySequence(sequence) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
-            sequence.resolve_iter(Rc::clone(&shared_evaluator), source).collect()
+            sequence.resolve_iter(Rc::clone(&shared_evaluator), source).try_collect()
         }
-        _ => Vector::new(),
+        _ => Ok(Vector::new()),
     }
 }
 
@@ -351,16 +351,20 @@ builtin! {
             let mut elements = Vector::new();
             for element in list {
                 let result = mapper.apply(evaluator, vec![Rc::clone(element)], source)?;
-                elements.append(resolve_to_list(result, evaluator, source));
+                elements.append(resolve_to_list(result, evaluator, source)?);
             }
             Ok(Rc::new(Object::List(elements)))
         }
         (Object::Function(mapper), Object::LazySequence(sequence)) => {
             let shared_evaluator = Rc::new(RefCell::new(evaluator));
             let mut elements = Vector::new();
-            for element in sequence.resolve_iter(Rc::clone(&shared_evaluator), source) {
+            let mut iter = sequence.resolve_iter(Rc::clone(&shared_evaluator), source);
+            for element in &mut iter {
                 let result = mapper.apply(&mut shared_evaluator.borrow_mut(), vec![element], source)?;
-                elements.append(resolve_to_list(result, &mut shared_evaluator.borrow_mut(), source));
+                elements.append(resolve_to_list(result, &mut shared_evaluator.borrow_mut(), source)?);
+            }
+            if let Some(err) = iter.take_error() {
+                return Err(err);
             }
             Ok(Rc::new(Object::List(elements)))
         }
@@ -632,7 +636,18 @@ builtin! {
             Ok(Rc::new(Object::List(list.clone().into_iter().take(*total as usize).collect())))
         }
         (Object::Integer(total), Object::LazySequence(sequence)) => {
-            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).take(*total as usize).collect::<Vector<Rc<Object>>>())))
+            let mut iter = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source);
+            let mut result = Vector::new();
+            for _ in 0..*total {
+                match iter.next() {
+                    Some(item) => result.push_back(item),
+                    None => break,
+                }
+            }
+            if let Some(err) = iter.take_error() {
+                return Err(err);
+            }
+            Ok(Rc::new(Object::List(result)))
         }
     }
 }
@@ -650,7 +665,8 @@ builtin! {
             Ok(Rc::new(Object::List(map.clone().into_iter().map(to_pairs).collect::<Vector<Rc<Object>>>())))
         }
         Object::LazySequence(sequence) => {
-            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).collect::<Vector<Rc<Object>>>())))
+            let result = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).try_collect()?;
+            Ok(Rc::new(Object::List(result)))
         }
         Object::String(string) => {
             Ok(Rc::new(Object::List(string.graphemes(true).map(|grapheme| Rc::new(Object::String(grapheme.to_string()))).collect::<Vector<Rc<Object>>>())))
@@ -1498,7 +1514,8 @@ builtin! {
             Ok(Rc::new(Object::List(list.clone().into_iter().rev().collect())))
         }
         Object::LazySequence(sequence) => {
-            Ok(Rc::new(Object::List(sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).collect::<Vector<Rc<Object>>>().into_iter().rev().collect())))
+            let result = sequence.resolve_iter(Rc::new(RefCell::new(evaluator)), source).try_collect()?;
+            Ok(Rc::new(Object::List(result.into_iter().rev().collect())))
         }
         Object::String(string) => {
             Ok(Rc::new(Object::String(string.graphemes(true).rev().collect())))

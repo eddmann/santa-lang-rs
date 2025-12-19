@@ -174,6 +174,7 @@ impl LazySequence {
             zip_iterators: HashMap::new(),
             evaluator,
             source,
+            error: None,
         }
     }
 
@@ -263,9 +264,25 @@ pub struct LazySequenceIter<'a> {
     evaluator: Rc<RefCell<&'a mut Evaluator>>,
     zip_iterators: HashMap<usize, Vec<LazySequenceIter<'a>>>,
     source: Location,
+    error: Option<crate::evaluator::RuntimeErr>,
 }
 
 impl LazySequenceIter<'_> {
+    pub fn take_error(&mut self) -> Option<crate::evaluator::RuntimeErr> {
+        self.error.take()
+    }
+
+    pub fn try_collect(mut self) -> Result<Vector<Rc<Object>>, crate::evaluator::RuntimeErr> {
+        let mut result = Vector::new();
+        while let Some(item) = self.next() {
+            result.push_back(item);
+        }
+        if let Some(err) = self.error {
+            return Err(err);
+        }
+        Ok(result)
+    }
+
     fn next_value(&mut self) -> Option<Rc<Object>> {
         match self.value {
             LazyValue::InclusiveRange {
@@ -372,23 +389,40 @@ impl Iterator for LazySequenceIter<'_> {
             for function in self.functions.iter_mut() {
                 match function {
                     LazyFn::Map(mapper) => {
-                        next = mapper
+                        next = match mapper
                             .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
-                            .ok()?;
+                        {
+                            Ok(value) => value,
+                            Err(err) => {
+                                self.error = Some(err);
+                                return None;
+                            }
+                        };
                     }
                     LazyFn::Filter(predicate) => {
-                        if !predicate
+                        let result = match predicate
                             .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
-                            .ok()?
-                            .is_truthy()
                         {
+                            Ok(value) => value,
+                            Err(err) => {
+                                self.error = Some(err);
+                                return None;
+                            }
+                        };
+                        if !result.is_truthy() {
                             continue 'next;
                         }
                     }
                     LazyFn::FilterMap(mapper) => {
-                        next = mapper
+                        next = match mapper
                             .apply(&mut self.evaluator.borrow_mut(), vec![Rc::clone(&next)], self.source)
-                            .ok()?;
+                        {
+                            Ok(value) => value,
+                            Err(err) => {
+                                self.error = Some(err);
+                                return None;
+                            }
+                        };
                         if !next.is_truthy() {
                             continue 'next;
                         }
@@ -415,6 +449,7 @@ impl Iterator for LazySequenceIter<'_> {
                                         zip_iterators: HashMap::new(),
                                         evaluator: Rc::clone(&self.evaluator),
                                         source: self.source,
+                                        error: None,
                                     })
                                     .collect()
                             });
