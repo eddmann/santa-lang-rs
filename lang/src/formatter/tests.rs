@@ -73,16 +73,31 @@ fn format_string_two_newlines_still_escapes() {
 }
 
 #[test]
-fn format_string_three_newlines_preserves_literal() {
+fn format_string_three_newlines_short_escapes() {
+    // 3 newlines is NOT > 3, so escapes (protects patterns like "#\n#\n#\n#")
     let result = format("\"a\nb\nc\nd\"").unwrap();
-    assert!(result.contains('\n') && result.matches('\n').count() > 1);
+    assert_eq!(result, "\"a\\nb\\nc\\nd\"\n");
 }
 
 #[test]
-fn format_string_long_preserves_literal_newlines() {
+fn format_string_four_newlines_short_preserves_literal() {
+    // 4 newlines IS > 3, so preserves literal newlines even for short strings
+    let result = format("\"a\nb\nc\nd\ne\"").unwrap();
+    assert!(result.matches('\n').count() > 1);
+}
+
+#[test]
+fn format_string_long_few_newlines_preserves_literal() {
+    // >50 chars triggers literal newlines regardless of newline count
     let long_string = format!("\"{}\\n{}\"", "x".repeat(30), "y".repeat(25));
     let result = format(&long_string).unwrap();
-    assert!(result.contains('\n') && result.matches('\n').count() > 1);
+    assert!(result.matches('\n').count() > 1);
+}
+
+#[test]
+fn format_string_short_few_newlines_escapes() {
+    // <50 chars AND <=3 newlines should escape
+    assert_eq!(format("\"hello\\nworld\"").unwrap(), "\"hello\\nworld\"\n");
 }
 
 #[test]
@@ -183,6 +198,30 @@ fn format_prefix_bang_removes_space() {
 #[test]
 fn format_prefix_minus() {
     assert_eq!(format("-42").unwrap(), "-42\n");
+}
+
+#[test]
+fn format_prefix_minus_with_infix_preserves_parens() {
+    // Critical: -(a + b) must NOT become -a + b (different semantics)
+    assert_eq!(format("-(a + b)").unwrap(), "-(a + b)\n");
+}
+
+#[test]
+fn format_prefix_minus_without_parens_stays_flat() {
+    // -a + b should stay as -a + b (no unnecessary parens added)
+    assert_eq!(format("-a + b").unwrap(), "-a + b\n");
+}
+
+#[test]
+fn format_prefix_bang_with_infix_preserves_parens() {
+    // !(a && b) must preserve parens
+    assert_eq!(format("!(a && b)").unwrap(), "!(a && b)\n");
+}
+
+#[test]
+fn format_prefix_with_function_thread_preserves_parens() {
+    // -(a |> b) must preserve parens
+    assert_eq!(format("-(a |> b)").unwrap(), "-(a |> b)\n");
 }
 
 #[test]
@@ -878,13 +917,16 @@ fn format_preserves_parens_for_modulo_right_associativity() {
 }
 
 #[test]
-fn format_removes_unnecessary_parens_for_addition() {
-    assert_eq!(format("a + (b + c)").unwrap(), "a + b + c\n");
+fn format_preserves_parens_for_addition_right_associativity() {
+    // Parens must be preserved because `a + (b + c)` has different semantics
+    // than `(a + b) + c` when string concatenation is involved
+    assert_eq!(format("a + (b + c)").unwrap(), "a + (b + c)\n");
 }
 
 #[test]
-fn format_removes_unnecessary_parens_for_multiplication() {
-    assert_eq!(format("a * (b * c)").unwrap(), "a * b * c\n");
+fn format_preserves_parens_for_multiplication_right_associativity() {
+    // Preserve original grouping for consistency with addition
+    assert_eq!(format("a * (b * c)").unwrap(), "a * (b * c)\n");
 }
 
 #[test]

@@ -324,7 +324,7 @@ fn build_index(left: &Expression, index: &Expression) -> Doc {
 fn build_infix_expr(operator: &Infix, left: &Expression, right: &Expression) -> Doc {
     let op_prec = infix_precedence(operator);
     let left_doc = build_left_expr_with_parens(left, op_prec);
-    let right_doc = build_right_expr_with_parens(right, op_prec, operator);
+    let right_doc = build_right_expr_with_parens(right, op_prec);
 
     Doc::group(Doc::concat(vec![
         left_doc,
@@ -372,7 +372,18 @@ fn build_dictionary_pattern(elements: &[Expression]) -> Doc {
 }
 
 fn build_prefix_expr(operator: &Prefix, right: &Expression) -> Doc {
-    Doc::concat(vec![build_prefix(operator), build_expression(right)])
+    let right_doc = build_expression(right);
+    let needs_parens = matches!(
+        right.kind,
+        ExpressionKind::Infix { .. }
+            | ExpressionKind::FunctionThread { .. }
+            | ExpressionKind::FunctionComposition(_)
+    );
+    if needs_parens {
+        Doc::concat(vec![build_prefix(operator), Doc::text("("), right_doc, Doc::text(")")])
+    } else {
+        Doc::concat(vec![build_prefix(operator), right_doc])
+    }
 }
 
 fn build_range(from: &Expression, to: &Expression, op: &str) -> Doc {
@@ -695,26 +706,14 @@ fn build_prefix(op: &Prefix) -> Doc {
     }
 }
 
-fn build_right_expr_with_parens(expr: &Expression, parent_prec: Precedence, parent_op: &Infix) -> Doc {
+fn build_right_expr_with_parens(expr: &Expression, parent_prec: Precedence) -> Doc {
     let expr_prec = expression_precedence(expr);
     let doc = build_expression(expr);
 
-    let needs_parens = if expr_prec == Precedence::Lowest {
-        false
-    } else if expr_prec < parent_prec {
-        true
-    } else if expr_prec == parent_prec {
-        // Non-commutative ops or different ops at same precedence (left-associative)
-        if matches!(parent_op, Infix::Minus | Infix::Slash | Infix::Modulo) {
-            true
-        } else if let Some(child_op) = expression_operator(expr) {
-            std::mem::discriminant(parent_op) != std::mem::discriminant(child_op)
-        } else {
-            false
-        }
-    } else {
-        false
-    };
+    // For left-associative operators, any same-precedence expression on the right
+    // needs parentheses to preserve the original grouping.
+    // E.g., `a + (b + c)` must keep parens, otherwise it becomes `(a + b) + c`
+    let needs_parens = expr_prec != Precedence::Lowest && expr_prec <= parent_prec;
 
     if needs_parens {
         Doc::concat(vec![Doc::text("("), doc, Doc::text(")")])
@@ -743,13 +742,6 @@ fn expression_precedence(expr: &Expression) -> Precedence {
         | ExpressionKind::ExclusiveRange { .. }
         | ExpressionKind::UnboundedRange { .. } => Precedence::Composition,
         _ => Precedence::Lowest,
-    }
-}
-
-fn expression_operator(expr: &Expression) -> Option<&Infix> {
-    match &expr.kind {
-        ExpressionKind::Infix { operator, .. } => Some(operator),
-        _ => None,
     }
 }
 
@@ -834,7 +826,7 @@ fn is_multiline_expression(expr: &Expression) -> bool {
 
 fn escape_string(s: &str) -> String {
     let newline_count = s.chars().filter(|&c| c == '\n').count();
-    let is_multiline_content = newline_count > 2 || s.len() > 50;
+    let is_multiline_content = newline_count > 3 || s.len() > 50;
 
     let mut result = String::with_capacity(s.len());
     for c in s.chars() {
