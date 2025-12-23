@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-santa-lang-rs is a Rust implementation of santa-lang, a functional, C-like programming language specifically designed for solving Advent of Code puzzles. This repository includes a complete language implementation (lexer, parser, tree-walking evaluator) and multiple runtime targets.
+santa-lang-comet is a Rust implementation of santa-lang, a functional, C-like programming language specifically designed for solving Advent of Code puzzles. This repository includes a complete language implementation (lexer, parser, tree-walking evaluator) and multiple runtime targets.
 
 Related repositories:
 - [eddmann/santa-lang](https://github.com/eddmann/santa-lang) - Language specification/documentation
-- [eddmann/santa-lang-ts](https://github.com/eddmann/santa-lang-ts) - TypeScript implementation
+- [eddmann/santa-lang-prancer](https://github.com/eddmann/santa-lang-prancer) - TypeScript implementation
 - [eddmann/santa-lang-editor](https://github.com/eddmann/santa-lang-editor) - Web-based editor
 
 Documentation: https://eddmann.com/santa-lang/

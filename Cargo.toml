@@ -6,7 +6,7 @@ resolver = "2"
 [workspace.package]
 version = "0.0.1"
 authors = ["Edd Mann <the@eddmann.com>"]
-documentation = "https://eddmann.com/santa-lang-rs/"
+documentation = "https://eddmann.com/santa-lang/"
 
 [profile.release]
 strip = true

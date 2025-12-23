@@ -43,7 +43,7 @@ jobs:
         run: |
           npm pkg set 'name'='@eddmann/santa-lang-wasm'
           npm pkg set 'version'='${{ inputs.release-tag }}'
-          npm pkg set 'repository'='https://github.com/eddmann/santa-lang-rs'
+          npm pkg set 'repository'='https://github.com/eddmann/santa-lang-comet'
           npm pkg set 'publishConfig.registry'='https://npm.pkg.github.com'
           wasm-pack pack
       - name: Upload

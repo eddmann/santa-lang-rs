@@ -249,7 +249,7 @@ php-ext/test: ## Test PHP extension
 jupyter/build: ## Build Jupyter kernel Docker image
 	docker build \
 		-f runtime/jupyter/build.Dockerfile \
-		--label "org.opencontainers.image.source=https://github.com/eddmann/santa-lang-rs" \
+		--label "org.opencontainers.image.source=https://github.com/eddmann/santa-lang-comet" \
 		-t ghcr.io/eddmann/santa-lang-jupyter:latest .
 
 .PHONY: jupyter/run

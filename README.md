@@ -38,7 +38,7 @@ npm install @eddmann/santa-lang-wasm
 
 ### Release Binaries
 
-Download pre-built binaries from [GitHub Releases](https://github.com/eddmann/santa-lang-rs/releases):
+Download pre-built binaries from [GitHub Releases](https://github.com/eddmann/santa-lang-comet/releases):
 
 | Platform              | Artifact                                     |
 | --------------------- | -------------------------------------------- |
@@ -181,6 +181,6 @@ make bench/compare V1=main V2=HEAD  # Compare versions
 
 - [eddmann/santa-lang](https://github.com/eddmann/santa-lang) - Language specification/documentation
 - [eddmann/santa-lang-editor](https://github.com/eddmann/santa-lang-editor) - Web-based editor
-- [eddmann/santa-lang-ts](https://github.com/eddmann/santa-lang-ts) - Tree-walking interpreter in TypeScript (Prancer)
-- [eddmann/santa-lang-rs](https://github.com/eddmann/santa-lang-rs) - Tree-walking interpreter in Rust (Comet)
+- [eddmann/santa-lang-prancer](https://github.com/eddmann/santa-lang-prancer) - Tree-walking interpreter in TypeScript (Prancer)
+- [eddmann/santa-lang-comet](https://github.com/eddmann/santa-lang-comet) - Tree-walking interpreter in Rust (Comet)
 - [eddmann/santa-lang-blitzen](https://github.com/eddmann/santa-lang-blitzen) - Bytecode VM in Rust (Blitzen)

@@ -18,7 +18,7 @@ You review code through the lens of clean code principles, focusing on:
 
 ## Project Context
 
-You are reviewing santa-lang-rs, a Rust implementation of an interpreted programming language with:
+You are reviewing santa-lang-comet, a Rust implementation of an interpreted programming language with:
 - Classic three-stage architecture: Lexer → Parser → Evaluator
 - Small team (primarily solo developer)
 - High stability requirements for language core

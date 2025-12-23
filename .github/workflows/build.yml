@@ -28,34 +28,34 @@ jobs:
   cli:
     needs: update-draft-release
     name: Build CLI
-    uses: eddmann/santa-lang-rs/.github/workflows/build-cli.yml@draft-release
+    uses: eddmann/santa-lang-comet/.github/workflows/build-cli.yml@draft-release
     with:
       release-tag: ${{ needs.update-draft-release.outputs.tag_name }}
 
   lambda:
     needs: update-draft-release
     name: Build Lambda
-    uses: eddmann/santa-lang-rs/.github/workflows/build-lambda.yml@draft-release
+    uses: eddmann/santa-lang-comet/.github/workflows/build-lambda.yml@draft-release
     with:
       release-tag: ${{ needs.update-draft-release.outputs.tag_name }}
 
   wasm:
     needs: update-draft-release
     name: Build WebAssembly
-    uses: eddmann/santa-lang-rs/.github/workflows/build-wasm.yml@draft-release
+    uses: eddmann/santa-lang-comet/.github/workflows/build-wasm.yml@draft-release
     with:
       release-tag: ${{ needs.update-draft-release.outputs.tag_name }}
 
   php-ext:
     needs: update-draft-release
     name: Build PHP extension
-    uses: eddmann/santa-lang-rs/.github/workflows/build-php-ext.yml@draft-release
+    uses: eddmann/santa-lang-comet/.github/workflows/build-php-ext.yml@draft-release
     with:
       release-tag: ${{ needs.update-draft-release.outputs.tag_name }}
 
   jupyter:
     needs: update-draft-release
     name: Build Jupyter Kernel
-    uses: eddmann/santa-lang-rs/.github/workflows/build-jupyter.yml@draft-release
+    uses: eddmann/santa-lang-comet/.github/workflows/build-jupyter.yml@draft-release
     with:
       release-tag: ${{ needs.update-draft-release.outputs.tag_name }}
