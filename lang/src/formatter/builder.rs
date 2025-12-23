@@ -470,11 +470,21 @@ fn build_chain(initial: &Expression, functions: &[Expression], op: &str) -> Doc 
 
     let chain: Vec<Doc> = functions
         .iter()
-        .map(|f| {
+        .enumerate()
+        .map(|(i, f)| {
+            let is_last = i == functions.len() - 1;
+            // Lambdas that aren't the last element need block braces to prevent
+            // the next pipe from being parsed as part of the lambda body
+            let f_doc = match &f.kind {
+                ExpressionKind::Function { parameters, body } if !is_last => {
+                    build_lambda_with_block(parameters, body)
+                }
+                _ => build_expression(f),
+            };
             Doc::concat(vec![
                 if force_break { Doc::HardLine } else { Doc::line() },
                 Doc::text(format!("{} ", op)),
-                build_expression(f),
+                f_doc,
             ])
         })
         .collect();

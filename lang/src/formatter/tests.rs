@@ -1204,3 +1204,18 @@ fn round_trip_dictionary_parameter() {
 fn round_trip_match_dictionary() {
     assert_round_trip("match d { #{name} { name } }");
 }
+
+#[test]
+fn format_lambda_in_pipe_chain_keeps_braces() {
+    let input = "a |> |x| { x } |> f";
+    let result = format(input).unwrap();
+    assert_eq!(result, "a\n  |> |x| {\n    x\n  }\n  |> f\n");
+    assert_eq!(format(&result).unwrap(), result);
+}
+
+#[test]
+fn format_lambda_last_in_pipe_chain_can_inline() {
+    let input = "a |> |x| x";
+    let result = format(input).unwrap();
+    assert_eq!(result, "a |> |x| x\n");
+}
