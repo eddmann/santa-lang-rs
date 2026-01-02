@@ -29,10 +29,3 @@ test_eval! {
     ("id(\"\")", "\"\"", string)
 }
 
-test_eval! {
-    suite evaluate;
-
-    ("evaluate(\"\")", "nil", empty_source),
-    ("evaluate(\"[1, 2, 3]\")", "[1, 2, 3]", collection),
-    ("evaluate(\"[1, 2, 3] |> map(_ + 1)\")", "[2, 3, 4]", expression)
-}

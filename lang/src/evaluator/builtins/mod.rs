@@ -73,8 +73,7 @@ builtins! {
     string::join,
     miscellaneous::range,
     miscellaneous::id,
-    miscellaneous::memoize,
-    miscellaneous::evaluate
+    miscellaneous::memoize
 }
 
 builtin_aliases! {
