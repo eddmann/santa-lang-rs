@@ -20,7 +20,6 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
-    let program = args[0].clone();
 
     let mut opts = Options::new();
     opts.optopt("e", "eval", "evaluate inline script", "SCRIPT");
@@ -38,7 +37,7 @@ fn main() -> Result<()> {
     let matches = opts.parse(&args[1..])?;
 
     if matches.opt_present("h") {
-        print_usage(&program, opts);
+        print_help();
         return Ok(());
     }
 
@@ -76,7 +75,7 @@ fn main() -> Result<()> {
         std::io::stdin().read_to_string(&mut source)?;
         (source, None)
     } else {
-        print_usage(&program, opts);
+        print_help();
         std::process::exit(1);
     };
 
@@ -140,9 +139,37 @@ impl Time for CliTime {
     }
 }
 
-fn print_usage(program: &str, opts: Options) {
-    let summary = format!("Usage: {program} [options] <SCRIPT>");
-    print!("{}", opts.usage(&summary));
+fn print_help() {
+    println!(
+        "santa-lang CLI - Comet
+
+USAGE:
+    santa-cli <SCRIPT>             Run solution file
+    santa-cli -e <CODE>            Evaluate inline script
+    santa-cli -t <SCRIPT>          Run test suite
+    santa-cli -t -s <SCRIPT>       Run test suite including @slow tests
+    santa-cli -r                   Start REPL
+    santa-cli -h                   Show this help
+    cat file | santa-cli           Read script from stdin
+
+OPTIONS:
+    -e, --eval <CODE>              Evaluate inline script
+    -t, --test                     Run the solution's test suite
+    -s, --slow                     Include @slow tests (use with -t)
+    -r, --repl                     Begin an interactive REPL session
+    -f, --fmt                      Format source code to stdout
+        --fmt-write                Format source code in place
+        --fmt-check                Check if source is formatted (exit 1 if not)"
+    );
+    #[cfg(feature = "profile")]
+    println!("    -p, --profile                  Enable CPU profiling");
+    println!(
+        "    -h, --help                     Show this help message
+    -v, --version                  Display version information
+
+ENVIRONMENT:
+    SANTA_CLI_SESSION_TOKEN        AOC session token for aoc:// URLs"
+    );
 }
 
 fn repl() -> Result<()> {
