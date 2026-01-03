@@ -141,34 +141,32 @@ impl Time for CliTime {
 
 fn print_help() {
     println!(
-        "santa-lang CLI - Comet
+        "santa-lang CLI - Comet {}
 
 USAGE:
-    santa-cli <SCRIPT>             Run solution file
-    santa-cli -e <CODE>            Evaluate inline script
-    santa-cli -t <SCRIPT>          Run test suite
-    santa-cli -t -s <SCRIPT>       Run test suite including @slow tests
-    santa-cli -r                   Start REPL
-    santa-cli -h                   Show this help
-    cat file | santa-cli           Read script from stdin
+    santa-cli <SCRIPT>              Run solution file
+    santa-cli -e <CODE>             Evaluate inline script
+    santa-cli -t <SCRIPT>           Run test suite
+    santa-cli -t -s <SCRIPT>        Run tests including @slow
+    santa-cli -r                    Start REPL
+    santa-cli -h                    Show this help
+    cat file | santa-cli            Read from stdin
 
 OPTIONS:
-    -e, --eval <CODE>              Evaluate inline script
-    -t, --test                     Run the solution's test suite
-    -s, --slow                     Include @slow tests (use with -t)
-    -r, --repl                     Begin an interactive REPL session
-    -f, --fmt                      Format source code to stdout
-        --fmt-write                Format source code in place
-        --fmt-check                Check if source is formatted (exit 1 if not)"
-    );
-    #[cfg(feature = "profile")]
-    println!("    -p, --profile                  Enable CPU profiling");
-    println!(
-        "    -h, --help                     Show this help message
-    -v, --version                  Display version information
+    -e, --eval <CODE>    Evaluate inline script
+    -t, --test           Run the solution's test suite
+    -s, --slow           Include @slow tests (use with -t)
+    -r, --repl           Start interactive REPL
+    -f, --fmt            Format source and print to stdout
+    --fmt-write          Format source and write in place
+    --fmt-check          Check if source is formatted
+    -p, --profile        Enable CPU profiling
+    -h, --help           Show this help message
+    -v, --version        Display version information
 
 ENVIRONMENT:
-    SANTA_CLI_SESSION_TOKEN        AOC session token for aoc:// URLs"
+    SANTA_CLI_SESSION_TOKEN    AOC session token for aoc:// URLs",
+        env!("CARGO_PKG_VERSION")
     );
 }
 
@@ -426,5 +424,6 @@ fn calculate_line_column(source: &str, location: Location) -> (usize, usize) {
         }
     }
 
-    unreachable!()
+    // Location is at or beyond end of source (e.g., EOF error)
+    (line, column)
 }
